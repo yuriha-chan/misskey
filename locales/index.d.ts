@@ -648,6 +648,7 @@ export interface Locale {
     "sample": string;
     "abuseReports": string;
     "contactAdmin": string;
+    "contactAdminReason": string;
     "reportOf": string;
     "reportAbuse": string;
     "reportAbuseSpam": string;

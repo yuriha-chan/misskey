@@ -72,7 +72,7 @@ export function getUserMenu(user: misskey.entities.UserDetailed, router: Router 
 		});
 	}
 
-	function reportAbuse() {
+	function contactAdmin() {
 		os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
 			user: user,
 		}, {}, 'closed');
@@ -235,8 +235,8 @@ export function getUserMenu(user: misskey.entities.UserDetailed, router: Router 
 
 		menu = menu.concat([null, {
 			icon: 'ti ti-exclamation-circle',
-			text: i18n.ts.reportAbuse,
-			action: reportAbuse,
+			text: i18n.ts.contactAdmin,
+			action: contactAdmin,
 		}]);
 	}
 

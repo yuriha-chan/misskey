@@ -2,14 +2,11 @@
 <MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="500" :canResize="true" @closed="emit('closed')">
 	<template #header>
 		<i class="ti ti-exclamation-circle" style="margin-right: 0.5em;"></i>
-		<I18n :src="i18n.ts.reportOf" tag="span">
-			<template #name>
-				<b><MkAcct :user="user"/></b>
-			</template>
-		</I18n>
+		<span>{{ i18n.ts.contactAdmin }}</span>
 	</template>
 	<MkSpacer :marginMin="20" :marginMax="28">
 		<div class="_gaps_m" :class="$style.root">
+			{{ i18n.ts.contactAdminReason }}
 	                <MkSelect v-model="reason" large>
 			    <optgroup :label="i18n.ts.reportAbuse">
 			    	<option key="spam">{{ i18n.ts.reportAbuseSpam }}</option>
@@ -43,6 +40,7 @@
 <script setup lang="ts">
 import { ref, shallowRef } from 'vue';
 import * as Misskey from 'misskey-js';
+import MkSelect from '@/components/MkSelect.vue';
 import MkWindow from '@/components/MkWindow.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
 import MkButton from '@/components/MkButton.vue';
