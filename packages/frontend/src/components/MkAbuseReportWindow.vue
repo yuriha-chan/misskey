@@ -6,23 +6,25 @@
 	</template>
 	<MkSpacer :marginMin="20" :marginMax="28">
 		<div class="_gaps_m" :class="$style.root">
-			{{ i18n.ts.contactAdminReason }}
 	                <MkSelect v-model="reason" large>
-			    <optgroup :label="i18n.ts.reportAbuse">
-			    	<option key="spam">{{ i18n.ts.reportAbuseSpam }}</option>
-			    	<option key="privacy">{{ i18n.ts.reportAbusePrivacy }}</option>
-			    	<option key="attack">{{ i18n.ts.reportAbuseAttack }}</option>
-			    	<option key="obscene">{{ i18n.ts.reportAbuseUntaggedObscene }}</option>
-			    	<option key="otherabuse">{{ i18n.ts.reportAbuseOther }}</option>
-			    </optgroup>
-			    <optgroup :label="i18n.ts.reportHelp">
-			    	<option key="technical">{{ i18n.ts.reportHelpTechnical }}</option>
-			    	<option key="otherhelp">{{ i18n.ts.reportHelpOther }}</option>
-			    </optgroup>
-			    <optgroup :label="i18n.ts.reportGood">
-			    	<option key="ethical">{{ i18n.ts.reportGoodEthical }}</option>
-			    </optgroup>
-			</Mkselect>
+				<template #label>{{ i18n.ts.contactAdminReason }}</template>
+				<optgroup :label="i18n.ts.reportAbuse">
+					<option key="abuse:spam" value="spam">{{ i18n.ts.reportAbuseSpam }}</option>
+					<option key="abuse:privacy" value="privacy">{{ i18n.ts.reportAbusePrivacy }}</option>
+					<option key="abuse:attack" value="attack">{{ i18n.ts.reportAbuseAttack }}</option>
+					<option key="abuse:obscene" value="obscene">{{ i18n.ts.reportAbuseUntaggedObscene }}</option>
+					<option key="abuse:otherabuse" value="otherabuse">{{ i18n.ts.reportAbuseOther }}</option>
+				</optgroup>
+				<optgroup :label="i18n.ts.reportHelp">
+					<option key="help:technical" value="technical">{{ i18n.ts.reportHelpTechnical }}</option>
+					<option key="help:mental" value="mental">{{ i18n.ts.reportHelpMental }}</option>
+					<option key="help:falsepositive" value="falsepositive">{{ i18n.ts.reportHelpFalsePositive }}</option>
+					<option key="help:otherhelp" value="otherhelp">{{ i18n.ts.reportHelpOther }}</option>
+				</optgroup>
+				<optgroup :label="i18n.ts.reportGood">
+					<option key="good:ethical" value="ethical">{{ i18n.ts.reportGoodEthical }}</option>
+				</optgroup>
+			</MkSelect>
 			<div class="">
 				<MkTextarea v-model="comment">
 					<template #label>{{ i18n.ts.details }}</template>
@@ -64,6 +66,7 @@ function send() {
 	os.apiWithDialog('users/report-abuse', {
 		userId: props.user.id,
 		comment: comment.value,
+		reason: reason.value,
 	}, undefined).then(res => {
 		os.alert({
 			type: 'success',
