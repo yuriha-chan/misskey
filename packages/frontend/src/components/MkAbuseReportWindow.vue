@@ -2,7 +2,7 @@
 <MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="500" :canResize="true" @closed="emit('closed')">
 	<template #header>
 		<i class="ti ti-exclamation-circle" style="margin-right: 0.5em;"></i>
-		<I18n :src="i18n.ts.reportAbuseOf" tag="span">
+		<I18n :src="i18n.ts.reportOf" tag="span">
 			<template #name>
 				<b><MkAcct :user="user"/></b>
 			</template>
@@ -10,10 +10,26 @@
 	</template>
 	<MkSpacer :marginMin="20" :marginMax="28">
 		<div class="_gaps_m" :class="$style.root">
+	                <MkSelect v-model="reason" large>
+			    <optgroup :label="i18n.ts.reportAbuse">
+			    	<option key="spam">{{ i18n.ts.reportAbuseSpam }}</option>
+			    	<option key="privacy">{{ i18n.ts.reportAbusePrivacy }}</option>
+			    	<option key="attack">{{ i18n.ts.reportAbuseAttack }}</option>
+			    	<option key="obscene">{{ i18n.ts.reportAbuseUntaggedObscene }}</option>
+			    	<option key="otherabuse">{{ i18n.ts.reportAbuseOther }}</option>
+			    </optgroup>
+			    <optgroup :label="i18n.ts.reportHelp">
+			    	<option key="technical">{{ i18n.ts.reportHelpTechnical }}</option>
+			    	<option key="otherhelp">{{ i18n.ts.reportHelpOther }}</option>
+			    </optgroup>
+			    <optgroup :label="i18n.ts.reportGood">
+			    	<option key="ethical">{{ i18n.ts.reportGoodEthical }}</option>
+			    </optgroup>
+			</Mkselect>
 			<div class="">
 				<MkTextarea v-model="comment">
 					<template #label>{{ i18n.ts.details }}</template>
-					<template #caption>{{ i18n.ts.fillAbuseReportDescription }}</template>
+					<template #caption>{{ i18n.ts.fillReportDescription }}</template>
 				</MkTextarea>
 			</div>
 			<div class="">
@@ -44,6 +60,7 @@ const emit = defineEmits<{
 
 const uiWindow = shallowRef<InstanceType<typeof MkWindow>>();
 const comment = ref(props.initialComment ?? '');
+const reason = ref();
 
 function send() {
 	os.apiWithDialog('users/report-abuse', {
@@ -52,7 +69,7 @@ function send() {
 	}, undefined).then(res => {
 		os.alert({
 			type: 'success',
-			text: i18n.ts.abuseReported,
+			text: i18n.ts.reportCompleted,
 		});
 		uiWindow.value?.close();
 		emit('closed');
