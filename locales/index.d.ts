@@ -653,11 +653,13 @@ export interface Locale {
     "reportAbuse": string;
     "reportAbuseSpam": string;
     "reportAbusePrivacy": string;
-    "reportAbusePersonalAttack": string;
+    "reportAbuseAttack": string;
     "reportAbuseUntaggedObscene": string;
     "reportAbuseOther": string;
     "reportHelp": string;
     "reportHelpTechnical": string;
+    "reportHelpMental": string;
+    "reportHelpFalsePositive": string;
     "reportHelpOther": string;
     "reportGood": string;
     "reportGoodEthical": string;
