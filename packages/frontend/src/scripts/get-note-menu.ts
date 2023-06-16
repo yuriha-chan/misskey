@@ -332,11 +332,10 @@ export function getNoteMenu(props: {
 			}]
 			: []
 		),*/
-			...(appearNote.userId !== $i.id ? [
-				null,
-				{
+			null,
+			{
 					icon: 'ti ti-exclamation-circle',
-					text: i18n.ts.reportAbuse,
+					text: i18n.ts.contactAdmin,
 					action: () => {
 						const u = appearNote.url ?? appearNote.uri ?? `${url}/notes/${appearNote.id}`;
 						os.popup(defineAsyncComponent(() => import('@/components/MkAbuseReportWindow.vue')), {
@@ -344,9 +343,7 @@ export function getNoteMenu(props: {
 							initialComment: `Note: ${u}\n-----\n`,
 						}, {}, 'closed');
 					},
-				}]
-			: []
-			),
+			},
 			...(appearNote.userId === $i.id || $i.isModerator || $i.isAdmin ? [
 				null,
 				appearNote.userId === $i.id ? {
