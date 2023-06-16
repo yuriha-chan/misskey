@@ -8,21 +8,21 @@
 		<div class="_gaps_m" :class="$style.root">
 	                <MkSelect v-model="reason" large>
 				<template #label>{{ i18n.ts.contactAdminReason }}</template>
-				<optgroup :label="i18n.ts.reportAbuse">
-					<option key="abuse:spam" value="spam">{{ i18n.ts.reportAbuseSpam }}</option>
-					<option key="abuse:privacy" value="privacy">{{ i18n.ts.reportAbusePrivacy }}</option>
-					<option key="abuse:attack" value="attack">{{ i18n.ts.reportAbuseAttack }}</option>
-					<option key="abuse:obscene" value="obscene">{{ i18n.ts.reportAbuseUntaggedObscene }}</option>
-					<option key="abuse:otherabuse" value="otherabuse">{{ i18n.ts.reportAbuseOther }}</option>
+				<optgroup :label="i18n.ts._contactAdminReason.abuse">
+					<option key="abuse:spam" value="spam">{{ i18n.ts._contactAdminReason.spam }}</option>
+					<option key="abuse:privacy" value="privacy">{{ i18n.ts._contactAdminReason.privacy }}</option>
+					<option key="abuse:attack" value="attack">{{ i18n.ts._contactAdminReason.attack }}</option>
+					<option key="abuse:obscene" value="obscene">{{ i18n.ts._contactAdminReason.obscene }}</option>
+					<option key="abuse:abuseOther" value="abuseOther">{{ i18n.ts._contactAdminReason.abuseOther }}</option>
 				</optgroup>
-				<optgroup :label="i18n.ts.reportHelp">
-					<option key="help:technical" value="technical">{{ i18n.ts.reportHelpTechnical }}</option>
-					<option key="help:mental" value="mental">{{ i18n.ts.reportHelpMental }}</option>
-					<option key="help:falsepositive" value="falsepositive">{{ i18n.ts.reportHelpFalsePositive }}</option>
-					<option key="help:otherhelp" value="otherhelp">{{ i18n.ts.reportHelpOther }}</option>
+				<optgroup :label="i18n.ts._contactAdminReason.help">
+					<option key="help:technical" value="technical">{{ i18n.ts._contactAdminReason.technical }}</option>
+					<option key="help:mental" value="mental">{{ i18n.ts._contactAdminReason.mental }}</option>
+					<option key="help:falsePositive" value="falsePositive">{{ i18n.ts._contactAdminReason.falsePositive }}</option>
+					<option key="help:helpOther" value="helpOther">{{ i18n.ts._contactAdminReason.helpOther }}</option>
 				</optgroup>
-				<optgroup :label="i18n.ts.reportGood">
-					<option key="good:ethical" value="ethical">{{ i18n.ts.reportGoodEthical }}</option>
+				<optgroup :label="i18n.ts._contactAdminReason.good">
+					<option key="good:ethical" value="ethical">{{ i18n.ts._contactAdminReason.ethical }}</option>
 				</optgroup>
 			</MkSelect>
 			<div class="">

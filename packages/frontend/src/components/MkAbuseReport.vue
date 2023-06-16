@@ -14,6 +14,9 @@
 		</MkKeyValue>
 	</div>
 	<div class="detail">
+		<div :class="['reason', report.reason]">
+			{{ i18n.ts._contactAdminReason[report.reason] }}
+		</div>
 		<div>
 			<Mfm :text="report.comment"/>
 		</div>
@@ -104,6 +107,15 @@ function resolve() {
 	> .detail {
 		flex: 1;
 		padding: 24px;
+
+		> .reason.spam, > .reason.privacy, > .reason.attack, > .reason.abuseOther {
+			background: var(--infoWarnBg);
+			color: var(--infoWarnFg);
+		}
+		> .reason.technical, > .reason.mental, > .reason.helpOther {
+			background: var(--infoBg);
+			color: var(--infoFg);
+		}
 	}
 }
 </style>

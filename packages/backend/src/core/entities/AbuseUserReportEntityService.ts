@@ -26,6 +26,7 @@ export class AbuseUserReportEntityService {
 			id: report.id,
 			createdAt: report.createdAt.toISOString(),
 			comment: report.comment,
+			reason: report.reason,
 			resolved: report.resolved,
 			reporterId: report.reporterId,
 			targetUserId: report.targetUserId,

@@ -132,7 +132,7 @@ const menuDef = $computed(() => [{
 		active: currentPage?.route.name === 'ads',
 	}, {
 		icon: 'ti ti-exclamation-circle',
-		text: i18n.ts.abuseReports,
+		text: i18n.ts.reviewReports,
 		to: '/admin/abuses',
 		active: currentPage?.route.name === 'abuses',
 	}],
