@@ -61,6 +61,13 @@ export class AbuseUserReport {
 	})
 	public comment: string;
 
+	@Index()
+	@Column('varchar', {
+		length: 128,
+		default: 'abuseOther',
+	})
+	public reason: string;
+
 	//#region Denormalized fields
 	@Index()
 	@Column('varchar', {

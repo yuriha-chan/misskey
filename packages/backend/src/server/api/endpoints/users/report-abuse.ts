@@ -69,6 +69,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				reporterId: me.id,
 				reporterHost: null,
 				comment: ps.comment,
+				reason: ps.reason,
 			}).then(x => this.abuseUserReportsRepository.findOneByOrFail(x.identifiers[0]));
 
 			// Publish event to moderators
@@ -81,6 +82,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 						targetUserId: report.targetUserId,
 						reporterId: report.reporterId,
 						comment: report.comment,
+						reason: report.reason,
 					});
 				}
 

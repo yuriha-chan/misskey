@@ -33,6 +33,10 @@ export const meta = {
 					type: 'string',
 					nullable: false, optional: false,
 				},
+				reason: {
+					type: 'string',
+					nullable: false, optional: false,
+				},
 				resolved: {
 					type: 'boolean',
 					nullable: false, optional: false,
