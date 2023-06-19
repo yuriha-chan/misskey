@@ -40,6 +40,7 @@ defineProps<{
 	margin: 0 0 0.5em 0;
 	border-left: 3px solid var(--accentLighten);
 	padding: 0.05em 0.5em 0.15em;
+	border-bottom: 1px dashed;
 }
 
 .h4 {

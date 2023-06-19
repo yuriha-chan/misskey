@@ -10,8 +10,8 @@
 					<h1>{{ page.title }}</h1>
 				</div>
 				-->
-					<div class="banner">
-						<img v-if="page.eyeCatchingImageId" :src="page.eyeCatchingImage.url"/>
+					<div v-if="page.eyeCatchingImageId" class="banner">
+						<img :src="page.eyeCatchingImage.url"/>
 					</div>
 					<div class="content">
 						<XPage :page="page"/>
@@ -188,7 +188,7 @@ definePageMetadata(computed(() => page ? {
 
 .xcukqgmh {
 	> .main {
-		padding: 16px;
+		padding: 0 16px 0;
 
 		> .header {
 			padding: 16px;
