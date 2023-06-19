@@ -2,7 +2,7 @@
 <section :class="$style.section">
 	<component
 		:is="'h' + h"
-		:class=" h === 2 ? $style.h2 : h === 3 ? $style.h3 : h === 4 ? $style.h4 ? '' "
+		:class=" h === 2 ? $style.h2 : h === 3 ? $style.h3 : h === 4 ? $style.h4 : '' "
 	>
 		{{ block.title }}
 	</component>
