@@ -688,7 +688,7 @@ function showReactions(): void {
 
 .contentCollapsed {
 	position: relative;
-	max-height: 9em;
+	max-height: 30em;
 	overflow: clip;
 }
 
@@ -699,7 +699,7 @@ function showReactions(): void {
 	left: 0;
 	z-index: 2;
 	width: 100%;
-	max-height: 500px;
+	height: 64px;
 	background: linear-gradient(0deg, var(--panel), var(--X15));
 
 	&:hover > .collapsedLabel {
