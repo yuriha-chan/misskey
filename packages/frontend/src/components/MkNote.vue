@@ -205,13 +205,10 @@ const isMyRenote = $i && ($i.id === note.userId);
 const showContent = ref(false);
 const urls = appearNote.text ? extractUrlFromMfm(mfm.parse(appearNote.text)) : null;
 const isLong = (appearNote.cw == null && appearNote.text != null && (
-	(appearNote.text.includes('$[x2')) ||
 	(appearNote.text.includes('$[x3')) ||
 	(appearNote.text.includes('$[x4')) ||
-	(appearNote.text.includes('$[scale')) ||
-	(appearNote.text.includes('$[position')) ||
-	(appearNote.text.split('\n').length > 9) ||
-	(appearNote.text.length > 500) ||
+	(appearNote.text.split('\n').length > 40) ||
+	(appearNote.text.length > 1600) ||
 	(appearNote.files.length >= 5) ||
 	(urls && urls.length >= 4)
 ));
@@ -702,7 +699,7 @@ function showReactions(): void {
 	left: 0;
 	z-index: 2;
 	width: 100%;
-	height: 64px;
+	max-height: 500px;
 	background: linear-gradient(0deg, var(--panel), var(--X15));
 
 	&:hover > .collapsedLabel {
