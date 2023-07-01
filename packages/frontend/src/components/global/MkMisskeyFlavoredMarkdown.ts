@@ -1,6 +1,7 @@
 import { VNode, h } from 'vue';
 import * as mfm from 'mfm-js';
 import * as Misskey from 'misskey-js';
+import temml from 'temml';
 import MkUrl from '@/components/global/MkUrl.vue';
 import MkLink from '@/components/MkLink.vue';
 import MkMention from '@/components/MkMention.vue';
@@ -333,11 +334,15 @@ export default function(props: {
 			}
 
 			case 'mathInline': {
-				return [h('code', token.props.formula)];
+				const ret = h('math');
+				temml.render(token.props.formula, ret)
+				return [ret];
 			}
 
 			case 'mathBlock': {
-				return [h('code', token.props.formula)];
+				const ret = h('math');
+				temml.render(token.props.formula, ret, { displayMode: true });
+				return [ret];
 			}
 
 			case 'search': {
