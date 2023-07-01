@@ -983,6 +983,9 @@ importers:
       summaly:
         specifier: github:misskey-dev/summaly
         version: github.com/misskey-dev/summaly/77dd5654bb82280b38c1f50e51a771c33f3df503
+      temml:
+        specifier: 0.10.3
+        version: 0.10.3
       vite-plugin-turbosnap:
         specifier: 1.0.2
         version: 1.0.2
@@ -19451,6 +19454,10 @@ packages:
     resolution: {integrity: sha512-J4QEuCnYGXAI9KSN7RXK0a0cOW2ONpjc4IQbInGZ6c3stvplLAYyZjTnScrRd8deXVjNCFV1wXcLC7SObDuQYA==}
     dependencies:
       memoizerific: 1.11.3
+    dev: true
+
+  /temml@0.10.3:
+    resolution: {integrity: sha512-m0HzRbkoWVJRv737VHXYYpH5j9sGZMP7A7v53uDr4I2zISSxDwNHALy/GU+Jurv9AJ3332XjP6prY0jTal7Yfw==}
     dev: true
 
   /temp-dir@2.0.0:
