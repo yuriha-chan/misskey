@@ -36,7 +36,6 @@ export class FetchInstanceMetadataService {
 	private logger: Logger;
 
 	constructor(
-		@Inject(DI.instancesRepository)
 		private httpRequestService: HttpRequestService,
 		private loggerService: LoggerService,
 		private federatedInstanceService: FederatedInstanceService,
