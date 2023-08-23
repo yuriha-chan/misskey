@@ -10,12 +10,11 @@ import { extractUrlFromMfm } from './extract-url-from-mfm';
 export function shouldCollapsed(note: misskey.entities.Note): boolean {
 	const urls = note.text ? extractUrlFromMfm(mfm.parse(note.text)) : null;
 	const collapsed = note.cw == null && note.text != null && (
-		(note.text.includes('$[x2')) ||
 		(note.text.includes('$[x3')) ||
 		(note.text.includes('$[x4')) ||
 		(note.text.includes('$[scale')) ||
-		(note.text.split('\n').length > 9) ||
-		(note.text.length > 500) ||
+		(note.text.split('\n').length > 40) ||
+		(note.text.length > 1600) ||
 		(note.files.length >= 5) ||
 		(!!urls && urls.length >= 4)
 	);
