@@ -1,7 +1,13 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+import { ref } from 'vue';
 
 export class Cache<T> {
 	private cachedAt: number | null = null;
-	private value: T | undefined;
+	public value = ref<T | undefined>();
 	private lifetime: number;
 
 	constructor(lifetime: Cache<never>['lifetime']) {
@@ -10,21 +16,20 @@ export class Cache<T> {
 
 	public set(value: T): void {
 		this.cachedAt = Date.now();
-		this.value = value;
+		this.value.value = value;
 	}
 
-	public get(): T | undefined {
+	private get(): T | undefined {
 		if (this.cachedAt == null) return undefined;
 		if ((Date.now() - this.cachedAt) > this.lifetime) {
-			this.value = undefined;
+			this.value.value = undefined;
 			this.cachedAt = null;
 			return undefined;
 		}
-		return this.value;
+		return this.value.value;
 	}
 
 	public delete() {
-		this.value = undefined;
 		this.cachedAt = null;
 	}
 

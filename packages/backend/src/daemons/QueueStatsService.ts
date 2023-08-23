@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { Inject, Injectable } from '@nestjs/common';
 import Xev from 'xev';
 import * as Bull from 'bullmq';
@@ -81,7 +86,7 @@ export class QueueStatsService implements OnApplicationShutdown {
 
 		this.intervalId = setInterval(tick, interval);
 	}
-	
+
 	@bindThis
 	public dispose(): void {
 		clearInterval(this.intervalId);

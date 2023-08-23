@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
@@ -20,7 +25,7 @@
 						<template #value>{{ key }}</template>
 					</MkKeyValue>
 				</FormSplit>
-				
+
 				<MkTextarea v-model="valueForEditor" tall class="_monospace">
 					<template #label>{{ i18n.ts.value }} (JSON)</template>
 				</MkTextarea>

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
@@ -112,7 +117,7 @@ definePageMetadata(computed(() => list ? {
 	flex: 1;
 	min-width: 0;
 	margin-right: 8px;
-	
+
 	&:hover {
 		text-decoration: none;
 	}

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div data-cy-mkw-onlineUsers :class="[$style.root, { _panel: !widgetProps.transparent, [$style.pad]: !widgetProps.transparent }]">
 	<span :class="$style.text">
@@ -40,7 +45,7 @@ const { widgetProps, configure } = useWidgetPropsManager(name,
 const onlineUsersCount = ref(0);
 
 const tick = () => {
-	os.api('get-online-users-count').then(res => {
+	os.apiGet('get-online-users-count').then(res => {
 		onlineUsersCount.value = res.count;
 	});
 };

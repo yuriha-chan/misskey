@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <canvas ref="chartEl"></canvas>
 </template>
@@ -90,6 +95,7 @@ onMounted(async () => {
 					ticks: {
 						callback: (value, index, values) => value + '%',
 					},
+					min: 0,
 				},
 			},
 			interaction: {

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkContainer :style="`height: ${widgetProps.height}px;`" :showHeader="widgetProps.showHeader" :scrollable="true" data-cy-mkw-notifications class="mkw-notifications">
 	<template #icon><i class="ti ti-bell"></i></template>
@@ -41,7 +46,7 @@ type WidgetProps = GetFormResultType<typeof widgetPropsDef>;
 
 const props = defineProps<WidgetComponentProps<WidgetProps>>();
 const emit = defineEmits<WidgetComponentEmits<WidgetProps>>();
-	
+
 const { widgetProps, configure, save } = useWidgetPropsManager(name,
 	widgetPropsDef,
 	props,

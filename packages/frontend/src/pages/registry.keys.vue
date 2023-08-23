@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
@@ -13,7 +18,7 @@
 					<template #value>{{ scope.join('/') }}</template>
 				</MkKeyValue>
 			</FormSplit>
-			
+
 			<MkButton primary @click="createKey">{{ i18n.ts._registry.createKey }}</MkButton>
 
 			<FormSection v-if="keys">

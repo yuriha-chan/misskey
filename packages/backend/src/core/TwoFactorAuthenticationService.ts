@@ -1,8 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import * as crypto from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import * as jsrsasign from 'jsrsasign';
 import { DI } from '@/di-symbols.js';
-import type { UsersRepository } from '@/models/index.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 
@@ -69,7 +73,7 @@ function verifyCertificateChain(certificates: string[]) {
 
 		const certStruct = jsrsasign.ASN1HEX.getTLVbyList(certificate.hex!, 0, [0]);
 		if (certStruct == null) throw new Error('certStruct is null');
-		
+
 		const algorithm = certificate.getSignatureAlgorithmField();
 		const signatureHex = certificate.getSignatureValueHex();
 
@@ -110,9 +114,6 @@ export class TwoFactorAuthenticationService {
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
-
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
 	) {
 	}
 
@@ -143,19 +144,19 @@ export class TwoFactorAuthenticationService {
 		if (clientData.type !== 'webauthn.get') {
 			throw new Error('type is not webauthn.get');
 		}
-	
+
 		if (this.hash(clientData.challenge).toString('hex') !== challenge) {
 			throw new Error('challenge mismatch');
 		}
 		if (clientData.origin !== this.config.scheme + '://' + this.config.host) {
 			throw new Error('origin mismatch');
 		}
-	
+
 		const verificationData = Buffer.concat(
 			[authenticatorData, this.hash(clientDataJSON)],
 			32 + authenticatorData.length,
 		);
-	
+
 		return crypto
 			.createVerify('SHA256')
 			.update(verificationData)
@@ -168,7 +169,7 @@ export class TwoFactorAuthenticationService {
 			none: {
 				verify({ publicKey }: { publicKey: Map<number, Buffer> }) {
 					const negTwo = publicKey.get(-2);
-		
+
 					if (!negTwo || negTwo.length !== 32) {
 						throw new Error('invalid or no -2 key given');
 					}
@@ -176,12 +177,12 @@ export class TwoFactorAuthenticationService {
 					if (!negThree || negThree.length !== 32) {
 						throw new Error('invalid or no -3 key given');
 					}
-		
+
 					const publicKeyU2F = Buffer.concat(
 						[ECC_PRELUDE, negTwo, negThree],
 						1 + 32 + 32,
 					);
-		
+
 					return {
 						publicKey: publicKeyU2F,
 						valid: true,
@@ -207,16 +208,16 @@ export class TwoFactorAuthenticationService {
 					if (attStmt.alg !== -7) {
 						throw new Error('alg mismatch');
 					}
-		
+
 					const verificationData = Buffer.concat([
 						authenticatorData,
 						clientDataHash,
 					]);
-		
+
 					const attCert: Buffer = attStmt.x5c[0];
-		
+
 					const negTwo = publicKey.get(-2);
-		
+
 					if (!negTwo || negTwo.length !== 32) {
 						throw new Error('invalid or no -2 key given');
 					}
@@ -224,23 +225,23 @@ export class TwoFactorAuthenticationService {
 					if (!negThree || negThree.length !== 32) {
 						throw new Error('invalid or no -3 key given');
 					}
-		
+
 					const publicKeyData = Buffer.concat(
 						[ECC_PRELUDE, negTwo, negThree],
 						1 + 32 + 32,
 					);
-		
+
 					if (!attCert.equals(publicKeyData)) {
 						throw new Error('public key mismatch');
 					}
-		
+
 					const isValid = crypto
 						.createVerify('SHA256')
 						.update(verificationData)
 						.verify(PEMString(attCert), attStmt.sig);
-		
+
 					// TODO: Check 'attestationChallenge' field in extension of cert matches hash(clientDataJSON)
-		
+
 					return {
 						valid: isValid,
 						publicKey: publicKeyData,
@@ -267,43 +268,43 @@ export class TwoFactorAuthenticationService {
 					const verificationData = this.hash(
 						Buffer.concat([authenticatorData, clientDataHash]),
 					);
-		
+
 					const jwsParts = attStmt.response.toString('utf-8').split('.');
-		
+
 					const header = JSON.parse(base64URLDecode(jwsParts[0]).toString('utf-8'));
 					const response = JSON.parse(
 						base64URLDecode(jwsParts[1]).toString('utf-8'),
 					);
 					const signature = jwsParts[2];
-		
+
 					if (!verificationData.equals(Buffer.from(response.nonce, 'base64'))) {
 						throw new Error('invalid nonce');
 					}
-		
+
 					const certificateChain = header.x5c
 						.map((key: any) => PEMString(key))
 						.concat([GSR2]);
-		
+
 					if (getCertSubject(certificateChain[0]).CN !== 'attest.android.com') {
 						throw new Error('invalid common name');
 					}
-		
+
 					if (!verifyCertificateChain(certificateChain)) {
 						throw new Error('Invalid certificate chain!');
 					}
-		
+
 					const signatureBase = Buffer.from(
 						jwsParts[0] + '.' + jwsParts[1],
 						'utf-8',
 					);
-		
+
 					const valid = crypto
 						.createVerify('sha256')
 						.update(signatureBase)
 						.verify(certificateChain[0], base64URLDecode(signature));
-		
+
 					const negTwo = publicKey.get(-2);
-		
+
 					if (!negTwo || negTwo.length !== 32) {
 						throw new Error('invalid or no -2 key given');
 					}
@@ -311,7 +312,7 @@ export class TwoFactorAuthenticationService {
 					if (!negThree || negThree.length !== 32) {
 						throw new Error('invalid or no -3 key given');
 					}
-		
+
 					const publicKeyData = Buffer.concat(
 						[ECC_PRELUDE, negTwo, negThree],
 						1 + 32 + 32,
@@ -342,17 +343,17 @@ export class TwoFactorAuthenticationService {
 						authenticatorData,
 						clientDataHash,
 					]);
-		
+
 					if (attStmt.x5c) {
 						const attCert = attStmt.x5c[0];
-		
+
 						const validSignature = crypto
 							.createVerify('SHA256')
 							.update(verificationData)
 							.verify(PEMString(attCert), attStmt.sig);
-		
+
 						const negTwo = publicKey.get(-2);
-		
+
 						if (!negTwo || negTwo.length !== 32) {
 							throw new Error('invalid or no -2 key given');
 						}
@@ -360,12 +361,12 @@ export class TwoFactorAuthenticationService {
 						if (!negThree || negThree.length !== 32) {
 							throw new Error('invalid or no -3 key given');
 						}
-		
+
 						const publicKeyData = Buffer.concat(
 							[ECC_PRELUDE, negTwo, negThree],
 							1 + 32 + 32,
 						);
-		
+
 						return {
 							valid: validSignature,
 							publicKey: publicKeyData,
@@ -375,12 +376,12 @@ export class TwoFactorAuthenticationService {
 						throw new Error('ECDAA-Verify is not supported');
 					} else {
 						if (attStmt.alg !== -7) throw new Error('alg mismatch');
-		
+
 						throw new Error('self attestation is not supported');
 					}
 				},
 			},
-		
+
 			'fido-u2f': {
 				verify({
 					attStmt,
@@ -401,13 +402,13 @@ export class TwoFactorAuthenticationService {
 					if (x5c.length !== 1) {
 						throw new Error('x5c length does not match expectation');
 					}
-		
+
 					const attCert = x5c[0];
-		
+
 					// TODO: make sure attCert is an Elliptic Curve (EC) public key over the P-256 curve
-		
+
 					const negTwo: Buffer = publicKey.get(-2);
-		
+
 					if (!negTwo || negTwo.length !== 32) {
 						throw new Error('invalid or no -2 key given');
 					}
@@ -415,12 +416,12 @@ export class TwoFactorAuthenticationService {
 					if (!negThree || negThree.length !== 32) {
 						throw new Error('invalid or no -3 key given');
 					}
-		
+
 					const publicKeyU2F = Buffer.concat(
 						[ECC_PRELUDE, negTwo, negThree],
 						1 + 32 + 32,
 					);
-		
+
 					const verificationData = Buffer.concat([
 						NULL_BYTE,
 						rpIdHash,
@@ -428,12 +429,12 @@ export class TwoFactorAuthenticationService {
 						credentialId,
 						publicKeyU2F,
 					]);
-		
+
 					const validSignature = crypto
 						.createVerify('SHA256')
 						.update(verificationData)
 						.verify(PEMString(attCert), attStmt.sig);
-		
+
 					return {
 						valid: validSignature,
 						publicKey: publicKeyU2F,

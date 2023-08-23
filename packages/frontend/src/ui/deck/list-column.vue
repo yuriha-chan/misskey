@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <XColumn :menu="menu" :column="column" :isStacked="isStacked">
 	<template #header>
@@ -42,9 +47,20 @@ async function setList() {
 	});
 }
 
-const menu = [{
-	icon: 'ti ti-pencil',
-	text: i18n.ts.selectList,
-	action: setList,
-}];
+function editList() {
+	os.pageWindow('my/lists/' + props.column.listId);
+}
+
+const menu = [
+	{
+		icon: 'ti ti-pencil',
+		text: i18n.ts.selectList,
+		action: setList,
+	},
+	{
+		icon: 'ti ti-settings',
+		text: i18n.ts.editList,
+		action: editList,
+	},
+];
 </script>

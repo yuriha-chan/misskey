@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div>
 	<MkStickyContainer>
@@ -24,7 +29,7 @@
 						<template #label>{{ i18n.ts.preservedUsernames }}</template>
 						<template #caption>{{ i18n.ts.preservedUsernamesDescription }}</template>
 					</MkTextarea>
-					
+
 					<MkTextarea v-model="sensitiveWords">
 						<template #label>{{ i18n.ts.sensitiveWords }}</template>
 						<template #caption>{{ i18n.ts.sensitiveWordsDescription }}<br>{{ i18n.ts.sensitiveWordsDescription2 }}</template>

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions"/></template>
@@ -55,7 +60,7 @@ watch(() => props.clipId, async () => {
 	favorited = clip.isFavorited;
 }, {
 	immediate: true,
-}); 
+});
 
 provide('currentClip', $$(clip));
 

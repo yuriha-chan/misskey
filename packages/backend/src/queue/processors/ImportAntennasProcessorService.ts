@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { Injectable, Inject } from '@nestjs/common';
 import _Ajv from 'ajv';
 import { IdService } from '@/core/IdService.js';
@@ -17,11 +22,11 @@ const validate = new Ajv().compile({
 	properties: {
 		name: { type: 'string', minLength: 1, maxLength: 100 },
 		src: { type: 'string', enum: ['home', 'all', 'users', 'list'] },
-		userListAccts: { 
-			type: 'array', 
+		userListAccts: {
+			type: 'array',
 			items: {
 				type: 'string',
-			}, 
+			},
 			nullable: true,
 		},
 		keywords: { type: 'array', items: {

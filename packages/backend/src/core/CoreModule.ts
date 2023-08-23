@@ -1,7 +1,13 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { Module } from '@nestjs/common';
 import { AccountMoveService } from './AccountMoveService.js';
 import { AccountUpdateService } from './AccountUpdateService.js';
 import { AiService } from './AiService.js';
+import { AnnouncementService } from './AnnouncementService.js';
 import { AntennaService } from './AntennaService.js';
 import { AppLockService } from './AppLockService.js';
 import { AchievementService } from './AchievementService.js';
@@ -81,6 +87,7 @@ import { GalleryLikeEntityService } from './entities/GalleryLikeEntityService.js
 import { GalleryPostEntityService } from './entities/GalleryPostEntityService.js';
 import { HashtagEntityService } from './entities/HashtagEntityService.js';
 import { InstanceEntityService } from './entities/InstanceEntityService.js';
+import { InviteCodeEntityService } from './entities/InviteCodeEntityService.js';
 import { ModerationLogEntityService } from './entities/ModerationLogEntityService.js';
 import { MutingEntityService } from './entities/MutingEntityService.js';
 import { RenoteMutingEntityService } from './entities/RenoteMutingEntityService.js';
@@ -124,6 +131,7 @@ const $LoggerService: Provider = { provide: 'LoggerService', useExisting: Logger
 const $AccountMoveService: Provider = { provide: 'AccountMoveService', useExisting: AccountMoveService };
 const $AccountUpdateService: Provider = { provide: 'AccountUpdateService', useExisting: AccountUpdateService };
 const $AiService: Provider = { provide: 'AiService', useExisting: AiService };
+const $AnnouncementService: Provider = { provide: 'AnnouncementService', useExisting: AnnouncementService };
 const $AntennaService: Provider = { provide: 'AntennaService', useExisting: AntennaService };
 const $AppLockService: Provider = { provide: 'AppLockService', useExisting: AppLockService };
 const $AchievementService: Provider = { provide: 'AchievementService', useExisting: AchievementService };
@@ -205,6 +213,7 @@ const $GalleryLikeEntityService: Provider = { provide: 'GalleryLikeEntityService
 const $GalleryPostEntityService: Provider = { provide: 'GalleryPostEntityService', useExisting: GalleryPostEntityService };
 const $HashtagEntityService: Provider = { provide: 'HashtagEntityService', useExisting: HashtagEntityService };
 const $InstanceEntityService: Provider = { provide: 'InstanceEntityService', useExisting: InstanceEntityService };
+const $InviteCodeEntityService: Provider = { provide: 'InviteCodeEntityService', useExisting: InviteCodeEntityService };
 const $ModerationLogEntityService: Provider = { provide: 'ModerationLogEntityService', useExisting: ModerationLogEntityService };
 const $MutingEntityService: Provider = { provide: 'MutingEntityService', useExisting: MutingEntityService };
 const $RenoteMutingEntityService: Provider = { provide: 'RenoteMutingEntityService', useExisting: RenoteMutingEntityService };
@@ -250,6 +259,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		AccountMoveService,
 		AccountUpdateService,
 		AiService,
+		AnnouncementService,
 		AntennaService,
 		AppLockService,
 		AchievementService,
@@ -329,6 +339,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		GalleryPostEntityService,
 		HashtagEntityService,
 		InstanceEntityService,
+		InviteCodeEntityService,
 		ModerationLogEntityService,
 		MutingEntityService,
 		RenoteMutingEntityService,
@@ -369,6 +380,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$AccountMoveService,
 		$AccountUpdateService,
 		$AiService,
+		$AnnouncementService,
 		$AntennaService,
 		$AppLockService,
 		$AchievementService,
@@ -448,6 +460,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$GalleryPostEntityService,
 		$HashtagEntityService,
 		$InstanceEntityService,
+		$InviteCodeEntityService,
 		$ModerationLogEntityService,
 		$MutingEntityService,
 		$RenoteMutingEntityService,
@@ -489,6 +502,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		AccountMoveService,
 		AccountUpdateService,
 		AiService,
+		AnnouncementService,
 		AntennaService,
 		AppLockService,
 		AchievementService,
@@ -567,6 +581,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		GalleryPostEntityService,
 		HashtagEntityService,
 		InstanceEntityService,
+		InviteCodeEntityService,
 		ModerationLogEntityService,
 		MutingEntityService,
 		RenoteMutingEntityService,
@@ -607,6 +622,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$AccountMoveService,
 		$AccountUpdateService,
 		$AiService,
+		$AnnouncementService,
 		$AntennaService,
 		$AppLockService,
 		$AchievementService,
@@ -685,6 +701,7 @@ const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting
 		$GalleryPostEntityService,
 		$HashtagEntityService,
 		$InstanceEntityService,
+		$InviteCodeEntityService,
 		$ModerationLogEntityService,
 		$MutingEntityService,
 		$RenoteMutingEntityService,

@@ -104,6 +104,7 @@ export type MeDetailed = UserDetailed & {
 	noCrawle: boolean;
 	receiveAnnouncementEmail: boolean;
 	usePasswordLessLogin: boolean;
+	unreadAnnouncements: Announcement[];
 	[other: string]: any;
 };
 
@@ -338,12 +339,18 @@ export type DetailedInstanceMetadata = LiteInstanceMetadata & {
 	pinnedPages: string[];
 	pinnedClipId: string | null;
 	cacheRemoteFiles: boolean;
+	cacheRemoteSensitiveFiles: boolean;
 	requireSetup: boolean;
 	proxyAccountName: string | null;
 	features: Record<string, any>;
 };
 
 export type InstanceMetadata = LiteInstanceMetadata | DetailedInstanceMetadata;
+
+export type AdminInstanceMetadata = DetailedInstanceMetadata & {
+	// TODO: There are more fields.
+	blockedHosts: string[];
+};
 
 export type ServerInfo = {
 	machine: string;
@@ -407,6 +414,10 @@ export type Announcement = {
 	text: string;
 	title: string;
 	imageUrl: string | null;
+	display: 'normal' | 'banner' | 'dialog';
+	icon: 'info' | 'warning' | 'error' | 'success';
+	needConfirmationToRead: boolean;
+	forYou: boolean;
 	isRead?: boolean;
 };
 
@@ -481,7 +492,7 @@ export type Blocking = {
 
 export type Instance = {
 	id: ID;
-	caughtAt: DateString;
+	firstRetrievedAt: DateString;
 	host: string;
 	usersCount: number;
 	notesCount: number;
@@ -495,6 +506,7 @@ export type Instance = {
 	lastCommunicatedAt: DateString;
 	isNotResponding: boolean;
 	isSuspended: boolean;
+	isBlocked: boolean;
 	softwareName: string | null;
 	softwareVersion: string | null;
 	openRegistrations: boolean | null;
@@ -515,6 +527,21 @@ export type Signin = {
 	headers: Record<string, any>;
 	success: boolean;
 };
+
+export type Invite = {
+	id: ID;
+	code: string;
+	expiresAt: DateString | null;
+	createdAt: DateString;
+	createdBy: UserLite | null;
+	usedBy: UserLite | null;
+	usedAt: DateString | null;
+	used: boolean;
+}
+
+export type InviteLimit = {
+	remaining: number;
+}
 
 export type UserSorting =
 	| '+follower'

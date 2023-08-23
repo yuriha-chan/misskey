@@ -52,11 +52,15 @@ export interface Locale {
     "deleteAndEdit": string;
     "deleteAndEditConfirm": string;
     "addToList": string;
+    "addToAntenna": string;
     "sendMessage": string;
     "copyRSS": string;
     "copyUsername": string;
     "copyUserId": string;
     "copyNoteId": string;
+    "copyFileId": string;
+    "copyFolderId": string;
+    "copyProfileUrl": string;
     "searchUser": string;
     "reply": string;
     "loadMore": string;
@@ -139,8 +143,10 @@ export interface Locale {
     "suspendConfirm": string;
     "unsuspendConfirm": string;
     "selectList": string;
+    "editList": string;
     "selectChannel": string;
     "selectAntenna": string;
+    "editAntenna": string;
     "selectWidget": string;
     "editWidgets": string;
     "editWidgetsExit": string;
@@ -153,6 +159,9 @@ export interface Locale {
     "settingGuide": string;
     "cacheRemoteFiles": string;
     "cacheRemoteFilesDescription": string;
+    "youCanCleanRemoteFilesCache": string;
+    "cacheRemoteSensitiveFiles": string;
+    "cacheRemoteSensitiveFilesDescription": string;
     "flagAsBot": string;
     "flagAsBotDescription": string;
     "flagAsCat": string;
@@ -314,7 +323,7 @@ export interface Locale {
     "rename": string;
     "avatar": string;
     "banner": string;
-    "nsfw": string;
+    "displayOfSensitiveMedia": string;
     "whenServerDisconnected": string;
     "disconnectedFromServer": string;
     "reload": string;
@@ -691,6 +700,7 @@ export interface Locale {
     "unclip": string;
     "confirmToUnclipAlreadyClippedNote": string;
     "public": string;
+    "private": string;
     "i18nInfo": string;
     "manageAccessTokens": string;
     "accountInfo": string;
@@ -1082,6 +1092,45 @@ export interface Locale {
     "additionalEmojiDictionary": string;
     "installed": string;
     "branding": string;
+    "enableServerMachineStats": string;
+    "enableIdenticonGeneration": string;
+    "turnOffToImprovePerformance": string;
+    "createInviteCode": string;
+    "createWithOptions": string;
+    "createCount": string;
+    "inviteCodeCreated": string;
+    "inviteLimitExceeded": string;
+    "createLimitRemaining": string;
+    "inviteLimitResetCycle": string;
+    "expirationDate": string;
+    "noExpirationDate": string;
+    "inviteCodeUsedAt": string;
+    "registeredUserUsingInviteCode": string;
+    "waitingForMailAuth": string;
+    "inviteCodeCreator": string;
+    "usedAt": string;
+    "unused": string;
+    "used": string;
+    "expired": string;
+    "doYouAgree": string;
+    "beSureToReadThisAsItIsImportant": string;
+    "iHaveReadXCarefullyAndAgree": string;
+    "dialog": string;
+    "icon": string;
+    "forYou": string;
+    "currentAnnouncements": string;
+    "pastAnnouncements": string;
+    "youHaveUnreadAnnouncements": string;
+    "_announcement": {
+        "forExistingUsers": string;
+        "forExistingUsersDescription": string;
+        "needConfirmationToRead": string;
+        "needConfirmationToReadDescription": string;
+        "end": string;
+        "tooManyActiveAnnouncementDescription": string;
+        "readConfirmTitle": string;
+        "readConfirmText": string;
+    };
     "_initialAccountSetting": {
         "accountCreated": string;
         "letsStartAccountSetup": string;
@@ -1472,6 +1521,9 @@ export interface Locale {
             "ltlAvailable": string;
             "canPublicNote": string;
             "canInvite": string;
+            "inviteLimit": string;
+            "inviteLimitCycle": string;
+            "inviteExpirationTime": string;
             "canManageCustomEmojis": string;
             "driveCapacity": string;
             "alwaysMarkNsfw": string;
@@ -1542,6 +1594,7 @@ export interface Locale {
         "back": string;
         "reduceFrequencyOfThisAd": string;
         "hide": string;
+        "timezoneinfo": string;
     };
     "_forgotPassword": {
         "enterEmail": string;
@@ -1603,7 +1656,7 @@ export interface Locale {
         "morePatrons": string;
         "patrons": string;
     };
-    "_nsfw": {
+    "_displayOfSensitiveMedia": {
         "respect": string;
         "ignore": string;
         "force": string;
@@ -1826,6 +1879,10 @@ export interface Locale {
         "write:gallery": string;
         "read:gallery-likes": string;
         "write:gallery-likes": string;
+        "read:flash": string;
+        "write:flash": string;
+        "read:flash-likes": string;
+        "write:flash-likes": string;
     };
     "_auth": {
         "shareAccessTitle": string;
@@ -2119,6 +2176,7 @@ export interface Locale {
         "introduction": string;
         "introduction2": string;
         "widgetsIntroduction": string;
+        "useSimpleUiForNonRootPages": string;
         "_columns": {
             "main": string;
             "widgets": string;
@@ -2164,4 +2222,4 @@ export interface Locale {
 declare const locales: {
     [lang: string]: Locale;
 };
-export = locales;
+export default locales;

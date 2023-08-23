@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { utils, values } from '@syuilo/aiscript';
 import { v4 as uuid } from 'uuid';
 import { ref, Ref } from 'vue';
@@ -510,7 +515,7 @@ export function registerAsUiLib(components: Ref<AsUiComponent>[], done: (root: R
 		// Ui:root.update({ children: [...] }) の糖衣構文
 		'Ui:render': values.FN_NATIVE(([children], opts) => {
 			utils.assertArray(children);
-		
+
 			rootComponent.value.children = children.value.map(v => {
 				utils.assertObject(v);
 				return v.value.get('id').value;

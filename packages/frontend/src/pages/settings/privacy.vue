@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div class="_gaps_m">
 	<MkSwitch v-model="isLocked" @update:modelValue="save()">{{ i18n.ts.makeFollowManuallyApprove }}<template #caption>{{ i18n.ts.lockedAccountInfo }}</template></MkSwitch>
@@ -7,7 +12,7 @@
 		{{ i18n.ts.makeReactionsPublic }}
 		<template #caption>{{ i18n.ts.makeReactionsPublicDescription }}</template>
 	</MkSwitch>
-		
+
 	<MkSelect v-model="ffVisibility" @update:modelValue="save()">
 		<template #label>{{ i18n.ts.ffVisibility }}</template>
 		<option value="public">{{ i18n.ts._ffVisibility.public }}</option>
@@ -15,7 +20,7 @@
 		<option value="private">{{ i18n.ts._ffVisibility.private }}</option>
 		<template #caption>{{ i18n.ts.ffVisibilityDescription }}</template>
 	</MkSelect>
-		
+
 	<MkSwitch v-model="hideOnlineStatus" @update:modelValue="save()">
 		{{ i18n.ts.hideOnlineStatus }}
 		<template #caption>{{ i18n.ts.hideOnlineStatusDescription }}</template>

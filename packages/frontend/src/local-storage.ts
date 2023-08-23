@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 type Keys =
 	'v' |
 	'lastVersion' |
@@ -14,7 +19,7 @@ type Keys =
 	'wallpaper' |
 	'theme' |
 	'colorScheme' |
-	'useSystemFont' | 
+	'useSystemFont' |
 	'fontSize' |
 	'ui' |
 	'ui_temp' |

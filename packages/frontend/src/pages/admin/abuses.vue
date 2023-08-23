@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
@@ -75,7 +80,7 @@ const pagination = {
 };
 
 function resolved(reportId) {
-	reports.removeItem(item => item.id === reportId);
+	reports.removeItem(reportId);
 }
 
 const headerActions = $computed(() => []);

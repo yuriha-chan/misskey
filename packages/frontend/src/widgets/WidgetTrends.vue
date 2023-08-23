@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkContainer :showHeader="widgetProps.showHeader" data-cy-mkw-trends class="mkw-trends">
 	<template #icon><i class="ti ti-hash"></i></template>
@@ -53,7 +58,7 @@ const stats = ref([]);
 const fetching = ref(true);
 
 const fetch = () => {
-	os.api('hashtags/trend').then(res => {
+	os.apiGet('hashtags/trend').then(res => {
 		stats.value = res;
 		fetching.value = false;
 	});
