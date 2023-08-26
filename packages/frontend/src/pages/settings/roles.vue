@@ -1,9 +1,14 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div class="_gaps_m">
 	<FormSection first>
 		<template #label>{{ i18n.ts.rolesAssignedToMe }}</template>
 		<div class="_gaps_s">
-			<MkRolePreview v-for="role in $i.roles" :key="role.id" :role="role" :for-moderation="false"/>
+			<MkRolePreview v-for="role in $i.roles" :key="role.id" :role="role" :forModeration="false"/>
 		</div>
 	</FormSection>
 	<FormSection>
@@ -37,7 +42,7 @@ import MkRolePreview from '@/components/MkRolePreview.vue';
 
 function save() {
 	os.apiWithDialog('i/update', {
-		
+
 	});
 }
 

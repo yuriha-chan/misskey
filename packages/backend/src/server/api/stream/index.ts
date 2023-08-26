@@ -1,13 +1,18 @@
-import type { User } from '@/models/entities/User.js';
-import type { AccessToken } from '@/models/entities/AccessToken.js';
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+import * as WebSocket from 'ws';
+import type { MiUser } from '@/models/entities/User.js';
+import type { MiAccessToken } from '@/models/entities/AccessToken.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { NoteReadService } from '@/core/NoteReadService.js';
 import type { NotificationService } from '@/core/NotificationService.js';
 import { bindThis } from '@/decorators.js';
 import { CacheService } from '@/core/CacheService.js';
-import { UserProfile } from '@/models/index.js';
+import { MiUserProfile } from '@/models/index.js';
 import type { ChannelsService } from './ChannelsService.js';
-import type * as websocket from 'websocket';
 import type { EventEmitter } from 'events';
 import type Channel from './channel.js';
 import type { StreamEventEmitter, StreamMessages } from './types.js';
@@ -15,15 +20,16 @@ import type { StreamEventEmitter, StreamMessages } from './types.js';
 /**
  * Main stream connection
  */
+// eslint-disable-next-line import/no-default-export
 export default class Connection {
-	public user?: User;
-	public token?: AccessToken;
-	private wsConnection: websocket.connection;
+	public user?: MiUser;
+	public token?: MiAccessToken;
+	private wsConnection: WebSocket.WebSocket;
 	public subscriber: StreamEventEmitter;
 	private channels: Channel[] = [];
 	private subscribingNotes: any = {};
 	private cachedNotes: Packed<'Note'>[] = [];
-	public userProfile: UserProfile | null = null;
+	public userProfile: MiUserProfile | null = null;
 	public following: Set<string> = new Set();
 	public followingChannels: Set<string> = new Set();
 	public userIdsWhoMeMuting: Set<string> = new Set();
@@ -37,11 +43,9 @@ export default class Connection {
 		private notificationService: NotificationService,
 		private cacheService: CacheService,
 
-		subscriber: EventEmitter,
-		user: User | null | undefined,
-		token: AccessToken | null | undefined,
+		user: MiUser | null | undefined,
+		token: MiAccessToken | null | undefined,
 	) {
-		this.subscriber = subscriber;
 		if (user) this.user = user;
 		if (token) this.token = token;
 	}
@@ -70,12 +74,16 @@ export default class Connection {
 		if (this.user != null) {
 			await this.fetch();
 
-			this.fetchIntervalId = setInterval(this.fetch, 1000 * 10);
+			if (!this.fetchIntervalId) {
+				this.fetchIntervalId = setInterval(this.fetch, 1000 * 10);
+			}
 		}
 	}
 
 	@bindThis
-	public async init2(wsConnection: websocket.connection) {
+	public async listen(subscriber: EventEmitter, wsConnection: WebSocket.WebSocket) {
+		this.subscriber = subscriber;
+
 		this.wsConnection = wsConnection;
 		this.wsConnection.on('message', this.onWsConnectionMessage);
 
@@ -88,14 +96,11 @@ export default class Connection {
 	 * クライアントからメッセージ受信時
 	 */
 	@bindThis
-	private async onWsConnectionMessage(data: websocket.Message) {
-		if (data.type !== 'utf8') return;
-		if (data.utf8Data == null) return;
-
+	private async onWsConnectionMessage(data: WebSocket.RawData) {
 		let obj: Record<string, any>;
 
 		try {
-			obj = JSON.parse(data.utf8Data);
+			obj = JSON.parse(data.toString());
 		} catch (e) {
 			return;
 		}
@@ -246,7 +251,7 @@ export default class Connection {
 
 		const ch: Channel = channelService.create(id, this);
 		this.channels.push(ch);
-		ch.init(params);
+		ch.init(params ?? {});
 
 		if (pong) {
 			this.sendMessageToWs('connected', {

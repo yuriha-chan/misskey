@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { defineAsyncComponent } from 'vue';
 import { $i } from '@/account';
 import { i18n } from '@/i18n';
@@ -17,5 +22,5 @@ export function pleaseLogin(path?: string) {
 		},
 	}, 'closed');
 
-	if (!path) throw new Error('signin required');
+	throw new Error('signin required');
 }

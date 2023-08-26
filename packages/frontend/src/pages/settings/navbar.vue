@@ -1,11 +1,16 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div class="_gaps_m">
 	<FormSlot>
 		<template #label>{{ i18n.ts.navbar }}</template>
-		<MkContainer :show-header="false">
-			<Sortable 
+		<MkContainer :showHeader="false">
+			<Sortable
 				v-model="items"
-				item-key="id"
+				itemKey="id"
 				:animation="150"
 				:handle="'.' + $style.itemHandle"
 				@start="e => e.item.classList.add('active')"

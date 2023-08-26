@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div>
 	<Transition :name="defaultStore.state.animation ? '_transition_zoom' : ''" mode="out-in">
@@ -73,7 +78,7 @@ let fetching = $ref(true);
 onMounted(async () => {
 	const [_stats, _onlineUsersCount] = await Promise.all([
 		os.api('stats', {}),
-		os.api('get-online-users-count').then(res => res.count),
+		os.apiGet('get-online-users-count').then(res => res.count),
 	]);
 	stats = _stats;
 	onlineUsersCount = _onlineUsersCount;

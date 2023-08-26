@@ -1,7 +1,12 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer v-if="file" :content-max="600" :margin-min="16" :margin-max="32">
+	<MkSpacer v-if="file" :contentMax="600" :marginMin="16" :marginMax="32">
 		<div v-if="tab === 'overview'" class="cxqhhsmd _gaps_m">
 			<a class="thumbnail" :href="file.url" target="_blank">
 				<MkDriveFileThumbnail class="thumbnail" :file="file" fit="contain"/>
@@ -28,11 +33,11 @@
 					<template #value><span class="_monospace"><MkTime :time="file.createdAt" mode="detail" style="display: block;"/></span></template>
 				</MkKeyValue>
 			</div>
-			<MkA v-if="file.user" class="user" :to="`/user-info/${file.user.id}`">
+			<MkA v-if="file.user" class="user" :to="`/admin/user/${file.user.id}`">
 				<MkUserCardMini :user="file.user"/>
 			</MkA>
 			<div>
-				<MkSwitch v-model="isSensitive" @update:model-value="toggleIsSensitive">NSFW</MkSwitch>
+				<MkSwitch v-model="isSensitive" @update:modelValue="toggleIsSensitive">{{ i18n.ts.sensitive }}</MkSwitch>
 			</div>
 
 			<div>

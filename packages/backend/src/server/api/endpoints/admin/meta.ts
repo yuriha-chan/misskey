@@ -1,5 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { Inject, Injectable } from '@nestjs/common';
-import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { MetaService } from '@/core/MetaService.js';
 import type { Config } from '@/config.js';
@@ -17,6 +21,10 @@ export const meta = {
 		optional: false, nullable: false,
 		properties: {
 			cacheRemoteFiles: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			cacheRemoteSensitiveFiles: {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
@@ -61,10 +69,17 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			errorImageUrl: {
+			serverErrorImageUrl: {
 				type: 'string',
 				optional: false, nullable: true,
-				default: 'https://xn--931a.moe/aiart/yubitun.png',
+			},
+			infoImageUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			notFoundImageUrl: {
+				type: 'string',
+				optional: false, nullable: true,
 			},
 			iconUrl: {
 				type: 'string',
@@ -113,6 +128,14 @@ export const meta = {
 			sensitiveWords: {
 				type: 'array',
 				optional: true, nullable: false,
+				items: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+			},
+			preservedUsernames: {
+				type: 'array',
+				optional: false, nullable: false,
 				items: {
 					type: 'string',
 					optional: false, nullable: false,
@@ -247,6 +270,14 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			enableServerMachineStats: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			enableIdenticonGeneration: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			policies: {
 				type: 'object',
 				optional: false, nullable: false,
@@ -262,9 +293,8 @@ export const paramDef = {
 	required: [],
 } as const;
 
-// eslint-disable-next-line import/no-default-export
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
+export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -297,7 +327,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				themeColor: instance.themeColor,
 				mascotImageUrl: instance.mascotImageUrl,
 				bannerUrl: instance.bannerUrl,
-				errorImageUrl: instance.errorImageUrl,
+				serverErrorImageUrl: instance.serverErrorImageUrl,
+				notFoundImageUrl: instance.notFoundImageUrl,
+				infoImageUrl: instance.infoImageUrl,
 				iconUrl: instance.iconUrl,
 				backgroundImageUrl: instance.backgroundImageUrl,
 				logoImageUrl: instance.logoImageUrl,
@@ -307,10 +339,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				enableServiceWorker: instance.enableServiceWorker,
 				translatorAvailable: instance.deeplAuthKey != null,
 				cacheRemoteFiles: instance.cacheRemoteFiles,
+				cacheRemoteSensitiveFiles: instance.cacheRemoteSensitiveFiles,
 				pinnedUsers: instance.pinnedUsers,
 				hiddenTags: instance.hiddenTags,
 				blockedHosts: instance.blockedHosts,
 				sensitiveWords: instance.sensitiveWords,
+				preservedUsernames: instance.preservedUsernames,
 				hcaptchaSecretKey: instance.hcaptchaSecretKey,
 				recaptchaSecretKey: instance.recaptchaSecretKey,
 				turnstileSecretKey: instance.turnstileSecretKey,
@@ -346,6 +380,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				enableActiveEmailValidation: instance.enableActiveEmailValidation,
 				enableChartsForRemoteUser: instance.enableChartsForRemoteUser,
 				enableChartsForFederatedInstances: instance.enableChartsForFederatedInstances,
+				enableServerMachineStats: instance.enableServerMachineStats,
+				enableIdenticonGeneration: instance.enableIdenticonGeneration,
 				policies: { ...DEFAULT_POLICIES, ...instance.policies },
 			};
 		});

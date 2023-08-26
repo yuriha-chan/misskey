@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { defineAsyncComponent, Ref } from 'vue';
 import * as misskey from 'misskey-js';
 import { claimAchievement } from './achievements';
@@ -7,11 +12,12 @@ import { instance } from '@/instance';
 import * as os from '@/os';
 import copyToClipboard from '@/scripts/copy-to-clipboard';
 import { url } from '@/config';
-import { noteActions } from '@/store';
+import { defaultStore, noteActions } from '@/store';
 import { miLocalStorage } from '@/local-storage';
 import { getUserMenu } from '@/scripts/get-user-menu';
 import { clipsCache } from '@/cache';
 import { getEmbedCode } from './get-embed-code';
+import { MenuItem } from '@/types/menu';
 
 export async function getNoteClipMenu(props: {
 	note: misskey.entities.Note;
@@ -103,6 +109,8 @@ export function getNoteMenu(props: {
 	);
 
 	const appearNote = isRenote ? props.note.renote as misskey.entities.Note : props.note;
+
+	const cleanups = [] as (() => void)[];
 
 	function del(): void {
 		os.confirm({
@@ -222,6 +230,12 @@ export function getNoteMenu(props: {
 		}, {}, 'closed');
 	}
 
+	function showRenotes(): void {
+		os.popup(defineAsyncComponent(() => import('@/components/MkRenotedUsersDialog.vue')), {
+			noteId: appearNote.id,
+		}, {}, 'closed');
+	}
+
 	async function translate(): Promise<void> {
 		if (props.translation.value != null) return;
 		props.translating.value = true;
@@ -233,7 +247,7 @@ export function getNoteMenu(props: {
 		props.translation.value = res;
 	}
 
-	let menu;
+	let menu: MenuItem[];
 	if ($i) {
 		const statePromise = os.api('notes/state', {
 			noteId: appearNote.id,
@@ -252,8 +266,12 @@ export function getNoteMenu(props: {
 				text: i18n.ts.details,
 				action: openDetail,
 			}, {
-				icon: 'ti ti-users',
-				text: i18n.ts.reactions,
+				icon: 'ti ti-repeat',
+				text: i18n.ts.renotesList,
+				action: showRenotes,
+			}, {
+				icon: 'ti ti-icons',
+				text: i18n.ts.reactionsList,
 				action: showReactions,
 			}, {
 				icon: 'ti ti-copy',
@@ -294,7 +312,7 @@ export function getNoteMenu(props: {
 				action: () => toggleFavorite(true),
 			}),
 			{
-				type: 'parent',
+				type: 'parent' as const,
 				icon: 'ti ti-paperclip',
 				text: i18n.ts.clip,
 				children: () => getNoteClipMenu(props),
@@ -317,15 +335,17 @@ export function getNoteMenu(props: {
 				text: i18n.ts.pin,
 				action: () => togglePin(true),
 			} : undefined,
-			appearNote.userId !== $i.id ? {
-				type: 'parent',
+			{
+				type: 'parent' as const,
 				icon: 'ti ti-user',
 				text: i18n.ts.user,
 				children: async () => {
-					const user = await os.api('users/show', { userId: appearNote.userId });
-					return getUserMenu(user);
+					const user = appearNote.userId === $i?.id ? $i : await os.api('users/show', { userId: appearNote.userId });
+					const { menu, cleanup } = getUserMenu(user);
+					cleanups.push(cleanup);
+					return menu;
 				},
-			} : undefined,
+			},
 			/*
 		...($i.isModerator || $i.isAdmin ? [
 			null,
@@ -404,5 +424,25 @@ export function getNoteMenu(props: {
 		}))]);
 	}
 
-	return menu;
+	if (defaultStore.state.devMode) {
+		menu = menu.concat([null, {
+			icon: 'ti ti-id',
+			text: i18n.ts.copyNoteId,
+			action: () => {
+				copyToClipboard(appearNote.id);
+			},
+		}]);
+	}
+
+	const cleanup = () => {
+		if (_DEV_) console.log('note menu cleanup', cleanups);
+		for (const cl of cleanups) {
+			cl();
+		}
+	};
+
+	return {
+		menu,
+		cleanup,
+	};
 }

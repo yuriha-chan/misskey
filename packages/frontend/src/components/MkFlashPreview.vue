@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkA :to="`/play/${flash.id}`" class="vhpxefrk _panel" tabindex="-1">
 	<article>
@@ -87,7 +92,7 @@ const props = defineProps<{
 
 	@media (max-width: 500px) {
 		font-size: 10px;
-		
+
 		> article {
 			padding: 8px;
 

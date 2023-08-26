@@ -1,5 +1,10 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkSpacer :content-max="700">
+<MkSpacer :contentMax="700">
 	<MkPagination v-slot="{items}" ref="list" :pagination="pagination">
 		<MkPagePreview v-for="page in items" :key="page.id" :page="page" class="_margin"/>
 	</MkPagination>
@@ -24,7 +29,3 @@ const pagination = {
 	})),
 };
 </script>
-
-<style lang="scss" scoped>
-
-</style>

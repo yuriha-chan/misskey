@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
@@ -475,16 +480,16 @@ describe('Chart', () => {
 				await testIntersectionChart.addA('bob');
 				await testIntersectionChart.addB('carol');
 				await testIntersectionChart.save();
-	
+
 				const chartHours = await testIntersectionChart.getChart('hour', 3, null);
 				const chartDays = await testIntersectionChart.getChart('day', 3, null);
-	
+
 				assert.deepStrictEqual(chartHours, {
 					a: [2, 0, 0],
 					b: [1, 0, 0],
 					aAndB: [0, 0, 0],
 				});
-	
+
 				assert.deepStrictEqual(chartDays, {
 					a: [2, 0, 0],
 					b: [1, 0, 0],
@@ -498,16 +503,16 @@ describe('Chart', () => {
 				await testIntersectionChart.addB('carol');
 				await testIntersectionChart.addB('alice');
 				await testIntersectionChart.save();
-	
+
 				const chartHours = await testIntersectionChart.getChart('hour', 3, null);
 				const chartDays = await testIntersectionChart.getChart('day', 3, null);
-	
+
 				assert.deepStrictEqual(chartHours, {
 					a: [2, 0, 0],
 					b: [2, 0, 0],
 					aAndB: [1, 0, 0],
 				});
-	
+
 				assert.deepStrictEqual(chartDays, {
 					a: [2, 0, 0],
 					b: [2, 0, 0],

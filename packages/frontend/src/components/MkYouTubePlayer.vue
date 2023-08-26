@@ -1,5 +1,10 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkWindow :initial-width="640" :initial-height="402" :can-resize="true" :close-button="true">
+<MkWindow :initialWidth="640" :initialHeight="402" :canResize="true" :closeButton="true">
 	<template #header>
 		<i class="icon ti ti-brand-youtube" style="margin-right: 0.5em;"></i>
 		<span>{{ title ?? 'YouTube' }}</span>

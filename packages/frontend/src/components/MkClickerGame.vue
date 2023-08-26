@@ -1,9 +1,14 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div>
 	<div v-if="game.ready" :class="$style.game">
 		<div :class="$style.cps" class="">{{ number(cps) }}cps</div>
 		<div :class="$style.count" class=""><i class="ti ti-cookie" style="font-size: 70%;"></i> {{ number(cookies) }}</div>
-		<button v-click-anime class="_button" :class="$style.button" @click="onClick">
+		<button v-click-anime class="_button" @click="onClick">
 			<img src="/client-assets/cookie.png" :class="$style.img">
 		</button>
 	</div>
@@ -82,10 +87,6 @@ onUnmounted(() => {
 .count {
 	font-size: 1.3em;
 	margin-bottom: 6px;
-}
-
-.button {
-
 }
 
 .img {

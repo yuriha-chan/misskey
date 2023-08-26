@@ -1,8 +1,13 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><XHeader :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer :content-max="900">
-		<div class="lcixvhis">
+	<MkSpacer :contentMax="900">
+		<div>
 			<div class="reports">
 				<div class="">
 					<div class="inputs" style="display: flex;">
@@ -75,7 +80,7 @@ const pagination = {
 };
 
 function resolved(reportId) {
-	reports.removeItem(item => item.id === reportId);
+	reports.removeItem(reportId);
 }
 
 const headerActions = $computed(() => []);
@@ -87,9 +92,3 @@ definePageMetadata({
 	icon: 'ti ti-exclamation-circle',
 });
 </script>
-
-<style lang="scss" scoped>
-.lcixvhis {
-	margin: var(--margin);
-}
-</style>

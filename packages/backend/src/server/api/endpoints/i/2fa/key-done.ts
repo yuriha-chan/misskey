@@ -1,6 +1,11 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { promisify } from 'node:util';
 import bcrypt from 'bcryptjs';
-import * as cbor from 'cbor';
+import cbor from 'cbor';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
@@ -30,9 +35,8 @@ export const paramDef = {
 	required: ['clientDataJSON', 'attestationObject', 'password', 'challengeId', 'name'],
 } as const;
 
-// eslint-disable-next-line import/no-default-export
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
+export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -103,7 +107,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			const procedures = this.twoFactorAuthenticationService.getProcedures();
 
 			if (!(procedures as any)[attestation.fmt]) {
-				throw new Error('unsupported fmt');
+				throw new Error(`unsupported fmt: ${attestation.fmt}. Supported ones: ${Object.keys(procedures)}`);
 			}
 
 			const verificationData = (procedures as any)[attestation.fmt].verify({

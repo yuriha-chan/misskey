@@ -1,17 +1,22 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div class="_gaps_m">
 	<FromSlot>
 		<template #label>{{ i18n.ts.reactionSettingDescription }}</template>
 		<div v-panel style="border-radius: 6px;">
-			<Sortable v-model="reactions" class="zoaiodol" :item-key="item => item" :animation="150" :delay="100" :delay-on-touch-only="true">
+			<Sortable v-model="reactions" :class="$style.reactions" :itemKey="item => item" :animation="150" :delay="100" :delayOnTouchOnly="true">
 				<template #item="{element}">
-					<button class="_button item" @click="remove(element, $event)">
+					<button class="_button" :class="$style.reactionsItem" @click="remove(element, $event)">
 						<MkCustomEmoji v-if="element[0] === ':'" :name="element" :normal="true"/>
 						<MkEmoji v-else :emoji="element" :normal="true"/>
 					</button>
 				</template>
 				<template #footer>
-					<button class="_button add" @click="chooseEmoji"><i class="ti ti-plus"></i></button>
+					<button class="_button" :class="$style.reactionsAdd" @click="chooseEmoji"><i class="ti ti-plus"></i></button>
 				</template>
 			</Sortable>
 		</div>
@@ -135,20 +140,20 @@ definePageMetadata({
 });
 </script>
 
-<style lang="scss" scoped>
-.zoaiodol {
+<style lang="scss" module>
+.reactions {
 	padding: 12px;
 	font-size: 1.1em;
+}
 
-	> .item {
-		display: inline-block;
-		padding: 8px;
-		cursor: move;
-	}
+.reactionsItem {
+	display: inline-block;
+	padding: 8px;
+	cursor: move;
+}
 
-	> .add {
-		display: inline-block;
-		padding: 8px;
-	}
+.reactionsAdd {
+	display: inline-block;
+	padding: 8px;
 }
 </style>

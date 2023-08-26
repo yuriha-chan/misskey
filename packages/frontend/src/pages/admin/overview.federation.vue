@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div>
 	<MkLoading v-if="fetching"/>
@@ -58,7 +63,7 @@ let federationSubActiveDiff = $ref<number | null>(null);
 let fetching = $ref(true);
 
 const { handler: externalTooltipHandler } = useChartTooltip();
-	
+
 onMounted(async () => {
 	const chart = await os.apiGet('charts/federation', { limit: 2, span: 'day' });
 	federationPubActive = chart.pubActive[0];

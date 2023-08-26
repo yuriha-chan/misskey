@@ -1,8 +1,13 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div class="_gaps_m">
 	<FormInfo warn>{{ i18n.ts.customCssWarn }}</FormInfo>
 
-	<MkTextarea v-model="localCustomCss" manual-save tall class="_monospace" style="tab-size: 2;">
+	<MkTextarea v-model="localCustomCss" manualSave tall class="_monospace" style="tab-size: 2;">
 		<template #label>CSS</template>
 	</MkTextarea>
 </div>

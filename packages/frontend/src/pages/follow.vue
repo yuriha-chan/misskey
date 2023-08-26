@@ -1,5 +1,10 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<div class="mk-follow-page">
+<div>
 </div>
 </template>
 
@@ -20,7 +25,7 @@ async function follow(user): Promise<void> {
 		window.close();
 		return;
 	}
-	
+
 	os.apiWithDialog('following/create', {
 		userId: user.id,
 	});

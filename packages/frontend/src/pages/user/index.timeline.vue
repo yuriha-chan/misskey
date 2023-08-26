@@ -1,5 +1,10 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkSpacer :content-max="800" style="padding-top: 0">
+<MkSpacer :contentMax="800" style="padding-top: 0">
 	<MkStickyContainer>
 		<template #header>
 			<MkTab v-model="include" :class="$style.tab">
@@ -8,7 +13,7 @@
 				<option value="files">{{ i18n.ts.withFiles }}</option>
 			</MkTab>
 		</template>
-		<MkNotes :no-gap="true" :pagination="pagination" :class="$style.tl"/>
+		<MkNotes :noGap="true" :pagination="pagination" :class="$style.tl"/>
 	</MkStickyContainer>
 </MkSpacer>
 </template>

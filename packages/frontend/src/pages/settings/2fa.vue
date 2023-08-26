@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <FormSection :first="first">
 	<template #label>{{ i18n.ts['2fa'] }}</template>
@@ -51,7 +56,7 @@
 			</div>
 		</MkFolder>
 
-		<MkSwitch :disabled="!$i.twoFactorEnabled || $i.securityKeysList.length === 0" :model-value="usePasswordLessLogin" @update:model-value="v => updatePasswordLessLogin(v)">
+		<MkSwitch :disabled="!$i.twoFactorEnabled || $i.securityKeysList.length === 0" :modelValue="usePasswordLessLogin" @update:modelValue="v => updatePasswordLessLogin(v)">
 			<template #label>{{ i18n.ts.passwordLessLogin }}</template>
 			<template #caption>{{ i18n.ts.passwordLessLoginDescription }}</template>
 		</MkSwitch>
