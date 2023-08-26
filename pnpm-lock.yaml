@@ -733,6 +733,9 @@ importers:
       idb-keyval:
         specifier: 6.2.1
         version: 6.2.1
+      iframe-resizer:
+        specifier: ^4.3.6
+        version: 4.3.6
       insert-text-at-cursor:
         specifier: 0.3.0
         version: 0.3.0
@@ -897,8 +900,16 @@ importers:
         specifier: 4.0.13
         version: 4.0.13
       '@types/gulp-rename':
+<<<<<<< HEAD
+        specifier: 2.0.1
+        version: 2.0.1
+      '@types/iframe-resizer':
+        specifier: ^3.5.9
+        version: 3.5.9
+=======
         specifier: 2.0.2
         version: 2.0.2
+>>>>>>> 79db6bd
       '@types/matter-js':
         specifier: 0.18.5
         version: 0.18.5
@@ -8169,10 +8180,15 @@ packages:
   /@types/http-cache-semantics@4.0.1:
     resolution: {integrity: sha512-SZs7ekbP8CN0txVG2xVRH6EgKmEm31BOxA07vkFaETzZz1xh+cbt8BcI0slpymvwhx5dlFnQG2rTlPVQn+iRPQ==}
 
+<<<<<<< HEAD
+  /@types/iframe-resizer@3.5.9:
+    resolution: {integrity: sha512-RQUBI75F+uXruB95BFpC/8V8lPgJg4MQ6HxOCtAZYBB/h0FNCfrFfb4I+u2pZJIV7sKeszZbFqy1UnGeBMrvsA==}
+=======
   /@types/http-link-header@1.0.3:
     resolution: {integrity: sha512-y8HkoD/vyid+5MrJ3aas0FvU3/BVBGcyG9kgxL0Zn4JwstA8CglFPnrR0RuzOjRCXwqzL5uxWC2IO7Ub0rMU2A==}
     dependencies:
       '@types/node': 20.4.5
+>>>>>>> 79db6bd
     dev: true
 
   /@types/istanbul-lib-coverage@2.0.4:
@@ -14018,9 +14034,16 @@ packages:
   /ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
+<<<<<<< HEAD
+  /iframe-resizer@4.3.6:
+    resolution: {integrity: sha512-wz0WodRIF6eP0oGQa5NIP1yrITAZ59ZJvVaVJqJRjaeCtfm461vy2C3us6CKx0e7pooqpIGLpVMSTzrfAjX9Sg==}
+    engines: {node: '>=0.8.0'}
+    dev: false
+=======
   /ignore-by-default@1.0.1:
     resolution: {integrity: sha512-Ius2VYcGNk7T90CppJqcIkS5ooHUZyIQK+ClZfMfMNFEF9VSE73Fq+906u/CWu92x4gzZMWOwfFYckPObzdEbA==}
     dev: true
+>>>>>>> 79db6bd
 
   /ignore@5.2.4:
     resolution: {integrity: sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==}

@@ -16,6 +16,7 @@ import { defaultStore, noteActions } from '@/store';
 import { miLocalStorage } from '@/local-storage';
 import { getUserMenu } from '@/scripts/get-user-menu';
 import { clipsCache } from '@/cache';
+import { getEmbedCode } from './get-embed-code';
 import { MenuItem } from '@/types/menu';
 
 export async function getNoteClipMenu(props: {
@@ -210,7 +211,17 @@ export function getNoteMenu(props: {
 	}
 
 	function openDetail(): void {
-		os.pageWindow(`/notes/${appearNote.id}`);
+		if (props.embed) {
+			window.open(`/notes/${appearNote.id}`, "_blank");
+		} else {
+			os.pageWindow(`/notes/${appearNote.id}`);
+		}
+	}
+
+	function copyEmbedCode(): void {
+		console.log(getEmbedCode({ entityType: 'notes', id: appearNote.id }));
+		copyToClipboard(getEmbedCode({ entityType: 'notes', id: appearNote.id }));
+		os.success();
 	}
 
 	function showReactions(): void {
@@ -281,8 +292,11 @@ export function getNoteMenu(props: {
 				icon: 'ti ti-share',
 				text: i18n.ts.share,
 				action: share,
-			},
-			instance.translatorAvailable ? {
+			}, {
+				icon: 'ti ti-code',
+				text: i18n.ts.copyEmbedCode,
+				action: copyEmbedCode,
+			}, instance.translatorAvailable ? {
 				icon: 'ti ti-language-hiragana',
 				text: i18n.ts.translate,
 				action: translate,
@@ -373,7 +387,7 @@ export function getNoteMenu(props: {
 	} else {
 		menu = [{
 			icon: 'ti ti-external-link',
-			text: i18n.ts.detailed,
+			text: i18n.ts.details,
 			action: openDetail,
 		}, {
 			icon: 'ti ti-copy',
@@ -389,7 +403,11 @@ export function getNoteMenu(props: {
 			action: () => {
 				window.open(appearNote.url ?? appearNote.uri, '_blank');
 			},
-		} : undefined]
+		} : undefined, (!appearNote.url && !appearNote.uri) ? {
+			icon: 'ti ti-code',
+			text: i18n.ts.copyEmbedCode,
+			action: copyEmbedCode,
+		} : undefined,]
 			.filter(x => x !== undefined);
 	}
 
