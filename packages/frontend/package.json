@@ -99,22 +99,13 @@
 		"@testing-library/jest-dom": "5.16.5",
 		"@testing-library/vue": "7.0.0",
 		"@types/escape-regexp": "0.0.1",
-<<<<<<< HEAD
-		"@types/estree": "1.0.0",
-		"@types/gulp": "4.0.10",
-		"@types/gulp-rename": "2.0.1",
-		"@types/iframe-resizer": "^3.5.9",
-		"@types/matter-js": "0.18.2",
-		"@types/micromatch": "3.1.1",
-		"@types/node": "18.15.11",
-=======
 		"@types/estree": "1.0.1",
 		"@types/gulp": "4.0.13",
 		"@types/gulp-rename": "2.0.2",
+		"@types/iframe-resizer": "^3.5.9",
 		"@types/matter-js": "0.18.5",
 		"@types/micromatch": "4.0.2",
 		"@types/node": "20.4.5",
->>>>>>> 79db6bd
 		"@types/punycode": "2.1.0",
 		"@types/sanitize-html": "2.9.0",
 		"@types/testing-library__jest-dom": "5.14.9",
