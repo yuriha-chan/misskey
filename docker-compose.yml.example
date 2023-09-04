@@ -1,18 +1,33 @@
 version: "3"
 
 services:
-  web:
-    build: .
+  nginx:
+    image: nginx:1-alpine
     restart: always
-    links:
-      - db
-      - redis
-#     - meilisearch
+    hostname: nginx
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - external_network
+    volumes:
+      -  ./.ssl:/etc/nginx/ssl:ro
+      - ./.config/nginx.conf:/etc/nginx/conf.d/misskey.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+
+  web:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    hostname: misskey-web
     ports:
       - "3000:3000"
     networks:
@@ -29,6 +44,9 @@ services:
       - internal_network
     volumes:
       - ./redis:/data
+    hostname: redis
+    ports:
+      - "6379:6379"
     healthcheck:
       test: "redis-cli ping"
       interval: 5s
@@ -43,6 +61,9 @@ services:
       - .config/docker.env
     volumes:
       - ./db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    hostname: postgres
     healthcheck:
       test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
