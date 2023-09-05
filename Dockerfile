@@ -18,17 +18,17 @@ RUN corepack enable
 
 WORKDIR /misskey
 
-COPY ["pnpm-lock.yaml", "pnpm-workspace.yaml", "package.json", "./"]
-COPY ["scripts", "./scripts"]
-COPY ["packages/backend/package.json", "./packages/backend/"]
-COPY ["packages/frontend/package.json", "./packages/frontend/"]
-COPY ["packages/sw/package.json", "./packages/sw/"]
-COPY ["packages/misskey-js/package.json", "./packages/misskey-js/"]
+COPY --link ["pnpm-lock.yaml", "pnpm-workspace.yaml", "package.json", "./"]
+COPY --link ["scripts", "./scripts"]
+COPY --link ["packages/backend/package.json", "./packages/backend/"]
+COPY --link ["packages/frontend/package.json", "./packages/frontend/"]
+COPY --link ["packages/sw/package.json", "./packages/sw/"]
+COPY --link ["packages/misskey-js/package.json", "./packages/misskey-js/"]
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
 	pnpm i --frozen-lockfile --aggregate-output
 
-COPY . ./
+COPY --link . ./
 
 ARG NODE_ENV=production
 
@@ -48,9 +48,9 @@ RUN corepack enable
 
 WORKDIR /misskey
 
-COPY ["pnpm-lock.yaml", "pnpm-workspace.yaml", "package.json", "./"]
-COPY ["scripts", "./scripts"]
-COPY ["packages/backend/package.json", "./packages/backend/"]
+COPY --link ["pnpm-lock.yaml", "pnpm-workspace.yaml", "package.json", "./"]
+COPY --link ["scripts", "./scripts"]
+COPY --link ["packages/backend/package.json", "./packages/backend/"]
 
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store,sharing=locked \
 	pnpm i --frozen-lockfile --aggregate-output
