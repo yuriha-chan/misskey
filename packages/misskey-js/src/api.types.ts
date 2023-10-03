@@ -430,7 +430,7 @@ export type Endpoints = {
 		receiveAnnouncementEmail?: boolean;
 		alwaysMarkNsfw?: boolean;
 		mutedWords?: string[][];
-		mutingNotificationTypes?: Notification['type'][];
+		notificationRecieveConfig?: any;
 		emailNotificationTypes?: string[];
 		alsoKnownAs?: string[];
 	}; res: MeDetailed; };
@@ -534,6 +534,7 @@ export type Endpoints = {
 
 	// notifications
 	'notifications/create': { req: { body: string; header?: string | null; icon?: string | null; }; res: null; };
+	'notifications/test-notification': { req: NoParams; res: null; };
 	'notifications/mark-all-as-read': { req: NoParams; res: null; };
 
 	// page-push

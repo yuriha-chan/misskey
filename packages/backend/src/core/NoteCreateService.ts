@@ -12,22 +12,22 @@ import RE2 from 're2';
 import { extractMentions } from '@/misc/extract-mentions.js';
 import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
 import { extractHashtags } from '@/misc/extract-hashtags.js';
-import type { IMentionedRemoteUsers } from '@/models/entities/Note.js';
-import { MiNote } from '@/models/entities/Note.js';
-import type { ChannelsRepository, InstancesRepository, MutedNotesRepository, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserProfilesRepository, UsersRepository } from '@/models/index.js';
-import type { MiDriveFile } from '@/models/entities/DriveFile.js';
-import type { MiApp } from '@/models/entities/App.js';
+import type { IMentionedRemoteUsers } from '@/models/Note.js';
+import { MiNote } from '@/models/Note.js';
+import type { ChannelsRepository, FollowingsRepository, InstancesRepository, MutedNotesRepository, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { MiDriveFile } from '@/models/DriveFile.js';
+import type { MiApp } from '@/models/App.js';
 import { concat } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
-import type { MiUser, MiLocalUser, MiRemoteUser } from '@/models/entities/User.js';
-import type { IPoll } from '@/models/entities/Poll.js';
-import { MiPoll } from '@/models/entities/Poll.js';
+import type { MiUser, MiLocalUser, MiRemoteUser } from '@/models/User.js';
+import type { IPoll } from '@/models/Poll.js';
+import { MiPoll } from '@/models/Poll.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { checkWordMute } from '@/misc/check-word-mute.js';
-import type { MiChannel } from '@/models/entities/Channel.js';
+import type { MiChannel } from '@/models/Channel.js';
 import { normalizeForSearch } from '@/misc/normalize-for-search.js';
 import { MemorySingleCache } from '@/misc/cache.js';
-import type { MiUserProfile } from '@/models/entities/UserProfile.js';
+import type { MiUserProfile } from '@/models/UserProfile.js';
 import { RelayService } from '@/core/RelayService.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { DI } from '@/di-symbols.js';
@@ -110,9 +110,8 @@ class NotificationManager {
 			// 通知される側のユーザーが通知する側のユーザーをミュートしていない限りは通知する
 			if (!mentioneesMutedUserIds.includes(this.notifier.id)) {
 				this.notificationService.createNotification(x.target, x.reason, {
-					notifierId: this.notifier.id,
 					noteId: this.note.id,
-				});
+				}, this.notifier.id);
 			}
 		}
 	}
@@ -184,6 +183,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		@Inject(DI.noteThreadMutingsRepository)
 		private noteThreadMutingsRepository: NoteThreadMutingsRepository,
+
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
 
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
@@ -334,7 +336,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.channel) {
 			this.redisClient.xadd(
 				`channelTimeline:${data.channel.id}`,
-				'MAXLEN', '~', '1000',
+				'MAXLEN', '~', this.config.perChannelMaxNoteCacheCount.toString(),
 				'*',
 				'note', note.id);
 		}
@@ -503,6 +505,19 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.reply) {
 			this.saveReply(data.reply, note);
+		}
+
+		if (data.reply == null) {
+			this.followingsRepository.findBy({
+				followeeId: user.id,
+				notify: 'normal',
+			}).then(followings => {
+				for (const following of followings) {
+					this.notificationService.createNotification(following.followerId, 'note', {
+						noteId: note.id,
+					}, user.id);
+				}
+			});
 		}
 
 		// この投稿を除く指定したユーザーによる指定したノートのリノートが存在しないとき

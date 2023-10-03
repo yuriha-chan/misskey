@@ -6,7 +6,7 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { IsNull } from 'typeorm';
-import type { MiLocalUser, MiPartialLocalUser, MiPartialRemoteUser, MiRemoteUser, MiUser } from '@/models/entities/User.js';
+import type { MiLocalUser, MiPartialLocalUser, MiPartialRemoteUser, MiRemoteUser, MiUser } from '@/models/User.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { QueueService } from '@/core/QueueService.js';
 import PerUserFollowingChart from '@/core/chart/charts/per-user-following.js';
@@ -19,7 +19,7 @@ import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { WebhookService } from '@/core/WebhookService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, FollowRequestsRepository, InstancesRepository, UserProfilesRepository, UsersRepository } from '@/models/index.js';
+import type { FollowingsRepository, FollowRequestsRepository, InstancesRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { bindThis } from '@/decorators.js';
@@ -230,8 +230,7 @@ export class UserFollowingService implements OnModuleInit {
 
 			// 通知を作成
 			this.notificationService.createNotification(follower.id, 'followRequestAccepted', {
-				notifierId: followee.id,
-			});
+			}, followee.id);
 		}
 
 		if (alreadyFollowed) return;
@@ -304,8 +303,7 @@ export class UserFollowingService implements OnModuleInit {
 
 			// 通知を作成
 			this.notificationService.createNotification(followee.id, 'follow', {
-				notifierId: follower.id,
-			});
+			}, follower.id);
 		}
 	}
 
@@ -488,9 +486,8 @@ export class UserFollowingService implements OnModuleInit {
 
 			// 通知を作成
 			this.notificationService.createNotification(followee.id, 'receiveFollowRequest', {
-				notifierId: follower.id,
 				followRequestId: followRequest.id,
-			});
+			}, follower.id);
 		}
 
 		if (this.userEntityService.isLocalUser(follower) && this.userEntityService.isRemoteUser(followee)) {

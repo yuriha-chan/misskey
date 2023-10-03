@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
-import type { UserListsRepository, UserListJoiningsRepository, BlockingsRepository } from '@/models/index.js';
+import type { UserListsRepository, UserListJoiningsRepository, BlockingsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { GetterService } from '@/server/api/GetterService.js';
 import { UserListService } from '@/core/UserListService.js';
@@ -127,7 +127,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			try {
-				await this.userListService.push(user, userList, me);
+				await this.userListService.addMember(user, userList, me);
 			} catch (err) {
 				if (err instanceof UserListService.TooManyUsersError) {
 					throw new ApiError(meta.errors.tooManyUsers);
