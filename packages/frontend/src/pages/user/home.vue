@@ -106,15 +106,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 					<div class="status">
 						<MkA :to="userPage(user)">
-							<b>{{ number(user.notesCount) }}</b>
+							<span class="number">{{ number(user.notesCount) }}</span>
 							<span>{{ i18n.ts.notes }}</span>
 						</MkA>
 						<MkA v-if="isFfVisibleForMe(user)" :to="userPage(user, 'following')">
-							<b>{{ number(user.followingCount) }}</b>
+							<span class="number">{{ number(user.followingCount) }}</span>
 							<span>{{ i18n.ts.following }}</span>
 						</MkA>
 						<MkA v-if="isFfVisibleForMe(user)" :to="userPage(user, 'followers')">
-							<b>{{ number(user.followersCount) }}</b>
+							<span class="number">{{ number(user.followersCount) }}</span>
 							<span>{{ i18n.ts.followers }}</span>
 						</MkA>
 					</div>
@@ -551,13 +551,15 @@ onUnmounted(() => {
 							text-decoration: none;
 						}
 
-						> b {
-							display: block;
+						> span.number {
+							font-size: 90%;
 							line-height: 16px;
+							opacity: 0.45;
 						}
 
 						> span {
 							font-size: 70%;
+							opacity: 0.9;
 						}
 					}
 				}

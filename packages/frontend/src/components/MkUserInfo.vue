@@ -20,13 +20,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<div :class="$style.status">
 		<div :class="$style.statusItem">
-			<p :class="$style.statusItemLabel">{{ i18n.ts.notes }}</p><span :class="$style.statusItemValue">{{ number(user.notesCount) }}</span>
+			<span :class="$style.statusItemLabel">{{ i18n.ts.notes }}</span><span :class="$style.statusItemValue">{{ number(user.notesCount) }}</span>
 		</div>
 		<div v-if="isFfVisibleForMe(user)" :class="$style.statusItem">
-			<p :class="$style.statusItemLabel">{{ i18n.ts.following }}</p><span :class="$style.statusItemValue">{{ number(user.followingCount) }}</span>
+			<span :class="$style.statusItemLabel">{{ i18n.ts.following }}</span><span :class="$style.statusItemValue">{{ number(user.followingCount) }}</span>
 		</div>
 		<div v-if="isFfVisibleForMe(user)" :class="$style.statusItem">
-			<p :class="$style.statusItemLabel">{{ i18n.ts.followers }}</p><span :class="$style.statusItemValue">{{ number(user.followersCount) }}</span>
+			<span :class="$style.statusItemLabel">{{ i18n.ts.followers }}</span><span :class="$style.statusItemValue">{{ number(user.followersCount) }}</span>
 		</div>
 	</div>
 	<MkFollowButton v-if="$i && user.id != $i.id" :class="$style.follow" :user="user" mini/>
@@ -105,7 +105,7 @@ defineProps<{
 
 .description {
 	padding: 16px;
-	font-size: 0.8em;
+	font-size: 1.0em;
 	border-top: solid 0.5px var(--divider);
 }
 
@@ -130,11 +130,13 @@ defineProps<{
 	margin: 0;
 	font-size: 0.7em;
 	color: var(--fg);
+	opacity: 0.8;
+	margin-inline-end: 0.2em;
 }
 
 .statusItemValue {
-	font-size: 1em;
-	color: var(--accent);
+	font-size: 0.9em;
+	opacity: 0.8;
 }
 
 .follow {
