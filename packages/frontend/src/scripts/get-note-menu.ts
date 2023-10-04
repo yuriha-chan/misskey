@@ -16,7 +16,7 @@ import { defaultStore, noteActions } from '@/store.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { getUserMenu } from '@/scripts/get-user-menu.js';
 import { clipsCache } from '@/cache.js';
-import { getEmbedCode } from '@/get-embed-code.js';
+import { getEmbedCode } from '@/scripts/get-embed-code.js';
 import { MenuItem } from '@/types/menu.js';
 
 export async function getNoteClipMenu(props: {
