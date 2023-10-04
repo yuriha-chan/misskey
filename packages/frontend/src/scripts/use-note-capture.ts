@@ -77,6 +77,21 @@ export function useNoteCapture(props: {
 				props.isDeletedRef.value = true;
 				break;
 			}
+
+			case 'updated': {
+				const editedNote = await os.api("notes/show", {
+					noteId: id,
+				});
+
+				const keys = new Set<string>();
+				Object.keys(editedNote)
+					.concat(Object.keys(note.value))
+					.forEach((key) => keys.add(key));
+				keys.forEach((key) => {
+					note.value[key] = editedNote[key];
+				});
+				break;
+			}
 		}
 	}
 
