@@ -570,10 +570,11 @@ onUnmounted(() => {
 							font-size: 90%;
 							line-height: 16px;
 							opacity: 0.45;
+							margin-inline-end: 0.2em;
 						}
 
 						> span {
-							font-size: 70%;
+							font-size: 90%;
 							opacity: 0.9;
 						}
 					}
