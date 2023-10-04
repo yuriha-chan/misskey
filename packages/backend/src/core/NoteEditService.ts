@@ -161,6 +161,9 @@ export class NoteEditService implements OnApplicationShutdown {
 		@Inject(DI.redisForTimelines)
 		private redisForTimelines: Redis.Redis,
 
+		@Inject(DI.db)
+		private db: DataSource,
+
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
 
@@ -457,6 +460,23 @@ export class NoteEditService implements OnApplicationShutdown {
 			// Start transaction
 			await this.db.transaction(async transactionalEntityManager => {
 				await transactionalEntityManager.update(MiNote, oldnote.id, note);
+
+				const poll = new MiPoll({
+					noteId: note.id,
+					choices: data.poll!.choices,
+					expiresAt: data.poll!.expiresAt,
+					multiple: data.poll!.multiple,
+					votes: new Array(data.poll!.choices.length).fill(0),
+					noteVisibility: note.visibility,
+					userId: user.id,
+					userHost: user.host,
+				});
+
+				await transactionalEntityManager.update(MiPoll, oldnote.id, poll);
+			});
+		} else {
+			await this.notesRepository.update(oldnote.id, note);
+		};
 
 				const poll = new MiPoll({
 					noteId: note.id,
