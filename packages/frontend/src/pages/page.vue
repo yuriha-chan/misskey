@@ -15,19 +15,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<h1>{{ page.title }}</h1>
 				</div>
 				-->
-<<<<<<< HEAD
 					<div v-if="page.eyeCatchingImageId" class="banner">
 						<img :src="page.eyeCatchingImage.url"/>
-=======
-					<div class="banner">
-						<MkMediaImage
-							v-if="page.eyeCatchingImageId"
-							:image="page.eyeCatchingImage"
-							:cover="true"
-							:disableImageLink="true"
-							class="thumbnail"
-						/>
->>>>>>> 2023.9.3
 					</div>
 					<div class="content">
 						<XPage :page="page"/>

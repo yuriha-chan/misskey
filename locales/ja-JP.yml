@@ -656,7 +656,6 @@ setMultipleBySeparatingWithSpace: "スペースで区切って複数設定でき
 fileIdOrUrl: "ファイルIDまたはURL"
 behavior: "動作"
 sample: "サンプル"
-<<<<<<< HEAD
 contactAdmin: "管理者に連絡"
 contactAdminReason: "理由を選択"
 reportOf: "報告対象のアカウント"
@@ -677,16 +676,8 @@ _contactAdminReason:
 reviewReports: "ユーザーの報告を確認"
 fillReportDescription: "管理者に伝えたい情報の詳細を入力してください"
 reportCompleted: "報告が送信されました。ありがとうございますby 管理者"
+reportAbuseRenote: "リノート行為について管理者に連絡"
 reporter: "報告者"
-=======
-abuseReports: "通報"
-reportAbuse: "通報"
-reportAbuseRenote: "リノートを通報"
-reportAbuseOf: "{name}を通報する"
-fillAbuseReportDescription: "通報理由の詳細を記入してください。対象のノートがある場合はそのURLも記入してください。"
-abuseReported: "内容が送信されました。ご報告ありがとうございました。"
-reporter: "通報者"
->>>>>>> 2023.9.3
 reporteeOrigin: "通報先"
 reporterOrigin: "通報元"
 forwardReport: "リモートサーバーに通報を転送する"

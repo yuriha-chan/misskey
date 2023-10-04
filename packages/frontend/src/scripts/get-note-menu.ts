@@ -298,16 +298,12 @@ export function getNoteMenu(props: {
 				icon: 'ti ti-share',
 				text: i18n.ts.share,
 				action: share,
-<<<<<<< HEAD
 			}, {
 				icon: 'ti ti-code',
 				text: i18n.ts.copyEmbedCode,
 				action: copyEmbedCode,
-			}, instance.translatorAvailable ? {
-=======
 			},
 			$i && $i.policies.canUseTranslator && instance.translatorAvailable ? {
->>>>>>> 2023.9.3
 				icon: 'ti ti-language-hiragana',
 				text: i18n.ts.translate,
 				action: translate,
@@ -367,7 +363,6 @@ export function getNoteMenu(props: {
 			}]
 			: []
 		),*/
-<<<<<<< HEAD
 			null,
 			{
 					icon: 'ti ti-exclamation-circle',
@@ -380,14 +375,6 @@ export function getNoteMenu(props: {
 						}, {}, 'closed');
 					},
 			},
-=======
-			...(appearNote.userId !== $i.id ? [
-				null,
-				appearNote.userId !== $i.id ? getAbuseNoteMenu(appearNote, i18n.ts.reportAbuse) : undefined,
-			]
-			: []
-			),
->>>>>>> 2023.9.3
 			...(appearNote.userId === $i.id || $i.isModerator || $i.isAdmin ? [
 				null,
 				appearNote.userId === $i.id && $i.policies.canEditNote ? {
@@ -411,11 +398,7 @@ export function getNoteMenu(props: {
 			.filter(x => x !== undefined);
 	} else {
 		menu = [{
-<<<<<<< HEAD
-			icon: 'ti ti-external-link',
-=======
 			icon: 'ti ti-info-circle',
->>>>>>> 2023.9.3
 			text: i18n.ts.details,
 			action: openDetail,
 		}, {
