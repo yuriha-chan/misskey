@@ -70,17 +70,18 @@ class UserListChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
+		const isMe = this.user!.id === note.userId;
+
 		if (!this.listUsers.includes(note.userId)) return;
 
-		if (['followers', 'specified'].includes(note.visibility)) {
-			note = await this.noteEntityService.pack(note.id, this.user, {
-				detail: true,
-			});
-
-			if (note.isHidden) {
-				return;
-			}
+		if (note.visibility === 'followers') {
+			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
+		} else if (note.visibility === 'specified') {
+			if (!note.visibleUserIds!.includes(this.user!.id)) return;
 		} else {
+			if (note.reply) {
+				if (reply.visibility === 'followers' && !Object.hasOwn(this.following, reply.userId)) return;
+			}
 			// リプライなら再pack
 			if (note.replyId != null) {
 				note.reply = await this.noteEntityService.pack(note.replyId, this.user, {
