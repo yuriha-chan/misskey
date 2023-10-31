@@ -90,7 +90,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkSwitch v-model="role.policies.rateLimitFactor.useDefault" :readonly="readonly">
 						<template #label>{{ i18n.ts._role.useBaseValue }}</template>
 					</MkSwitch>
-					<MkRange :modelValue="role.policies.rateLimitFactor.value * 100" :min="0" :max="400" :step="10" :textConverter="(v) => `${v}%`" @update:modelValue="v => role.policies.rateLimitFactor.value = (v / 100)">
+					<MkRange :modelValue="role.policies.rateLimitFactor.value * 100" :min="0" :max="500" :step="2" :textConverter="(v) => `${v}%`" @update:modelValue="v => role.policies.rateLimitFactor.value = (v / 100)">
 						<template #label>{{ i18n.ts._role._options.rateLimitFactor }}</template>
 						<template #caption>{{ i18n.ts._role._options.descriptionOfRateLimitFactor }}</template>
 					</MkRange>
