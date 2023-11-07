@@ -19,6 +19,7 @@ class LocalTimelineChannel extends Channel {
 	public static requireCredential = false;
 	private withReplies: boolean;
 	private withRenotes: boolean;
+	private withHashtags: boolean;
 
 	constructor(
 		private metaService: MetaService,
@@ -39,6 +40,7 @@ class LocalTimelineChannel extends Channel {
 
 		this.withReplies = params.withReplies ?? false;
 		this.withRenotes = params.withRenotes ?? true;
+		this.withHashtags = params.withHashtags ?? true;
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
@@ -71,6 +73,8 @@ class LocalTimelineChannel extends Channel {
 		}
 
 		if (note.renote && note.text == null && (note.fileIds == null || note.fileIds.length === 0) && !this.withRenotes) return;
+
+		if (note.tags && !this.withHashtags) return;
 
 		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
 		if (isUserRelated(note, this.userIdsWhoMeMuting)) return;

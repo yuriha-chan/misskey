@@ -20,6 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:list="src.split(':')[1]"
 					:withRenotes="withRenotes"
 					:withReplies="withReplies"
+					:withHashtags="withHashtags"
 					:onlyFiles="onlyFiles"
 					:sound="true"
 					@queue="queueUpdated"
@@ -63,6 +64,7 @@ let srcWhenNotSignin = $ref(isLocalTimelineAvailable ? 'local' : 'global');
 const src = $computed({ get: () => ($i ? defaultStore.reactiveState.tl.value.src : srcWhenNotSignin), set: (x) => saveSrc(x) });
 const withRenotes = $ref(true);
 const withReplies = $ref(false);
+const withHashtags = $ref(true);
 const onlyFiles = $ref(false);
 
 watch($$(src), () => queue = 0);
@@ -149,6 +151,11 @@ const headerActions = $computed(() => [{
 			text: i18n.ts.withReplies,
 			icon: 'ti ti-arrow-back-up',
 			ref: $$(withReplies),
+		}, {
+			type: 'switch',
+			text: i18n.ts.withHashtags,
+			icon: 'ti ti-arrow-back-up',
+			ref: $$(withHashtags),
 		}, {
 			type: 'switch',
 			text: i18n.ts.fileAttachedOnly,

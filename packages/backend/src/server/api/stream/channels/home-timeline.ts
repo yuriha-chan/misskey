@@ -18,6 +18,7 @@ class HomeTimelineChannel extends Channel {
 	public static requireCredential = true;
 	private withReplies: boolean;
 	private withRenotes: boolean;
+	private withHashtags: boolean;
 
 	constructor(
 		private noteEntityService: NoteEntityService,
@@ -33,6 +34,7 @@ class HomeTimelineChannel extends Channel {
 	public async init(params: any) {
 		this.withReplies = params.withReplies ?? false;
 		this.withRenotes = params.withRenotes ?? true;
+		this.withHashtags = params.withHashtags ?? true;
 
 		this.subscriber.on('notesStream', this.onNote);
 	}
@@ -84,6 +86,8 @@ class HomeTimelineChannel extends Channel {
 		}
 
 		if (note.renote && note.text == null && (note.fileIds == null || note.fileIds.length === 0) && !this.withRenotes) return;
+
+		if (note.tags && !this.withHashtags) return;
 
 		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
 		if (isUserRelated(note, this.userIdsWhoMeMuting)) return;

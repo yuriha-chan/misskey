@@ -24,10 +24,12 @@ const props = withDefaults(defineProps<{
 	sound?: boolean;
 	withRenotes?: boolean;
 	withReplies?: boolean;
+	withHashtags?: boolean;
 	onlyFiles?: boolean;
 }>(), {
 	withRenotes: true,
 	withReplies: false,
+	withHashtags: true;
 	onlyFiles: false,
 });
 
@@ -71,11 +73,13 @@ if (props.src === 'antenna') {
 	query = {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	};
 	connection = stream.useChannel('homeTimeline', {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	});
 	connection.on('note', prepend);
@@ -86,11 +90,13 @@ if (props.src === 'antenna') {
 	query = {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	};
 	connection = stream.useChannel('localTimeline', {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	});
 	connection.on('note', prepend);
@@ -99,11 +105,13 @@ if (props.src === 'antenna') {
 	query = {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	};
 	connection = stream.useChannel('hybridTimeline', {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	});
 	connection.on('note', prepend);
@@ -112,11 +120,13 @@ if (props.src === 'antenna') {
 	query = {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	};
 	connection = stream.useChannel('globalTimeline', {
 		withRenotes: props.withRenotes,
 		withReplies: props.withReplies,
+		withHashtags: props.withHashtags,
 		withFiles: props.onlyFiles ? true : undefined,
 	});
 	connection.on('note', prepend);

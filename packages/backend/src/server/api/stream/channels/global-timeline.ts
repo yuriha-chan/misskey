@@ -20,6 +20,7 @@ class GlobalTimelineChannel extends Channel {
 	public static requireCredential = false;
 	private withReplies: boolean;
 	private withRenotes: boolean;
+	private withHashtags: boolean;
 
 	constructor(
 		private metaService: MetaService,
@@ -40,6 +41,7 @@ class GlobalTimelineChannel extends Channel {
 
 		this.withReplies = params.withReplies ?? false;
 		this.withRenotes = params.withRenotes ?? true;
+		this.withHashtags = params.withHashtags ?? true;
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
@@ -71,6 +73,8 @@ class GlobalTimelineChannel extends Channel {
 		}
 
 		if (note.renote && note.text == null && (note.fileIds == null || note.fileIds.length === 0) && !this.withRenotes) return;
+
+		if (note.tags && !this.withHashtags) return;
 
 		// Ignore notes from instances the user has muted
 		if (isInstanceMuted(note, new Set<string>(this.userProfile?.mutedInstances ?? []))) return;
