@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	withRenotes: true,
 	withReplies: false,
-	withHashtags: true;
+	withHashtags: true,
 	onlyFiles: false,
 });
 
