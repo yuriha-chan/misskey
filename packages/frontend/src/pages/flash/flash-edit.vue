@@ -97,7 +97,7 @@ Ui:render([
 				rounded: true
 				primary: true
 				form: {
-					text: \`{result}{Str:lf}{THIS_URL}\`
+					text: \`{result}{Str:lf}#おみくじ{Str:lf}{THIS_URL}\`
 				}
 			})
 		]
@@ -173,7 +173,7 @@ var cursor = 0
 					rounded: true
 					primary: true
 					form: {
-						text: \`{result}{Str:lf}{THIS_URL}\`
+						text: \`{result}{Str:lf}#そろうかな{Str:lf}{THIS_URL}\`
 					}
 				})
 			]
@@ -275,7 +275,7 @@ each (let qa, qas) {
 				rounded: true
 				primary: true
 				form: {
-					text: \`{result}{Str:lf}{THIS_URL}\`
+					text: \`{result} #クイズ{Str:lf}{THIS_URL}\`
 				}
 			})
 		]
