@@ -14,18 +14,15 @@ import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mf
 import { extractHashtags } from '@/misc/extract-hashtags.js';
 import type { IMentionedRemoteUsers } from '@/models/Note.js';
 import { MiNote } from '@/models/Note.js';
-import type { NoteEditRepository, ChannelFollowingsRepository, ChannelsRepository, FollowingsRepository, InstancesRepository, MiFollowing, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { NoteEditRepository, ChannelFollowingsRepository, ChannelsRepository, FollowingsRepository, InstancesRepository, MiFollowing, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository, PollsRepository } from '@/models/_.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiApp } from '@/models/App.js';
 import { concat } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
 import type { MiUser, MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import { MiPoll, type IPoll } from '@/models/Poll.js';
-import { checkWordMute } from '@/misc/check-word-mute.js';
 import type { MiChannel } from '@/models/Channel.js';
 import { normalizeForSearch } from '@/misc/normalize-for-search.js';
-import { MemorySingleCache } from '@/misc/cache.js';
-import type { MiUserProfile } from '@/models/UserProfile.js';
 import { RelayService } from '@/core/RelayService.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { DI } from '@/di-symbols.js';
@@ -35,7 +32,6 @@ import ActiveUsersChart from '@/core/chart/charts/active-users.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { WebhookService } from '@/core/WebhookService.js';
-import { HashtagService } from '@/core/HashtagService.js';
 import { QueueService } from '@/core/QueueService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
@@ -48,11 +44,7 @@ import { DB_MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { RoleService } from '@/core/RoleService.js';
 import { MetaService } from '@/core/MetaService.js';
 import { SearchService } from '@/core/SearchService.js';
-import { FeaturedService } from '@/core/FeaturedService.js';
 import { FunoutTimelineService } from '@/core/FunoutTimelineService.js';
-import { AntennaService } from './AntennaService.js';
-import NotesChart from './chart/charts/notes.js';
-import PerUserNotesChart from './chart/charts/per-user-notes.js';
 import { UtilityService } from '@/core/UtilityService.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
@@ -197,6 +189,9 @@ export class NoteEditService implements OnApplicationShutdown {
 		@Inject(DI.noteEditRepository)
 		private noteEditRepository: NoteEditRepository,
 
+		@Inject(DI.pollsRepository)
+		private pollsRepository: PollsRepository,
+
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
 		private idService: IdService,
@@ -207,18 +202,13 @@ export class NoteEditService implements OnApplicationShutdown {
 		private notificationService: NotificationService,
 		private relayService: RelayService,
 		private federatedInstanceService: FederatedInstanceService,
-		private hashtagService: HashtagService,
-		private antennaService: AntennaService,
 		private webhookService: WebhookService,
-		private featuredService: FeaturedService,
 		private remoteUserResolveService: RemoteUserResolveService,
 		private apDeliverManagerService: ApDeliverManagerService,
 		private apRendererService: ApRendererService,
 		private roleService: RoleService,
 		private metaService: MetaService,
 		private searchService: SearchService,
-		private notesChart: NotesChart,
-		private perUserNotesChart: PerUserNotesChart,
 		private activeUsersChart: ActiveUsersChart,
 		private instanceChart: InstanceChart,
 		private utilityService: UtilityService,
@@ -390,121 +380,115 @@ export class NoteEditService implements OnApplicationShutdown {
 			update.hasPoll = !!data.poll;
 		}
 
-		await this.noteEditRepository.insert({
-			id: this.idService.gen(),
-			noteId: oldnote.id,
-			text: data.text || undefined,
-			cw: data.cw,
-			fileIds: undefined,
-			updatedAt: new Date(),
-		});
+		const poll = await this.pollsRepository.findOneBy({ noteId: oldnote.id });
 
-		const note = new MiNote({
-			id: oldnote.id,
-			updatedAt: data.updatedAt ? data.updatedAt : new Date(),
-			fileIds: data.files ? data.files.map(file => file.id) : [],
-			replyId: data.reply ? data.reply.id : null,
-			renoteId: data.renote ? data.renote.id : null,
-			channelId: data.channel ? data.channel.id : null,
-			threadId: data.reply
-				? data.reply.threadId
+		const oldPoll = poll ? { choices: poll.choices, multiple: poll.multiple, expiresAt: poll.expiresAt } : null;
+
+		if (Object.keys(update).length > 0) {
+			const exists = await this.noteEditRepository.findOneBy({ noteId: oldnote.id });
+			await this.noteEditRepository.insert({
+				id: this.idService.gen(),
+				noteId: oldnote.id,
+				oldText: oldnote.text || undefined,
+				newText: update.text || undefined,
+				cw: update.cw || undefined,
+				fileIds: undefined,
+				oldDate: exists ? oldnote.updatedAt as Date : this.idService.parse(oldnote.id).date,
+				updatedAt: new Date(),
+			});
+
+			const note = new MiNote({
+				id: oldnote.id,
+				updatedAt: data.updatedAt ? data.updatedAt : new Date(),
+				fileIds: data.files ? data.files.map(file => file.id) : [],
+				replyId: data.reply ? data.reply.id : null,
+				renoteId: data.renote ? data.renote.id : null,
+				channelId: data.channel ? data.channel.id : null,
+				threadId: data.reply
 					? data.reply.threadId
-					: data.reply.id
-				: null,
-			name: data.name,
-			text: data.text,
-			hasPoll: data.poll != null,
-			cw: data.cw ?? null,
-			tags: tags.map(tag => normalizeForSearch(tag)),
-			emojis,
-			reactions: oldnote.reactions,
-			userId: user.id,
-			localOnly: data.localOnly!,
-			reactionAcceptance: data.reactionAcceptance,
-			visibility: data.visibility as any,
-			visibleUserIds: data.visibility === 'specified'
-				? data.visibleUsers
-					? data.visibleUsers.map(u => u.id)
-					: []
-				: [],
+						? data.reply.threadId
+						: data.reply.id
+					: null,
+				name: data.name,
+				text: data.text,
+				hasPoll: data.poll != null,
+				cw: data.cw ?? null,
+				tags: tags.map(tag => normalizeForSearch(tag)),
+				emojis,
+				reactions: oldnote.reactions,
+				userId: user.id,
+				localOnly: data.localOnly!,
+				reactionAcceptance: data.reactionAcceptance,
+				visibility: data.visibility as any,
+				visibleUserIds: data.visibility === 'specified'
+					? data.visibleUsers
+						? data.visibleUsers.map(u => u.id)
+						: []
+					: [],
 
-			attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
+				attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
 
-			// 以下非正規化データ
-			replyUserId: data.reply ? data.reply.userId : null,
-			replyUserHost: data.reply ? data.reply.userHost : null,
-			renoteUserId: data.renote ? data.renote.userId : null,
-			renoteUserHost: data.renote ? data.renote.userHost : null,
-			userHost: user.host,
-		});
-
-		if (data.uri != null) note.uri = data.uri;
-		if (data.url != null) note.url = data.url;
-
-		if (mentionedUsers.length > 0) {
-			note.mentions = mentionedUsers.map(u => u.id);
-			const profiles = await this.userProfilesRepository.findBy({ userId: In(note.mentions) });
-			note.mentionedRemoteUsers = JSON.stringify(mentionedUsers.filter(u => this.userEntityService.isRemoteUser(u)).map(u => {
-				const profile = profiles.find(p => p.userId === u.id);
-				const url = profile != null ? profile.url : null;
-				return {
-					uri: u.uri,
-					url: url ?? undefined,
-					username: u.username,
-					host: u.host,
-				} as IMentionedRemoteUsers[0];
-			}));
-		}
-
-		if (data.poll != null) {
-			// Start transaction
-			await this.db.transaction(async transactionalEntityManager => {
-				await transactionalEntityManager.update(MiNote, oldnote.id, note);
-
-				const poll = new MiPoll({
-					noteId: note.id,
-					choices: data.poll!.choices,
-					expiresAt: data.poll!.expiresAt,
-					multiple: data.poll!.multiple,
-					votes: new Array(data.poll!.choices.length).fill(0),
-					noteVisibility: note.visibility,
-					userId: user.id,
-					userHost: user.host,
-				});
-
-				await transactionalEntityManager.update(MiPoll, oldnote.id, poll);
+				// 以下非正規化データ
+				replyUserId: data.reply ? data.reply.userId : null,
+				replyUserHost: data.reply ? data.reply.userHost : null,
+				renoteUserId: data.renote ? data.renote.userId : null,
+				renoteUserHost: data.renote ? data.renote.userHost : null,
+				userHost: user.host,
 			});
-		} else {
-			await this.notesRepository.update(oldnote.id, note);
-		};
 
-				const poll = new MiPoll({
-					noteId: note.id,
-					choices: data.poll!.choices,
-					expiresAt: data.poll!.expiresAt,
-					multiple: data.poll!.multiple,
-					votes: new Array(data.poll!.choices.length).fill(0),
-					noteVisibility: note.visibility,
-					userId: user.id,
-					userHost: user.host,
+			if (data.uri != null) note.uri = data.uri;
+			if (data.url != null) note.url = data.url;
+
+			if (mentionedUsers.length > 0) {
+				note.mentions = mentionedUsers.map(u => u.id);
+				const profiles = await this.userProfilesRepository.findBy({ userId: In(note.mentions) });
+				note.mentionedRemoteUsers = JSON.stringify(mentionedUsers.filter(u => this.userEntityService.isRemoteUser(u)).map(u => {
+					const profile = profiles.find(p => p.userId === u.id);
+					const url = profile != null ? profile.url : null;
+					return {
+						uri: u.uri,
+						url: url ?? undefined,
+						username: u.username,
+						host: u.host,
+					} as IMentionedRemoteUsers[0];
+				}));
+			}
+
+			if (data.poll != null && JSON.stringify(data.poll) !== JSON.stringify(oldPoll)) {
+				// Start transaction
+				Iawait this.db.transaction(async transactionalEntityManager => {
+					await transactionalEntityManager.update(MiNote, oldnote.id, note);
+
+					const poll = new MiPoll({
+						noteId: note.id,
+						choices: data.poll!.choices,
+						expiresAt: data.poll!.expiresAt,
+						multiple: data.poll!.multiple,
+						votes: new Array(data.poll!.choices.length).fill(0),
+						noteVisibility: note.visibility,
+						userId: user.id,
+						userHost: user.host,
+					});
+
+					if (!oldnote.hasPoll) {
+						await transactionalEntityManager.insert(MiPoll, poll);
+					} else {
+						await transactionalEntityManager.update(MiPoll, oldnote.id, poll);
+					}
 				});
+			} else {
+				await this.notesRepository.update(oldnote.id, note);
+			}
 
-				if (!oldnote.hasPoll) {
-					await transactionalEntityManager.insert(MiPoll, poll);
-				} else {
-					await transactionalEntityManager.update(MiPoll, oldnote.id, poll);
-				}
-			});
+			setImmediate('post edited', { signal: this.#shutdownController.signal }).then(
+				() => this.postNoteEdited(note, user, data, silent, tags!, mentionedUsers!),
+				() => { /* aborted, ignore this */ },
+			);
+
+			return note;
 		} else {
-			await this.notesRepository.update(oldnote.id, note);
+			return oldnote;
 		}
-
-		setImmediate('post edited', { signal: this.#shutdownController.signal }).then(
-			() => this.postNoteEdited(note, user, data, silent, tags!, mentionedUsers!),
-			() => { /* aborted, ignore this */ },
-		);
-
-		return note;
 	}
 
 	@bindThis
