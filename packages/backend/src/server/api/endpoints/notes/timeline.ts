@@ -150,7 +150,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withHashtags: ps.withHashtags,
 				}, me),
 			});
->>>>>>> develop
 
 			process.nextTick(() => {
 				this.activeUsersChart.read(me);
