@@ -134,6 +134,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-if="!disableNotes">
 					<div style="margin-bottom: 8px;">{{ i18n.ts.featured }}</div>
 					<MkNotes :class="$style.tl" :noGap="true" :pagination="pagination"/>
+					<hr>
+					<MkNotes :class="$style.tl" :noGap="true" :pagination="pagination_notes"/>
 				</div>
 			</div>
 		</div>
@@ -218,6 +220,19 @@ const pagination = {
 	limit: 10,
 	params: computed(() => ({
 		userId: props.user.id,
+	})),
+};
+
+const pagination_notes = {
+	endpoint: 'users/notes' as const,
+	limit: 10,
+	params: computed(() => ({
+		userId: props.user.id,
+		withReplies: false,
+		withHashtags: true,
+		withRenotes: false,
+		withFiles: false,
+		withSpecified: false,
 	})),
 };
 
