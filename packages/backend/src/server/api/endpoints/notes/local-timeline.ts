@@ -154,6 +154,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					limit,
 					withFiles: ps.withFiles,
 					withReplies: ps.withReplies,
+					withRenotes: ps.withRenotes,
+					withHashtags: ps.withHashtags,
 				}, me),
 			});
 
@@ -202,6 +204,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 							.where('note.replyId IS NOT NULL')
 							.andWhere('note.replyUserId = note.userId');
 					}));
+			}));
+		}
+
+		if (!ps.withRenotes) {
+			query.andWhere(new Brackets(qb => {
+				qb.orWhere('note.renoteId IS NULL');
+				qb.orWhere('note.text IS NOT NULL');
+				qb.orWhere('note.fileIds != \'{}\'');
+				qb.orWhere('note.poll IS NOT NULL');
 			}));
 		}
 

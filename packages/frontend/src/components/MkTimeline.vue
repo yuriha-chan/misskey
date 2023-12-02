@@ -169,6 +169,7 @@ function updatePaginationQuery() {
 		endpoint = 'notes/timeline';
 		query = {
 			withRenotes: props.withRenotes,
+			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
 		};
 	} else if (props.src === 'local') {
@@ -176,6 +177,7 @@ function updatePaginationQuery() {
 		query = {
 			withRenotes: props.withRenotes,
 			withReplies: props.withReplies,
+			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
 		};
 	} else if (props.src === 'social') {
@@ -183,12 +185,14 @@ function updatePaginationQuery() {
 		query = {
 			withRenotes: props.withRenotes,
 			withReplies: props.withReplies,
+			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
 		};
 	} else if (props.src === 'global') {
 		endpoint = 'notes/global-timeline';
 		query = {
 			withRenotes: props.withRenotes,
+			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
 		};
 	} else if (props.src === 'mentions') {

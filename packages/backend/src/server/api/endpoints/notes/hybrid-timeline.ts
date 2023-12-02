@@ -202,6 +202,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		includeLocalRenotes: boolean,
 		withFiles: boolean,
 		withReplies: boolean,
+		withHashtags: boolean,
 	}, me: MiLocalUser) {
 		const followees = await this.userFollowingService.getFollowees(me.id);
 		const followingChannels = await this.channelFollowingsRepository.find({
@@ -289,8 +290,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			query.andWhere('note.fileIds != \'{}\'');
 		}
 
+		if (!ps.withRenotes) {
+			query.andWhere(new Brackets(qb => {
+				qb.orWhere('note.renoteId IS NULL');
+				qb.orWhere('note.text IS NOT NULL');
+				qb.orWhere('note.fileIds != \'{}\'');
+				qb.orWhere('note.poll IS NOT NULL');
+			}));
+		}
+
 		if (!ps.withHashtags) {
-				query.andWhere('note.tags = \'{}\'');
+			query.andWhere('note.tags = \'{}\'');
 		}
 		//#endregion
 
