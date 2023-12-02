@@ -39,6 +39,7 @@ const pagination = {
 		withRenotes: include.value === 'all',
 		withReplies: include.value === 'all',
 		withChannelNotes: include.value === 'all',
+		withSpecified: include.value === 'all',
 		withFiles: include.value === 'files',
 	})),
 };
