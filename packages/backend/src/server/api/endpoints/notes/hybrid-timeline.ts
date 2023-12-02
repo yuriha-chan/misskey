@@ -304,6 +304,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		if (!ps.withHashtags) {
 			query.andWhere('note.tags = \'{}\'');
+			query.andWhere(new Brackets(qb => {
+				qb.orWhere('note.renoteId IS NULL');
+				qb.orWhere('note.text IS NOT NULL');
+				qb.orWhere('note.fileIds != \'{}\'');
+				qb.orWhere('note.hasPoll');
+				qb.orWhere('(SELECT r.tags FROM "note" as r WHERE r.id = note.renoteId) = \'{}\'');
+			}));
 		}
 		//#endregion
 
