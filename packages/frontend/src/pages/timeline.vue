@@ -64,7 +64,7 @@ const rootEl = $shallowRef<HTMLElement>();
 let queue = $ref(0);
 let srcWhenNotSignin = $ref(isLocalTimelineAvailable ? 'local' : 'global');
 const src = $computed({ get: () => ($i ? defaultStore.reactiveState.tl.value.src : srcWhenNotSignin), set: (x) => saveSrc(x) });
-const withRenotes = $ref(true);
+const withRenotes = $ref($i ? defaultStore.state.tlWithRenotes : true);
 const withReplies = $ref($i ? defaultStore.state.tlWithReplies : false);
 const withHashtags = $ref($i ? defaultStore.state.tlWithHashtags : true);
 const onlyFiles = $ref(false);
@@ -77,6 +77,10 @@ watch($$(withReplies), (x) => {
 
 watch($$(withHashtags), (x) => {
 	if ($i) defaultStore.set('tlWithHashtags', x);
+});
+
+watch($$(withRenotes), (x) => {
+	if ($i) defaultStore.set('tlWithRenotes', x);
 });
 
 function queueUpdated(q: number): void {
