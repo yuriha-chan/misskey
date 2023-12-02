@@ -36,6 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div class="_gaps_s">
 					<MkSwitch v-model="suspended" :disabled="!instance" @update:modelValue="toggleSuspend">{{ i18n.ts.stopActivityDelivery }}</MkSwitch>
 					<MkSwitch v-model="isBlocked" :disabled="!meta || !instance" @update:modelValue="toggleBlock">{{ i18n.ts.blockThisInstance }}</MkSwitch>
+					<MkSwitch v-model="isSilenced" :disabled="!meta || !instance" @update:modelValue="toggleSilenced">{{ i18n.ts.silenceThisInstance }}</MkSwitch>
 					<MkButton @click="refreshMetadata"><i class="ti ti-refresh"></i> Refresh metadata</MkButton>
 				</div>
 			</FormSection>
@@ -143,10 +144,11 @@ const props = defineProps<{
 
 let tab = $ref('overview');
 let chartSrc = $ref('instance-requests');
-let meta = $ref<Misskey.entities.AdminInstanceMetadata | null>(null);
-let instance = $ref<Misskey.entities.Instance | null>(null);
+let meta = $ref<Misskey.entities.AdminMetaResponse | null>(null);
+let instance = $ref<Misskey.entities.FederationInstance | null>(null);
 let suspended = $ref(false);
 let isBlocked = $ref(false);
+let isSilenced = $ref(false);
 let faviconUrl = $ref<string | null>(null);
 
 const usersPagination = {
@@ -167,9 +169,10 @@ async function fetch(): Promise<void> {
 	instance = await os.api('federation/show-instance', {
 		host: props.host,
 	});
-	suspended = instance.isSuspended;
-	isBlocked = instance.isBlocked;
-	faviconUrl = getProxiedImageUrlNullable(instance.faviconUrl, 'preview') ?? getProxiedImageUrlNullable(instance.iconUrl, 'preview');
+	suspended = instance?.isSuspended ?? false;
+	isBlocked = instance?.isBlocked ?? false;
+	isSilenced = instance?.isSilenced ?? false;
+	faviconUrl = getProxiedImageUrlNullable(instance?.faviconUrl, 'preview') ?? getProxiedImageUrlNullable(instance?.iconUrl, 'preview');
 }
 
 async function toggleBlock(): Promise<void> {
@@ -178,6 +181,16 @@ async function toggleBlock(): Promise<void> {
 	const { host } = instance;
 	await os.api('admin/update-meta', {
 		blockedHosts: isBlocked ? meta.blockedHosts.concat([host]) : meta.blockedHosts.filter(x => x !== host),
+	});
+}
+
+async function toggleSilenced(): Promise<void> {
+	if (!meta) throw new Error('No meta?');
+	if (!instance) throw new Error('No instance?');
+	const { host } = instance;
+	const silencedHosts = meta.silencedHosts ?? [];
+	await os.api('admin/update-meta', {
+		silencedHosts: isSilenced ? silencedHosts.concat([host]) : silencedHosts.filter(x => x !== host),
 	});
 }
 

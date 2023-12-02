@@ -105,40 +105,42 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
-			userStarForReactionFallback: {
-				type: 'boolean',
-				optional: true, nullable: false,
+			silencedHosts: {
+				type: 'array',
+				optional: true,
+				nullable: false,
+				items: {
+					type: 'string',
+					optional: false,
+					nullable: false,
+				},
 			},
 			pinnedUsers: {
 				type: 'array',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
 				},
 			},
 			hiddenTags: {
 				type: 'array',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
 				},
 			},
 			blockedHosts: {
 				type: 'array',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
 				},
 			},
 			sensitiveWords: {
 				type: 'array',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
 				},
 			},
 			preservedUsernames: {
@@ -146,129 +148,132 @@ export const meta = {
 				optional: false, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
 				},
 			},
 			hcaptchaSecretKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			recaptchaSecretKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			turnstileSecretKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			sensitiveMediaDetection: {
 				type: 'string',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			sensitiveMediaDetectionSensitivity: {
 				type: 'string',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			setSensitiveFlagAutomatically: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			enableSensitiveMediaDetectionForVideos: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			proxyAccountId: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 				format: 'id',
-			},
-			summaryProxy: {
-				type: 'string',
-				optional: true, nullable: true,
 			},
 			email: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			smtpSecure: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			smtpHost: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			smtpPort: {
 				type: 'number',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			smtpUser: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			smtpPass: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			swPrivateKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			useObjectStorage: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			objectStorageBaseUrl: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStorageBucket: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStoragePrefix: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStorageEndpoint: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStorageRegion: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStoragePort: {
 				type: 'number',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStorageAccessKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStorageSecretKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
 			objectStorageUseSSL: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			objectStorageUseProxy: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			objectStorageSetPublicRead: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			enableIpLogging: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			enableActiveEmailValidation: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
+			},
+			enableVerifymailApi: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			verifymailAuthKey: {
+				type: 'string',
+				optional: false, nullable: true,
 			},
 			enableChartsForRemoteUser: {
 				type: 'boolean',
@@ -288,10 +293,114 @@ export const meta = {
 			},
 			manifestJsonOverride: {
 				type: 'string',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			policies: {
 				type: 'object',
+				optional: false, nullable: false,
+			},
+			enableFanoutTimeline: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			enableFanoutTimelineDbFallback: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			perLocalUserUserTimelineCacheMax: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			perRemoteUserUserTimelineCacheMax: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			perUserHomeTimelineCacheMax: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			perUserListTimelineCacheMax: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			notesPerOneAd: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			backgroundImageUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			deeplAuthKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			deeplIsPro: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			defaultDarkTheme: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			defaultLightTheme: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			description: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			disableRegistration: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			impressumUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			maintainerEmail: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			maintainerName: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			name: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			objectStorageS3ForcePathStyle: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			privacyPolicyUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			repositoryUrl: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			summalyProxy: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			themeColor: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			tosUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			uri: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			version: {
+				type: 'string',
 				optional: false, nullable: false,
 			},
 		},
@@ -313,7 +422,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private metaService: MetaService,
 	) {
-		super(meta, paramDef, async (ps, me) => {
+		super(meta, paramDef, async () => {
 			const instance = await this.metaService.fetch(true);
 
 			return {
@@ -328,6 +437,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				tosUrl: instance.termsOfServiceUrl,
 				repositoryUrl: instance.repositoryUrl,
 				feedbackUrl: instance.feedbackUrl,
+				impressumUrl: instance.impressumUrl,
+				privacyPolicyUrl: instance.privacyPolicyUrl,
 				disableRegistration: instance.disableRegistration,
 				emailRequiredForSignup: instance.emailRequiredForSignup,
 				enableHcaptcha: instance.enableHcaptcha,
@@ -358,6 +469,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				pinnedUsers: instance.pinnedUsers,
 				hiddenTags: instance.hiddenTags,
 				blockedHosts: instance.blockedHosts,
+				silencedHosts: instance.silencedHosts,
 				sensitiveWords: instance.sensitiveWords,
 				preservedUsernames: instance.preservedUsernames,
 				hcaptchaSecretKey: instance.hcaptchaSecretKey,
@@ -393,12 +505,21 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				deeplIsPro: instance.deeplIsPro,
 				enableIpLogging: instance.enableIpLogging,
 				enableActiveEmailValidation: instance.enableActiveEmailValidation,
+				enableVerifymailApi: instance.enableVerifymailApi,
+				verifymailAuthKey: instance.verifymailAuthKey,
 				enableChartsForRemoteUser: instance.enableChartsForRemoteUser,
 				enableChartsForFederatedInstances: instance.enableChartsForFederatedInstances,
 				enableServerMachineStats: instance.enableServerMachineStats,
 				enableIdenticonGeneration: instance.enableIdenticonGeneration,
 				policies: { ...DEFAULT_POLICIES, ...instance.policies },
 				manifestJsonOverride: instance.manifestJsonOverride,
+				enableFanoutTimeline: instance.enableFanoutTimeline,
+				enableFanoutTimelineDbFallback: instance.enableFanoutTimelineDbFallback,
+				perLocalUserUserTimelineCacheMax: instance.perLocalUserUserTimelineCacheMax,
+				perRemoteUserUserTimelineCacheMax: instance.perRemoteUserUserTimelineCacheMax,
+				perUserHomeTimelineCacheMax: instance.perUserHomeTimelineCacheMax,
+				perUserListTimelineCacheMax: instance.perUserListTimelineCacheMax,
+				notesPerOneAd: instance.notesPerOneAd,
 			};
 		});
 	}

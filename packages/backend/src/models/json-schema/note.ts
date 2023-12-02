@@ -17,11 +17,6 @@ export const packedNoteSchema = {
 			optional: false, nullable: false,
 			format: 'date-time',
 		},
-		updatedAt: {
-			type: 'string',
-			optional: true, nullable: true,
-			format: 'date-time',
-		},
 		deletedAt: {
 			type: 'string',
 			optional: true, nullable: true,
@@ -132,22 +127,26 @@ export const packedNoteSchema = {
 		channel: {
 			type: 'object',
 			optional: true, nullable: true,
-			items: {
-				type: 'object',
-				optional: false, nullable: false,
-				properties: {
-					id: {
-						type: 'string',
-						optional: false, nullable: false,
-					},
-					name: {
-						type: 'string',
-						optional: false, nullable: true,
-					},
-					isSensitive: {
-						type: 'boolean',
-						optional: true, nullable: false,
-					},
+			properties: {
+				id: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				name: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				color: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				isSensitive: {
+					type: 'boolean',
+					optional: false, nullable: false,
+				},
+				allowRenoteToExternal: {
+					type: 'boolean',
+					optional: false, nullable: false,
 				},
 			},
 		},
@@ -177,6 +176,18 @@ export const packedNoteSchema = {
 		},
 		url: {
 			type: 'string',
+			optional: true, nullable: false,
+		},
+		reactionAndUserPairCache: {
+			type: 'array',
+			optional: true, nullable: false,
+			items: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+		},
+		clippedCount: {
+			type: 'number',
 			optional: true, nullable: false,
 		},
 

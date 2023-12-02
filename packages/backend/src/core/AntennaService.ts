@@ -12,10 +12,11 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import * as Acct from '@/misc/acct.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { DI } from '@/di-symbols.js';
-import type { AntennasRepository, UserListJoiningsRepository } from '@/models/_.js';
+import type { AntennasRepository, UserListMembershipsRepository } from '@/models/_.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import type { GlobalEvents } from '@/core/GlobalEventService.js';
+import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
 import type { OnApplicationShutdown } from '@nestjs/common';
 
 @Injectable()
@@ -24,8 +25,8 @@ export class AntennaService implements OnApplicationShutdown {
 	private antennas: MiAntenna[];
 
 	constructor(
-		@Inject(DI.redis)
-		private redisClient: Redis.Redis,
+		@Inject(DI.redisForTimelines)
+		private redisForTimelines: Redis.Redis,
 
 		@Inject(DI.redisForSub)
 		private redisForSub: Redis.Redis,
@@ -33,11 +34,12 @@ export class AntennaService implements OnApplicationShutdown {
 		@Inject(DI.antennasRepository)
 		private antennasRepository: AntennasRepository,
 
-		@Inject(DI.userListJoiningsRepository)
-		private userListJoiningsRepository: UserListJoiningsRepository,
+		@Inject(DI.userListMembershipsRepository)
+		private userListMembershipsRepository: UserListMembershipsRepository,
 
 		private utilityService: UtilityService,
 		private globalEventService: GlobalEventService,
+		private fanoutTimelineService: FanoutTimelineService,
 	) {
 		this.antennasFetched = false;
 		this.antennas = [];
@@ -55,16 +57,24 @@ export class AntennaService implements OnApplicationShutdown {
 				case 'antennaCreated':
 					this.antennas.push({
 						...body,
-						createdAt: new Date(body.createdAt),
 						lastUsedAt: new Date(body.lastUsedAt),
 					});
 					break;
-				case 'antennaUpdated':
-					this.antennas[this.antennas.findIndex(a => a.id === body.id)] = {
-						...body,
-						createdAt: new Date(body.createdAt),
-						lastUsedAt: new Date(body.lastUsedAt),
-					};
+				case 'antennaUpdated': {
+					const idx = this.antennas.findIndex(a => a.id === body.id);
+					if (idx >= 0) {
+						this.antennas[idx] = {
+							...body,
+							lastUsedAt: new Date(body.lastUsedAt),
+						};
+					} else {
+						// サーバ起動時にactiveじゃなかった場合、リストに持っていないので追加する必要あり
+						this.antennas.push({
+							...body,
+							lastUsedAt: new Date(body.lastUsedAt),
+						});
+					}
+				}
 					break;
 				case 'antennaDeleted':
 					this.antennas = this.antennas.filter(a => a.id !== body.id);
@@ -81,15 +91,10 @@ export class AntennaService implements OnApplicationShutdown {
 		const antennasWithMatchResult = await Promise.all(antennas.map(antenna => this.checkHitAntenna(antenna, note, noteUser).then(hit => [antenna, hit] as const)));
 		const matchedAntennas = antennasWithMatchResult.filter(([, hit]) => hit).map(([antenna]) => antenna);
 
-		const redisPipeline = this.redisClient.pipeline();
+		const redisPipeline = this.redisForTimelines.pipeline();
 
 		for (const antenna of matchedAntennas) {
-			redisPipeline.xadd(
-				`antennaTimeline:${antenna.id}`,
-				'MAXLEN', '~', '200',
-				'*',
-				'note', note.id);
-
+			this.fanoutTimelineService.push(`antennaTimeline:${antenna.id}`, note.id, 200, redisPipeline);
 			this.globalEventService.publishAntennaStream(antenna.id, 'note', note);
 		}
 
@@ -103,12 +108,14 @@ export class AntennaService implements OnApplicationShutdown {
 		if (note.visibility === 'specified') return false;
 		if (note.visibility === 'followers') return false;
 
+		if (antenna.localOnly && noteUser.host != null) return false;
+
 		if (!antenna.withReplies && note.replyId != null) return false;
 
 		if (antenna.src === 'home') {
 			// TODO
 		} else if (antenna.src === 'list') {
-			const listUsers = (await this.userListJoiningsRepository.findBy({
+			const listUsers = (await this.userListMembershipsRepository.findBy({
 				userListId: antenna.userListId!,
 			})).map(x => x.userId);
 

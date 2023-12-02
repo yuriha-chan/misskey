@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkSpacer :contentMax="900">
 			<div class="ogwlenmc">
 				<div v-if="tab === 'local'" class="local">
-					<MkInput v-model="query" :debounce="true" type="search">
+					<MkInput v-model="query" :debounce="true" type="search" autocapitalize="off">
 						<template #prefix><i class="ti ti-search"></i></template>
 						<template #label>{{ i18n.ts.search }}</template>
 					</MkInput>
@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 				<div v-else-if="tab === 'remote'" class="remote">
 					<FormSplit>
-						<MkInput v-model="queryRemote" :debounce="true" type="search">
+						<MkInput v-model="queryRemote" :debounce="true" type="search" autocapitalize="off">
 							<template #prefix><i class="ti ti-search"></i></template>
 							<template #label>{{ i18n.ts.search }}</template>
 						</MkInput>
@@ -155,7 +155,7 @@ const edit = (emoji) => {
 	}, 'closed');
 };
 
-const im = (emoji) => {
+const importEmoji = (emoji) => {
 	os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
 	});
@@ -168,7 +168,7 @@ const remoteMenu = (emoji, ev: MouseEvent) => {
 	}, {
 		text: i18n.ts.import,
 		icon: 'ti ti-plus',
-		action: () => { im(emoji); },
+		action: () => { importEmoji(emoji); },
 	}], ev.currentTarget ?? ev.target);
 };
 

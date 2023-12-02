@@ -67,15 +67,14 @@ import number from '@/filters/number.js';
 import MkNumber from '@/components/MkNumber.vue';
 import XActiveUsersChart from '@/components/MkVisitorDashboard.ActiveUsersChart.vue';
 
-let meta = $ref<Misskey.entities.Instance>();
-let stats = $ref(null);
+let meta = $ref<Misskey.entities.MetaResponse | null>(null);
+let stats = $ref<Misskey.entities.StatsResponse | null>(null);
 
 os.api('meta', { detail: true }).then(_meta => {
 	meta = _meta;
 });
 
-os.api('stats', {
-}).then((res) => {
+os.api('stats', {}).then((res) => {
 	stats = res;
 });
 
@@ -104,7 +103,25 @@ function showMenu(ev) {
 		action: () => {
 			os.pageWindow('/about-misskey');
 		},
-	}, null, {
+	}, null, (instance.impressumUrl) ? {
+		text: i18n.ts.impressum,
+		icon: 'ti ti-file-invoice',
+		action: () => {
+			window.open(instance.impressumUrl, '_blank');
+		},
+	} : undefined, (instance.tosUrl) ? {
+		text: i18n.ts.termsOfService,
+		icon: 'ti ti-notebook',
+		action: () => {
+			window.open(instance.tosUrl, '_blank');
+		},
+	} : undefined, (instance.privacyPolicyUrl) ? {
+		text: i18n.ts.privacyPolicy,
+		icon: 'ti ti-shield-lock',
+		action: () => {
+			window.open(instance.privacyPolicyUrl, '_blank');
+		},
+	} : undefined, (!instance.impressumUrl && !instance.tosUrl && !instance.privacyPolicyUrl) ? undefined : null, {
 		text: i18n.ts.help,
 		icon: 'ti ti-help-circle',
 		action: () => {
