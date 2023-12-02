@@ -88,6 +88,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					includeLocalRenotes: ps.includeLocalRenotes,
 					withFiles: ps.withFiles,
 					withRenotes: ps.withRenotes,
+					withHashtags: ps.withHashtags,
 				}, me);
 
 				process.nextTick(() => {
@@ -263,7 +264,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				qb.orWhere('note.renoteId IS NULL');
 				qb.orWhere('note.text IS NOT NULL');
 				qb.orWhere('note.fileIds != \'{}\'');
-				qb.orWhere('note.poll IS NOT NULL');
+				qb.orWhere('note.hasPoll');
 			}));
 		}
 
