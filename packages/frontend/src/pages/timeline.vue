@@ -168,6 +168,7 @@ const headerActions = $computed(() => {
 					type: 'switch',
 					text: i18n.ts.showRenotes,
 					ref: $$(withRenotes),
+					disabled: false,
 				}, src === 'local' || src === 'social' ? {
 					type: 'switch',
 					text: i18n.ts.showRepliesToOthersInTimeline,
@@ -176,8 +177,8 @@ const headerActions = $computed(() => {
 				} : undefined, {
 					type: 'switch',
 					text: i18n.ts.withHashtags,
-					icon: 'ti ti-arrow-back-up',
 					ref: $$(withHashtags),
+					disabled: false,
 				}, {
 					type: 'switch',
 					text: i18n.ts.fileAttachedOnly,
