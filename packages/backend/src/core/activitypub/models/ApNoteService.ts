@@ -97,10 +97,6 @@ export class ApNoteService {
 			return new Error(`invalid Note: attributedTo has different host. expected: ${expectHost}, actual: ${actualHost}`);
 		}
 
-		if (object.published && !this.idService.isSafeT(new Date(object.published).valueOf())) {
-			return new Error('invalid Note: published timestamp is malformed');
-		}
-
 		return null;
 	}
 
@@ -489,7 +485,7 @@ export class ApNoteService {
 		const poll = await this.apQuestionService.extractPollFromQuestion(note, resolver).catch(() => undefined);
 
 		try {
-			return await this.noteEditService.edit(actor, note.id!, {
+			return await this.noteEditService.edit(actor, UpdatedNote.id, {
 				createdAt: note.published ? new Date(note.published) : null,
 				files,
 				reply,
