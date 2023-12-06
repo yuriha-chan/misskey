@@ -830,9 +830,18 @@ async function post(ev?: MouseEvent) {
 		});
 	}).catch(err => {
 		posting = false;
+		let title: string, text: string;
+		if (err.code === "RATE_LIMIT_EXCEEDED") {
+			title = i18n.ts.cannotNoteTemporary;
+			text = i18n.ts.cannotNoteTemporaryDescription;
+		} else {
+			title = "Cannot post";
+			text = err.message + '\n' + (err as any).id;
+		}
 		os.alert({
 			type: 'error',
-			text: err.message + '\n' + (err as any).id,
+			title,
+			text,
 		});
 	});
 }
