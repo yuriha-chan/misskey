@@ -230,6 +230,12 @@ export class MiUserProfile {
 	public mutedInstances: string[];
 
 	@Column('jsonb', {
+		default: [],
+		comment: 'List of instances GTL muted by the user.',
+	})
+	public gtlMutedInstances: string[];
+
+	@Column('jsonb', {
 		default: {},
 	})
 	public notificationRecieveConfig: {

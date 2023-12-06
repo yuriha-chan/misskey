@@ -127,7 +127,7 @@ export class QueryService {
 	}
 
 	@bindThis
-	public generateMutedUserQuery(q: SelectQueryBuilder<any>, me: { id: MiUser['id'] }, exclude?: { id: MiUser['id'] }): void {
+	public generateMutedUserQuery(q: SelectQueryBuilder<any>, me: { id: MiUser['id'] }, exclude?: { id: MiUser['id'] }, gtl?: boolean, serverGtlMutedHosts?: string): void {
 		const mutingQuery = this.mutingsRepository.createQueryBuilder('muting')
 			.select('muting.muteeId')
 			.where('muting.muterId = :muterId', { muterId: me.id });
@@ -139,6 +139,13 @@ export class QueryService {
 		const mutingInstanceQuery = this.userProfilesRepository.createQueryBuilder('user_profile')
 			.select('user_profile.mutedInstances')
 			.where('user_profile.userId = :muterId', { muterId: me.id });
+
+		let gtlMutingInstanceQuery;
+		if (gtl) {
+			gtlMutingInstanceQuery = this.userProfilesRepository.createQueryBuilder('user_profile')
+				.select('user_profile.gtlMutedInstances')
+				.where('user_profile.userId = :muterId', { muterId: me.id });
+		}
 
 		// 投稿の作者をミュートしていない かつ
 		// 投稿の返信先の作者をミュートしていない かつ
@@ -158,22 +165,49 @@ export class QueryService {
 			// mute instances
 			.andWhere(new Brackets(qb => {
 				qb
-					.andWhere('note.userHost IS NULL')
-					.orWhere(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.userHost)`);
+					.where('note.userHost IS NULL')
+					.orWhere(new Brackets(qbb => {
+						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.userHost)`);
+						if (gtl) {
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? note.userHost)`);
+							if (serverGtlMutedHosts.length > 0) {
+								qbb.andWhere(`NOT (note.userHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
+							}
+						}
+					}));
 			}))
 			.andWhere(new Brackets(qb => {
 				qb
 					.where('note.replyUserHost IS NULL')
-					.orWhere(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.replyUserHost)`);
+					.orWhere(new Brackets(qbb => {
+						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.replyUserHost)`);
+						if (gtl) {
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? note.replyUserHost)`);
+							if (serverGtlMutedHosts.length > 0) {
+								qbb.andWhere(`NOT (note.replyUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
+							}
+						}
+					}));
 			}))
 			.andWhere(new Brackets(qb => {
 				qb
 					.where('note.renoteUserHost IS NULL')
-					.orWhere(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.renoteUserHost)`);
+					.orWhere(new Brackets(qbb => {
+						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.renoteUserHost)`);
+						if (gtl) {
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? note.renoteUserHost)`);
+							if (serverGtlMutedHosts.length > 0) {
+								qbb.andWhere(`NOT (note.renoteUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
+							}
+						}
+					}));
 			}));
 
 		q.setParameters(mutingQuery.getParameters());
 		q.setParameters(mutingInstanceQuery.getParameters());
+		if (gtl) {
+			q.setParameters(gtlMutingInstanceQuery.getParameters());
+		}
 	}
 
 	@bindThis

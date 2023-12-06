@@ -3899,6 +3899,7 @@ export type operations = {
             enableServiceWorker: boolean;
             translatorAvailable: boolean;
             silencedHosts?: string[];
+            gtlMutedHosts?: string[];
             pinnedUsers: string[];
             hiddenTags: string[];
             blockedHosts: string[];
