@@ -74,7 +74,7 @@ class HomeTimelineChannel extends Channel {
 
 		if (note.renote && note.text == null && (note.fileIds == null || note.fileIds.length === 0) && !this.withRenotes) return;
 
-		if (note.tags.length > 0 && !this.withHashtags) return;
+		if (note.tags && note.tags.length > 0 && !this.withHashtags) return;
 
 		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
 		if (isUserRelated(note, this.userIdsWhoMeMuting)) return;
