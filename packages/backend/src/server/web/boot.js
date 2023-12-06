@@ -157,6 +157,7 @@
 
 	function renderError(code, details) {
 		let errorsElement = document.getElementById('errors');
+		const altUrl = 'https://alt.misskey-square.net/'; //XXX: site specific
 
 		if (!errorsElement) {
 			document.body.innerHTML = `
@@ -173,6 +174,8 @@
 			<p>Clear the browser cache / ブラウザのキャッシュをクリアする</p>
 			<p>Update your os and browser / ブラウザおよびOSを最新バージョンに更新する</p>
 			<p>Disable an adblocker / アドブロッカーを無効にする</p>
+			<p>Access to the alternative website address below / 以下の代替アドレスにアクセスする</p>
+			<p><a href="${altUrl}">${altUrl}</a></p>
 			<details style="color: #86b300;">
 				<summary>Other options / その他のオプション</summary>
 				<a href="/flush">
