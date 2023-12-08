@@ -181,6 +181,9 @@ export const paramDef = {
 		mutedInstances: { type: 'array', items: {
 			type: 'string',
 		} },
+		gtlMutedInstances: { type: 'array', items: {
+			type: 'string',
+		} },
 		notificationRecieveConfig: { type: 'object' },
 		emailNotificationTypes: { type: 'array', items: {
 			type: 'string',
@@ -277,6 +280,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				profileUpdates.hardMutedWords = ps.hardMutedWords;
 			}
 			if (ps.mutedInstances !== undefined) profileUpdates.mutedInstances = ps.mutedInstances;
+			if (ps.gtlMutedInstances !== undefined) profileUpdates.gtlMutedInstances = ps.gtlMutedInstances;
 			if (ps.notificationRecieveConfig !== undefined) profileUpdates.notificationRecieveConfig = ps.notificationRecieveConfig;
 			if (typeof ps.isLocked === 'boolean') updates.isLocked = ps.isLocked;
 			if (typeof ps.isExplorable === 'boolean') updates.isExplorable = ps.isExplorable;

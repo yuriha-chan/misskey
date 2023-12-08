@@ -27,6 +27,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</MkFolder>
 
 	<MkFolder>
+		<template #icon><i class="ti ti-planet-off"></i></template>
+		<template #label>{{ i18n.ts.gtlMuted }}</template>
+
+		<XGtlInstanceMute/>
+	</MkFolder>
+
+	<MkFolder>
 		<template #icon><i class="ti ti-repeat-off"></i></template>
 		<template #label>{{ i18n.ts.mutedUsers }} ({{ i18n.ts.renote }})</template>
 
@@ -128,6 +135,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { } from 'vue';
 import XInstanceMute from './mute-block.instance-mute.vue';
+import XGtlInstanceMute from './mute-block.gtl-instance-mute.vue';
 import XWordMute from './mute-block.word-mute.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import { userPage } from '@/filters/user.js';

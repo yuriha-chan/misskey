@@ -8,6 +8,7 @@ import { checkWordMute } from '@/misc/check-word-mute.js';
 import { isInstanceMuted } from '@/misc/is-instance-muted.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import type { Packed } from '@/misc/json-schema.js';
+import type { Meta } from '@/models/Meta.js';
 import { MetaService } from '@/core/MetaService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { bindThis } from '@/decorators.js';
@@ -21,6 +22,7 @@ class GlobalTimelineChannel extends Channel {
 	private withRenotes: boolean;
 	private withHashtags: boolean;
 	private withFiles: boolean;
+	private meta: Meta;
 
 	constructor(
 		private metaService: MetaService,
@@ -42,6 +44,7 @@ class GlobalTimelineChannel extends Channel {
 		this.withRenotes = params.withRenotes ?? true;
 		this.withHashtags = params.withHashtags ?? true;
 		this.withFiles = params.withFiles ?? false;
+		this.meta = await this.metaService.fetch();
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
@@ -67,6 +70,9 @@ class GlobalTimelineChannel extends Channel {
 
 		// Ignore notes from instances the user has muted
 		if (isInstanceMuted(note, new Set<string>(this.userProfile?.mutedInstances ?? []))) return;
+		if (isInstanceMuted(note, new Set<string>(this.userProfile?.gtlMutedInstances ?? []))) return;
+		// Ignore notes from instances this server has muted
+		if (isInstanceMuted(note, new Set<string>(this.meta.gtlMutedHosts ?? []))) return;
 
 		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
 		if (isUserRelated(note, this.userIdsWhoMeMuting)) return;

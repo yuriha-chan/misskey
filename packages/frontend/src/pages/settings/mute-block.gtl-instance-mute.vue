@@ -5,10 +5,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_gaps_m">
-	<MkInfo>{{ i18n.ts._instanceMute.title }}</MkInfo>
-	<MkTextarea v-model="instanceMutes">
-		<template #label>{{ i18n.ts._instanceMute.heading }}</template>
-		<template #caption>{{ i18n.ts._instanceMute.instanceMuteDescription }}<br>{{ i18n.ts._instanceMute.instanceMuteDescription2 }}</template>
+	<MkInfo>{{ i18n.ts._instanceGtlMute.title }}</MkInfo>
+	<MkTextarea v-model="instanceGtlMutes">
+		<template #label>{{ i18n.ts._instanceGtlMute.heading }}</template>
+		<template #caption>{{ i18n.ts._instanceGtlMute.instanceMuteDescription }}<br>{{ i18n.ts._instanceGtlMute.instanceMuteDescription2 }}</template>
 	</MkTextarea>
 	<MkButton primary :disabled="!changed" @click="save()"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</MkButton>
 </div>
@@ -23,26 +23,26 @@ import * as os from '@/os.js';
 import { $i } from '@/account.js';
 import { i18n } from '@/i18n.js';
 
-const instanceMutes = ref($i!.mutedInstances.join('\n'));
+const instanceGtlMutes = ref($i!.gtlMutedInstances.join('\n'));
 const changed = ref(false);
 
 async function save() {
-	const mutes = instanceMutes.value
+	const gtlMutes = instanceGtlMutes.value
 		.trim().split('\n')
 		.map(el => el.trim())
 		.filter(el => el);
 
 	await os.api('i/update', {
-		mutedInstances: mutes,
+		gtlMutedInstances: gtlMutes,
 	});
 
 	changed.value = false;
 
 	// Refresh filtered list to signal to the user how they've been saved
-	instanceMutes.value = mutes.join('\n');
+	instanceGtlMutes.value = mutes.join('\n');
 }
 
-watch(instanceMutes, () => {
+watch(instanceGtlMutes, () => {
 	changed.value = true;
 });
 </script>

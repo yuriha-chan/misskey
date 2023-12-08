@@ -136,6 +136,13 @@ export const paramDef = {
 				type: 'string',
 			},
 		},
+		gtlMutedHosts: {
+			type: 'array',
+			nullable: true,
+			items: {
+				type: 'string',
+			},
+		},
 	},
 	required: [],
 } as const;
@@ -171,6 +178,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (Array.isArray(ps.silencedHosts)) {
 				let lastValue = '';
 				set.silencedHosts = ps.silencedHosts.sort().filter((h) => {
+					const lv = lastValue;
+					lastValue = h;
+					return h !== '' && h !== lv && !set.blockedHosts?.includes(h);
+				});
+			}
+			if (Array.isArray(ps.gtlMutedHosts)) {
+				let lastValue = '';
+				set.gtlMutedHosts = ps.gtlMutedHosts.sort().filter((h) => {
 					const lv = lastValue;
 					lastValue = h;
 					return h !== '' && h !== lv && !set.blockedHosts?.includes(h);

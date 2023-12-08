@@ -16,6 +16,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<span>{{ i18n.ts.silencedInstances }}</span>
 				<template #caption>{{ i18n.ts.silencedInstancesDescription }}</template>
 			</MkTextarea>
+			<MkTextarea v-else-if="tab === 'gtlMuted'" v-model="gtlMutedHosts" class="_formBlock">
+				<span>{{ i18n.ts.gtlMutedInstances }}</span>
+				<template #caption>{{ i18n.ts.gtlMutedInstancesDescription }}</template>
+			</MkTextarea>
 			<MkButton primary @click="save"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</MkButton>
 		</FormSuspense>
 	</MkSpacer>
@@ -34,18 +38,21 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 
 let blockedHosts: string = $ref('');
 let silencedHosts: string = $ref('');
+let gtlMutedHosts: string = $ref('');
 let tab = $ref('block');
 
 async function init() {
 	const meta = await os.api('admin/meta');
 	blockedHosts = meta.blockedHosts.join('\n');
 	silencedHosts = meta.silencedHosts.join('\n');
+	gtlMutedHosts = meta.gtlMutedHosts.join('\n');
 }
 
 function save() {
 	os.apiWithDialog('admin/update-meta', {
 		blockedHosts: blockedHosts.split('\n') || [],
 		silencedHosts: silencedHosts.split('\n') || [],
+		gtlMutedHosts: gtlMutedHosts.split('\n') || [],
 
 	}).then(() => {
 		fetchInstance();
@@ -61,6 +68,10 @@ const headerTabs = $computed(() => [{
 }, {
 	key: 'silence',
 	title: i18n.ts.silence,
+	icon: 'ti ti-eye-off',
+}, {
+	key: 'gtlMuted',
+	title: i18n.ts.gtlMuted,
 	icon: 'ti ti-eye-off',
 }]);
 
