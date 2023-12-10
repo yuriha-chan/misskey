@@ -67,7 +67,7 @@ export class RateLimiterService {
 			const max = (): void => {
 				const limiter = new Limiter({
 					id: `${actor}:${limitation.key}`,
-					duration: limitation.duration! * factor,
+					duration: limitation.duration!,
 					max: limitation.max! / factor,
 					db: this.redisClient,
 				});
