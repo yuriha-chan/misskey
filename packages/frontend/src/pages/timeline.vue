@@ -209,7 +209,7 @@ const headerActions = computed(() => {
 				} : undefined, {
 					type: 'switch',
 					text: i18n.ts.withHashtags,
-					ref: $$(withHashtags),
+					ref: withHashtags,
 					disabled: false,
 				}, {
 					type: 'switch',
