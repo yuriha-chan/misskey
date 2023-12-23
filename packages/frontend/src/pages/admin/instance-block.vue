@@ -27,6 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
+import { ref, computed } from 'vue';
 import XHeader from './_header_.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
@@ -36,32 +37,31 @@ import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 
-let blockedHosts: string = $ref('');
-let silencedHosts: string = $ref('');
-let gtlMutedHosts: string = $ref('');
-let tab = $ref('block');
+const blockedHosts = ref<string>('');
+const silencedHosts = ref<string>('');
+const gtlMutedHosts = ref<string>('');
+const tab = ref('block');
 
 async function init() {
 	const meta = await os.api('admin/meta');
-	blockedHosts = meta.blockedHosts.join('\n');
-	silencedHosts = meta.silencedHosts.join('\n');
-	gtlMutedHosts = meta.gtlMutedHosts.join('\n');
+	blockedHosts.value = meta.blockedHosts.join('\n');
+	silencedHosts.value = meta.silencedHosts.join('\n');
+	gtlMutedHosts.value = meta.gtlMutedHosts.join('\n');
 }
 
 function save() {
 	os.apiWithDialog('admin/update-meta', {
-		blockedHosts: blockedHosts.split('\n') || [],
-		silencedHosts: silencedHosts.split('\n') || [],
-		gtlMutedHosts: gtlMutedHosts.split('\n') || [],
-
+		blockedHosts: blockedHosts.value.split('\n') || [],
+		silencedHosts: silencedHosts.value.split('\n') || [],
+		gtlMutedHosts: gtlMutedHosts.value.split('\n') || [],
 	}).then(() => {
 		fetchInstance();
 	});
 }
 
-const headerActions = $computed(() => []);
+const headerActions = computed(() => []);
 
-const headerTabs = $computed(() => [{
+const headerTabs = computed(() => [{
 	key: 'block',
 	title: i18n.ts.block,
 	icon: 'ti ti-ban',
