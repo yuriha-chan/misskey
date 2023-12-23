@@ -9,6 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@click="emit('click')"
 >
 	<div :class="$style.name"><MkCondensedLine :minScale="0.5">{{ decoration.name }}</MkCondensedLine></div>
+	<div :class="$style.description"><Mfm :text="decoration.description"/></div>
 	<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: decoration.url, angle, flipH, offsetX, offsetY }]" forceShowDecoration/>
 	<i v-if="decoration.roleIdsThatCanBeUsedThisDecoration.length > 0 && !$i.roles.some(r => decoration.roleIdsThatCanBeUsedThisDecoration.includes(r.id))" :class="$style.lock" class="ti ti-lock"></i>
 </div>
@@ -65,5 +66,11 @@ const emit = defineEmits<{
 	position: absolute;
 	bottom: 12px;
 	right: 12px;
+}
+
+.description {
+	position: relative;
+	z-index: 10;
+	margin-bottom: 20px;
 }
 </style>

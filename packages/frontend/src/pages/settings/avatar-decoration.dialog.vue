@@ -23,10 +23,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkRange v-model="angle" continuousUpdate :min="-0.5" :max="0.5" :step="0.025" :textConverter="(v) => `${Math.floor(v * 360)}°`">
 					<template #label>{{ i18n.ts.angle }}</template>
 				</MkRange>
-				<MkRange v-model="offsetX" continuousUpdate :min="-0.25" :max="0.25" :step="0.025" :textConverter="(v) => `${Math.floor(v * 100)}%`">
+				<MkRange v-model="offsetX" continuousUpdate :min="-0.04" :max="0.04" :step="0.001" :textConverter="(v) => `${Math.round(v * 1000)/10}%`">
 					<template #label>X {{ i18n.ts.position }}</template>
 				</MkRange>
-				<MkRange v-model="offsetY" continuousUpdate :min="-0.25" :max="0.25" :step="0.025" :textConverter="(v) => `${Math.floor(v * 100)}%`">
+				<MkRange v-model="offsetY" continuousUpdate :min="-0.04" :max="0.04" :step="0.001" :textConverter="(v) => `${Math.round(v * 1000)/10}%`">
 					<template #label>Y {{ i18n.ts.position }}</template>
 				</MkRange>
 				<MkSwitch v-model="flipH">
