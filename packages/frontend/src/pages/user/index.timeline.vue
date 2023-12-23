@@ -30,24 +30,27 @@ const props = defineProps<{
 
 const tab = ref<string | null>('all');
 
-const pagination = computed(() => tab.value === 'featured' ? {
-	endpoint: 'users/featured-notes' as const,
-	limit: 10,
-	params: {
-		userId: props.user.id,
-	},
-} : {
-	endpoint: 'users/notes' as const,
-	limit: 10,
-	params: {
-		userId: props.user.id,
-		withRenotes: tab.value === 'all',
-		withReplies: tab.value === 'all',
-		withChannelNotes: tab.value === 'all',
-		withSpecified: tab.value === 'all',
-		withFiles: tab.value === 'files',
-	})),
-};
+const pagination = computed(() =>
+	(tab.value === 'featured') ?
+		{
+			endpoint: 'users/featured-notes' as const,
+			limit: 10,
+			params: {
+				userId: props.user.id,
+			},
+		} :
+		{
+			endpoint: 'users/notes' as const,
+			limit: 10,
+			params: {
+				userId: props.user.id,
+				withRenotes: tab.value === 'all',
+				withReplies: tab.value === 'all',
+				withChannelNotes: tab.value === 'all',
+				withSpecified: tab.value === 'all',
+				withFiles: tab.value === 'files',
+			},
+		});
 </script>
 
 <style lang="scss" module>

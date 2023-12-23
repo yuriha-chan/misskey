@@ -140,9 +140,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkNotes :class="$style.tl" :noGap="true" :pagination="pagination"/>
 					<hr>
 					<MkNotes :class="$style.tl" :noGap="true" :pagination="pagination_notes"/>
-					<MkLazy>
-						<XTimeline :user="user"/>
-					</MkLazy>
 				</div>
 			</div>
 		</div>
@@ -158,6 +155,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { defineAsyncComponent, computed, onMounted, onUnmounted, nextTick, watch, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkNote from '@/components/MkNote.vue';
+import MkNotes from '@/components/MkNotes.vue';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import MkAccountMoved from '@/components/MkAccountMoved.vue';
 import MkRemoteCaution from '@/components/MkRemoteCaution.vue';
@@ -222,7 +220,6 @@ watch(moderationNote, async () => {
 	await os.api('admin/update-user-note', { userId: props.user.id, text: moderationNote.value });
 });
 
-<<<<<<< HEAD
 const pagination = {
 	endpoint: 'users/featured-notes' as const,
 	limit: 10,
@@ -244,10 +241,7 @@ const pagination_notes = {
 	})),
 };
 
-const style = $computed(() => {
-=======
 const style = computed(() => {
->>>>>>> develop
 	if (props.user.bannerUrl == null) return {};
 	return {
 		backgroundImage: `url(${ props.user.bannerUrl })`,

@@ -179,15 +179,6 @@ const poll = ref<{
 	expiresAt: string | null;
 	expiredAfter: string | null;
 } | null>(null);
-<<<<<<< HEAD
-let useCw = $ref<boolean>(!!props.initialCw);
-let showPreview = $ref(defaultStore.state.showPreview);
-watch($$(showPreview), () => defaultStore.set('showPreview', showPreview));
-let cw = $ref<string | null>(props.initialCw ?? null);
-let localOnly = $ref<boolean>(props.initialLocalOnly ?? defaultStore.state.rememberNoteVisibility ? defaultStore.state.localOnly : defaultStore.state.defaultNoteLocalOnly);
-let visibility = $ref(props.initialVisibility ?? (defaultStore.state.rememberNoteVisibility ? defaultStore.state.visibility : defaultStore.state.defaultNoteVisibility) as typeof Misskey.noteVisibilities[number]);
-let visibleUsers = $ref([]);
-=======
 const useCw = ref<boolean>(!!props.initialCw);
 const showPreview = ref(defaultStore.state.showPreview);
 watch(showPreview, () => defaultStore.set('showPreview', showPreview.value));
@@ -195,7 +186,6 @@ const cw = ref<string | null>(props.initialCw ?? null);
 const localOnly = ref<boolean>(props.initialLocalOnly ?? defaultStore.state.rememberNoteVisibility ? defaultStore.state.localOnly : defaultStore.state.defaultNoteLocalOnly);
 const visibility = ref(props.initialVisibility ?? (defaultStore.state.rememberNoteVisibility ? defaultStore.state.visibility : defaultStore.state.defaultNoteVisibility) as typeof Misskey.noteVisibilities[number]);
 const visibleUsers = ref([]);
->>>>>>> develop
 if (props.initialVisibleUsers) {
 	props.initialVisibleUsers.forEach(pushVisibleUser);
 }

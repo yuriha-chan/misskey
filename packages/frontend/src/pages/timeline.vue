@@ -62,13 +62,13 @@ const keymap = {
 const tlComponent = shallowRef<InstanceType<typeof MkTimeline>>();
 const rootEl = shallowRef<HTMLElement>();
 
-let queue = $ref(0);
-let srcWhenNotSignin = $ref(isLocalTimelineAvailable ? 'local' : 'global');
+let queue = ref(0);
+let srcWhenNotSignin = ref(isLocalTimelineAvailable ? 'local' : 'global');
 const src = computed({ get: () => ($i ? defaultStore.reactiveState.tl.value.src : srcWhenNotSignin.value), set: (x) => saveSrc(x) });
-const withRenotes = $ref($i ? defaultStore.state.tlWithRenotes : true);
-const withReplies = $ref($i ? defaultStore.state.tlWithReplies : false);
-const withHashtags = $ref($i ? defaultStore.state.tlWithHashtags : true);
-const onlyFiles = $ref(false);
+const withRenotes = ref($i ? defaultStore.state.tlWithRenotes : true);
+const withReplies = ref($i ? defaultStore.state.tlWithReplies : false);
+const withHashtags = ref($i ? defaultStore.state.tlWithHashtags : true);
+const onlyFiles = ref(false);
 
 watch(src, () => queue.value = 0);
 
@@ -76,11 +76,11 @@ watch(withReplies, (x) => {
 	if ($i) defaultStore.set('tlWithReplies', x);
 });
 
-watch($$(withHashtags), (x) => {
+watch(withHashtags, (x) => {
 	if ($i) defaultStore.set('tlWithHashtags', x);
 });
 
-watch($$(withRenotes), (x) => {
+watch(withRenotes, (x) => {
 	if ($i) defaultStore.set('tlWithRenotes', x);
 });
 

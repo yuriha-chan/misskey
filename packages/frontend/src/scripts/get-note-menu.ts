@@ -362,7 +362,7 @@ export function getNoteMenu(props: {
 			}]
 			: []
 		),*/
-			null,
+			{ type: 'divider' },
 			{
 					icon: 'ti ti-exclamation-circle',
 					text: i18n.ts.contactAdmin,
