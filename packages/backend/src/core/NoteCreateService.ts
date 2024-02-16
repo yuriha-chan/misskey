@@ -362,15 +362,13 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.visibility === 'specified') {
 			if (data.visibleUsers == null) throw new Error('invalid param');
 
-			for (const u of data.visibleUsers) {
-				if (!mentionedUsers.some(x => x.id === u.id)) {
-					mentionedUsers.push(u);
-				}
-			}
 
 			if (data.reply && !data.visibleUsers.some(x => x.id === data.reply!.userId)) {
 				data.visibleUsers.push(await this.usersRepository.findOneByOrFail({ id: data.reply!.userId }));
 			}
+
+			// Do not notify to users who can't see the note
+			mentionedUsers = data.visibleUsers;
 		}
 
     if ((await this.roleService.getUserPolicies(note.user.id)).canMentionMany === false && mentionedUsers.length > 1) {
