@@ -183,6 +183,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (Array.isArray(ps.sensitiveWords)) {
 				set.sensitiveWords = ps.sensitiveWords.filter(Boolean);
 			}
+
+			if (Array.isArray(ps.sensitiveWords)) {
+				set.blockedWords = ps.blockedWords.filter(Boolean);
+			}
+
 			if (Array.isArray(ps.silencedHosts)) {
 				let lastValue = '';
 				set.silencedHosts = ps.silencedHosts.sort().filter((h) => {
