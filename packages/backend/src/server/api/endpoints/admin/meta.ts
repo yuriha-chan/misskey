@@ -497,6 +497,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				silencedHosts: instance.silencedHosts,
 				gtlMutedHosts: instance.gtlMutedHosts,
 				sensitiveWords: instance.sensitiveWords,
+				blockedWords: instance.blockedWords,
 				preservedUsernames: instance.preservedUsernames,
 				hcaptchaSecretKey: instance.hcaptchaSecretKey,
 				recaptchaSecretKey: instance.recaptchaSecretKey,
