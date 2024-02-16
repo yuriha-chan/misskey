@@ -611,6 +611,10 @@ export const packedMeDetailedOnlySchema = {
 					type: 'boolean',
 					nullable: false, optional: false,
 				},
+				canMentionMany: {
+					type: 'boolean',
+					nullable: false, optional: false,
+				},
 				canInvite: {
 					type: 'boolean',
 					nullable: false, optional: false,

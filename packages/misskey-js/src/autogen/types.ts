@@ -3650,6 +3650,7 @@ export type components = {
         gtlAvailable: boolean;
         ltlAvailable: boolean;
         canPublicNote: boolean;
+        canMentionMany: boolean;
         canInvite: boolean;
         inviteLimit: number;
         inviteLimitCycle: number;

@@ -75,6 +75,7 @@ export const ROLE_POLICIES = [
 	'gtlAvailable',
 	'ltlAvailable',
 	'canPublicNote',
+	'canMentionMany',
 	'canInvite',
 	'inviteLimit',
 	'inviteLimitCycle',
