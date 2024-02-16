@@ -168,6 +168,8 @@ export const meta = {
 				items: {
 					type: 'string',
 					optional: false, nullable: false,
+				},
+      },
 			preservedUsernames: {
 				type: 'array',
 				optional: false, nullable: false,
