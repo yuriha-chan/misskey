@@ -371,9 +371,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 			mentionedUsers = data.visibleUsers;
 		}
 
-    if ((await this.roleService.getUserPolicies(note.user.id)).canMentionMany === false && mentionedUsers.length > 1) {
-      silent = true;
-    }
+		if ((await this.roleService.getUserPolicies(user.id)).canMentionMany === false && mentionedUsers.length > 1) {
+			silent = true;
+		}
 
 		const note = await this.insertNote(user, data, tags, emojis, mentionedUsers);
 
