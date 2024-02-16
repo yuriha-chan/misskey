@@ -724,9 +724,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 					const words = filter.split(' ');
 					return words.every(keyword => text.includes(keyword));
 				}
-        if (regexp_nore2) {
-          return new RegExp(regexp_nore2[1], regexp_nore2[2]).test(text);
-        }
+				if (regexp_nore2) {
+					try {
+						return new RegExp(regexp_nore2[1], regexp_nore2[2]).test(text);
+					} catch (err) {
+						// This should never happen due to input sanitisation.
+						return false;
+					}
+				}
 				try {
 					return new RE2(regexp[1], regexp[2]).test(text);
 				} catch (err) {
