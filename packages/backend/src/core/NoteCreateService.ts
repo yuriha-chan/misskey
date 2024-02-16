@@ -260,6 +260,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 			}
 		}
 
+    if (this.isSensitive(data, meta.blockedWords)) {
+			throw new Error('Blocked content');
+    }
+
 		const inSilencedInstance = this.utilityService.isSilencedHost(meta.silencedHosts, user.host);
 
 		if (data.visibility === 'public' && inSilencedInstance && user.host !== null) {

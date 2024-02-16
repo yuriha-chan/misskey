@@ -155,14 +155,19 @@ export const meta = {
 					type: 'string',
 				},
 			},
+			blockedWords: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+				},
+			},
 			bannedEmailDomains: {
 				type: 'array',
 				optional: true, nullable: false,
 				items: {
 					type: 'string',
 					optional: false, nullable: false,
-				},
-			},
 			preservedUsernames: {
 				type: 'array',
 				optional: false, nullable: false,
