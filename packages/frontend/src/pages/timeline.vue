@@ -22,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						:list="src.split(':')[1]"
 						:withRenotes="withRenotes"
 						:withReplies="withReplies"
-            :withHashtags="withHashtags"
+						:withHashtags="withHashtags"
 						:onlyFiles="onlyFiles"
 						:sound="true"
 						@queue="queueUpdated"
@@ -78,7 +78,7 @@ const withRenotes = computed<boolean>({
 });
 
 // computed内での無限ループを防ぐためのフラグ
-const localSocialTLFilterSwitchStore = ref<'withReplies' | 'onlyFiles' | 'withHashtags' | false>('withReplies');
+const localSocialTLFilterSwitchStore = ref<'withReplies' | 'onlyFiles' | false>('withReplies');
 
 const withReplies = computed<boolean>({
 	get: () => {
@@ -92,14 +92,7 @@ const withReplies = computed<boolean>({
 	set: (x) => saveTlFilter('withReplies', x),
 });
 const withHashtags = computed<boolean>({
-	get: () => {
-		if (!$i) return false;
-		if (['local', 'social'].includes(src.value) && localSocialTLFilterSwitchStore.value && localSocialTLFilterSwitchStore.value !== 'withHashtags') {
-			return false;
-		} else {
-			return defaultStore.reactiveState.tl.value.filter.withReplies;
-		}
-	},
+	get: () => defaultStore.reactiveState.tl.value.filter.withHashtags,
 	set: (x) => saveTlFilter('withHashtags', x),
 });
 const onlyFiles = computed<boolean>({
@@ -116,7 +109,7 @@ const onlyFiles = computed<boolean>({
 watch([withReplies, withHashtags, onlyFiles], ([withRepliesTo, withHashtagsTo, onlyFilesTo]) => {
 	if (withRepliesTo) {
 		localSocialTLFilterSwitchStore.value = 'withReplies';
-	if (withHashtagsTo) {
+	} else if (withHashtagsTo) {
 		localSocialTLFilterSwitchStore.value = 'withHashtags';
 	} else if (onlyFilesTo) {
 		localSocialTLFilterSwitchStore.value = 'onlyFiles';
@@ -265,30 +258,29 @@ const headerActions = computed(() => {
 					text: i18n.ts.showRenotes,
 					ref: withRenotes,
 				},
-        src.value === 'local' || src.value === 'social' ? {
+				src.value === 'local' || src.value === 'social' ? {
 					type: 'switch',
 					text: i18n.ts.showRepliesToOthersInTimeline,
 					ref: withReplies,
 					disabled: onlyFiles,
 				} : undefined,
-        src.value === 'local' || src.value === 'social' ? {
+				os.popupMenu([{
 					type: 'switch',
 					text: i18n.ts.withHashtags,
 					ref: withHashtags,
-					disabled: onlyFiles,
-				} : undefined,
-        {
+				},
+				{
 					type: 'switch',
 					text: i18n.ts.withSensitive,
 					ref: withSensitive,
 				},
-        {
+				{
 					type: 'switch',
 					text: i18n.ts.fileAttachedOnly,
 					ref: onlyFiles,
 					disabled: src.value === 'local' || src.value === 'social' ? withReplies : false,
 				}],
-        ev.currentTarget ?? ev.target);
+				ev.currentTarget ?? ev.target);
 			},
 		},
 	];

@@ -412,7 +412,6 @@ export function getNoteMenu(props: {
 			]
 			: []
 			),
->>>>>>> develop
 			...(appearNote.userId === $i.id || $i.isModerator || $i.isAdmin ? [
 				{ type: 'divider' },
 				appearNote.userId === $i.id ? {
@@ -427,8 +426,8 @@ export function getNoteMenu(props: {
 					action: del,
 				}]
 			: []
-			)]
-			.filter(x => x !== undefined);
+			)
+		].filter(x => x !== undefined);
 	} else {
 		menu = [{
 			icon: 'ti ti-info-circle',

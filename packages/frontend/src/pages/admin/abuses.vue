@@ -90,5 +90,5 @@ const headerTabs = computed(() => []);
 definePageMetadata({
 	title: i18n.ts.reviewReports,
 	icon: 'ti ti-exclamation-circle',
-}));
+});
 </script>
