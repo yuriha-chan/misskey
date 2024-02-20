@@ -264,7 +264,7 @@ const headerActions = computed(() => {
 					ref: withReplies,
 					disabled: onlyFiles,
 				} : undefined,
-				os.popupMenu([{
+				{
 					type: 'switch',
 					text: i18n.ts.withHashtags,
 					ref: withHashtags,
