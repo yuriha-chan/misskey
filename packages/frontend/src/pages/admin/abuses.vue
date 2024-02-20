@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -90,5 +90,5 @@ const headerTabs = computed(() => []);
 definePageMetadata({
 	title: i18n.ts.reviewReports,
 	icon: 'ti ti-exclamation-circle',
-});
+}));
 </script>
