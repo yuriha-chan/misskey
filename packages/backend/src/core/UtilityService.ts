@@ -48,12 +48,12 @@ export class UtilityService {
 	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string | '', files: string[] | []): boolean {
 		if (keyWords.length === 0) return false;
 
-    const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
-
-    const coerceFloat = v =>
-      (typeof v === 'number') ? v :
-      (typeof v === 'string') ? parseFloat(v) :
-      v ? 1 : 0;
+		const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
+		
+		const coerceFloat = v =>
+		  (typeof v === 'number') ? v :
+		  (typeof v === 'string') ? parseFloat(v) :
+		  v ? 1 : 0;
 
 		const apply = function(node, testText) {
 			try {
@@ -63,8 +63,9 @@ export class UtilityService {
 					case "slowRegexp": return new RegExp(node[1], node[2]).test(testText);
 					case "and": return node.slice(1).every(n => apply(n, testText));
 					case "or": return node.slice(1).some(n => apply(n, testText));
+					case "not": return !(n => apply(n, testText));
 					case "poll": return (node[2].reduce((acc, v) => acc + apply(v, testText) === true ? 1 : 0) >= coerceFloat(node[1]));
-					case "weighted": return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]) : 0;
+					case "weighted": return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]);
 					case "average": return node[1].reduce((acc, v) => acc + coerceFloat(apply(v, testText)));
 					case "shorterThan": return testText.length < coerceFloat(node[1]);
 					case "longerThan": return  testText.length > coerceFloat(node[1]);
@@ -79,8 +80,15 @@ export class UtilityService {
 				return false;
 			}
 		}
+		const nodes = keyWords.map(filter => {
+			try {
+				return parseFilter(filter);
+			} catch (err) {
+				// empty filter
+				return ["and"];
+			}
+		});
 		try {
-			const nodes = keyWords.map(filter => parseFilter(filter));
 			return nodes.some(n => apply(n, cw === '' ? textAndChoices : cw));
 		} catch (err) {
 			return false;

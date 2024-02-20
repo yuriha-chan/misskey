@@ -9,33 +9,36 @@ Args "args"
   = __ expr:Term { return expr; }
 
 Function "function"
-  = [a-z]+ { return text(); }
+  = [a-zA-Z_\-]+ { return text(); }
 
 Leaf "leaf"
-  = Keyword / RegExp / SlowRegExp
-  
+  = Number / RegExp / SlowRegExp / Keyword
+
+Number "number"
+  = [0-9.]+ { return parseFloat(text()); }
+
 Keyword "keyword"
   = '"' content:DQuotedText '"' { return ['keyword', content]; }
   / "'" content:SQuotedText "'" { return ['keyword', content]; }
-  / [^/'" \t()]+ { return ['keyword', text()]; }
-  
+  / [^/'" \t()0-9.][^/'" \t()]* { return ['keyword', text()]; }
+
 DQuotedText "dQuotedText"
   = [^"]* { return text(); }
-  
+
 SQuotedText "sQuotedText"
   = [^']* { return text(); }
-  
+
 RegExpText
   = [^/]+ { return text(); }
-  
+
 RegExpModifier
   = [^/ \t()]* { return text(); }
-  
+
 RegExp "regexp"
   = "/" content:RegExpText "/"  modifier:RegExpModifier { return ["regexp", content, modifier]; }
 
 SlowRegExp "slowRegexp"
-  = "/" content:RegExpText "/" modifier:RegExpModifier { return ["slowRegexp", content, modifier]; }
+  = "slow/" content:RegExpText "/" modifier:RegExpModifier { return ["slowRegexp", content, modifier]; }
 
 __ "whitespace"
   = [ \t]+
