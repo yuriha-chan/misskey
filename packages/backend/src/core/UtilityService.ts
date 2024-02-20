@@ -63,7 +63,7 @@ export class UtilityService {
 					case "slowRegexp": return new RegExp(node[1], node[2]).test(testText);
 					case "and": return node.slice(1).every(n => apply(n, testText));
 					case "or": return node.slice(1).some(n => apply(n, testText));
-					case "not": return !(n => apply(n, testText));
+					case "not": return !apply(n, testText);
 					case "poll": return (node[2].reduce((acc, v) => acc + apply(v, testText) === true ? 1 : 0) >= coerceFloat(node[1]));
 					case "weighted": return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]);
 					case "average": return node[1].reduce((acc, v) => acc + coerceFloat(apply(v, testText)));
