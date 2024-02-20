@@ -256,14 +256,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && data.channel == null) {
 			const sensitiveWords = meta.sensitiveWords;
-			if (this.utilityService.isKeyWordIncluded(data.cw ?? data.text ?? '', sensitiveWords)) {
+			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map(file => file.id) : [])) {
 				data.visibility = 'home';
 			} else if ((await this.roleService.getUserPolicies(user.id)).canPublicNote === false) {
 				data.visibility = 'home';
 			}
 		}
 
-		if (this.utilityService.isKeyWordIncluded(data.cw ?? data.text ?? '', meta.prohibitedWords)) {
+		if (this.utilityService.isKeyWordIncluded(meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map(file => file.id) : [])) {
 			throw new NoteCreateService.ContainsProhibitedWordsError();
 		}
 
