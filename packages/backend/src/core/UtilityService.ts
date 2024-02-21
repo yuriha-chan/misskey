@@ -47,6 +47,9 @@ export class UtilityService {
 	@bindThis
 	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string | '', files: string[] | []): boolean {
 		if (keyWords.length === 0) return false;
+		if (text === '' && cw === '' && files === []) {
+			return false;
+		}
 
 		const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
 		
@@ -58,7 +61,7 @@ export class UtilityService {
 		const apply = function(node, testText) {
 			try {
 				switch (node[0]) {
-					case "keyword": return testText.includes(node[1]);
+					case "keyword": return testText.includes && testText.includes(node[1]);
 					case "regexp":  return new RE2(node[1], node[2]).test(testText);
 					case "slowRegexp": return new RegExp(node[1], node[2]).test(testText);
 					case "and": return node.slice(1).every(n => apply(n, testText));
@@ -85,7 +88,7 @@ export class UtilityService {
 				return parseFilter(filter);
 			} catch (err) {
 				// empty filter
-				return ["and"];
+				return ["or"];
 			}
 		});
 		try {
