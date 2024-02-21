@@ -213,6 +213,38 @@ export interface Locale extends ILocale {
      */
     "deleteAndEditConfirm": string;
     /**
+     * 公開範囲をホームに制限
+     */
+    "limitToHome": string;
+    /**
+     * このノートの公開範囲を「ホーム」に変更しますか？この操作は取り消せません。
+     */
+    "limitToHomeConfirm": string;
+    /**
+     * 公開範囲をホームに制限
+     */
+    "limitToFollowers": string;
+    /**
+     * このノートの公開範囲を「フォロワー」に変更しますか？この操作は取り消せません。
+     */
+    "limitToFollowersConfirm": string;
+    /**
+     * 公開範囲を「ローカルのみ」に制限
+     */
+    "limitToLocalOnly": string;
+    /**
+     * このノートの公開範囲を「ローカルのみ」に変更しますか？連合先サーバーへはノートが削除されたと通知します。この操作は取り消せません。
+     */
+    "limitToLocalOnlyConfirm": string;
+    /**
+     * 公開範囲を「ローカルのみ」に制限
+     */
+    "limitToLikeOnly": string;
+    /**
+     * このノートが受け付けるリアクションをハートのみに制限しますか？この操作は取り消せません。
+     */
+    "limitToLikeOnlyConfirm": string;
+    /**
      * リストに追加
      */
     "addToList": string;
