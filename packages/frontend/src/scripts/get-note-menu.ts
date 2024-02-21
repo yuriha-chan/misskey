@@ -179,6 +179,62 @@ export function getNoteMenu(props: {
 		});
 	}
 
+	function limitToHome(): void {
+		os.confirm({
+			type: 'warning',
+			text: i18n.ts.limitToHomeConfirm,
+		}).then(({ canceled }) => {
+			if (canceled) return;
+
+			misskeyApi('notes/update-visibility', {
+				noteId: appearNote.id,
+				visibility: 'home',
+			});
+		});
+	}
+
+	function limitToFollowers(): void {
+		os.confirm({
+			type: 'warning',
+			text: i18n.ts.limitToHomeConfirm,
+		}).then(({ canceled }) => {
+			if (canceled) return;
+
+			misskeyApi('notes/update-visibility', {
+				noteId: appearNote.id,
+				visibility: 'followers',
+			});
+		});
+	}
+
+	function limitToLocalOnly(): void {
+		os.confirm({
+			type: 'warning',
+			text: i18n.ts.limitToLocalOnlyConfirm,
+		}).then(({ canceled }) => {
+			if (canceled) return;
+
+			misskeyApi('notes/update-visibility', {
+				noteId: appearNote.id,
+				localOnly: true,
+			});
+		});
+	}
+
+	function limitToLikeOnly(): void {
+		os.confirm({
+			type: 'warning',
+			text: i18n.ts.limitToLikeOnlyConfirm,
+		}).then(({ canceled }) => {
+			if (canceled) return;
+
+			misskeyApi('notes/update-visibility', {
+				noteId: appearNote.id,
+				reactionAcceptance: 'likeOnly',
+			});
+		});
+	}
+
 	function toggleFavorite(favorite: boolean): void {
 		claimAchievement('noteFavorited1');
 		os.apiWithDialog(favorite ? 'notes/favorites/create' : 'notes/favorites/delete', {
@@ -405,7 +461,33 @@ export function getNoteMenu(props: {
 					text: i18n.ts.delete,
 					danger: true,
 					action: del,
-				}]
+				},
+				{ type: 'divider' },
+				{
+					icon: 'ti ti-edit',
+					text: i18n.ts.limitToHome,
+					danger: true,
+					action: limitToHome,
+				},
+				{
+					icon: 'ti ti-edit',
+					text: i18n.ts.limitToFollowers,
+					danger: true,
+					action: limitToFollowers,
+				},
+				{
+					icon: 'ti ti-edit',
+					text: i18n.ts.limitToLocalOnly,
+					danger: true,
+					action: limitToLocalOnly,
+				},
+				{
+					icon: 'ti ti-edit',
+					text: i18n.ts.limitToLikeOnly,
+					danger: true,
+					action: limitToLikeOnly,
+				},
+				]
 			: []
 			)]
 			.filter(x => x !== undefined);
