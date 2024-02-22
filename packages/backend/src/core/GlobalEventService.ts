@@ -115,6 +115,9 @@ export interface NoteEventTypes {
 	deleted: {
 		deletedAt: Date;
 	};
+	visibilityUpdated: {
+		updatedAt: Date;
+	};
 	updated: {
 		cw: string | null;
 		text: string;

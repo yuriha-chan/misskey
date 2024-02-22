@@ -240,6 +240,11 @@ export type NoteUpdatedEvent = {
 		userId: User['id'];
 	};
 } | {
+	type: 'visibilityUpdated';
+	body: {
+		updatedAt: string;
+	};
+} | {
 	type: 'deleted';
 	body: {
 		deletedAt: string;

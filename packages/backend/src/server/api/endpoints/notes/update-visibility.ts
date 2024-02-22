@@ -45,7 +45,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		noteId: { type: 'string', format: 'misskey:id' },
-		visibility: { type: 'string', nullable: true, enum: ['public', 'home', 'followers', 'specified'] },
+		visibility: { type: 'string', nullable: true, enum: [null, 'public', 'home', 'followers', 'specified'] },
 		localOnly: { type: 'boolean', nullable: true },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
 	},
@@ -73,7 +73,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			// この操作を行うのが投稿者とは限らない(例えばモデレーター)ため
-			await this.noteUpdateVisibilityService.updateVisibility(await this.usersRepository.findOneByOrFail({ id: note.userId }), note, false, me);
+			await this.noteUpdateVisibilityService.updateVisibility(await this.usersRepository.findOneByOrFail({ id: note.userId }), note, ps.visibility, ps.localOnly, ps.reactionAcceptance, false, me);
 		});
 	}
 }
