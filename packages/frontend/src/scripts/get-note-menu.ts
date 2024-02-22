@@ -196,7 +196,7 @@ export function getNoteMenu(props: {
 	function limitToFollowers(): void {
 		os.confirm({
 			type: 'warning',
-			text: i18n.ts.limitToHomeConfirm,
+			text: i18n.ts.limitToFollowersConfirm,
 		}).then(({ canceled }) => {
 			if (canceled) return;
 
@@ -463,30 +463,30 @@ export function getNoteMenu(props: {
 					action: del,
 				},
 				{ type: 'divider' },
-				{
+				appearNote.visibility === 'public' ? {
 					icon: 'ti ti-edit',
 					text: i18n.ts.limitToHome,
 					danger: true,
 					action: limitToHome,
-				},
-				{
+				} : undefined,
+				appearNote.visibility === 'home' ? {
 					icon: 'ti ti-edit',
 					text: i18n.ts.limitToFollowers,
 					danger: true,
 					action: limitToFollowers,
-				},
-				{
+				} : undefined,
+				!appearNote.localOnly ? {
 					icon: 'ti ti-edit',
 					text: i18n.ts.limitToLocalOnly,
 					danger: true,
 					action: limitToLocalOnly,
-				},
-				{
+				} : undefined,
+				appearNote.reactionAcceptance !== 'likeOnly' ? {
 					icon: 'ti ti-edit',
 					text: i18n.ts.limitToLikeOnly,
 					danger: true,
 					action: limitToLikeOnly,
-				},
+				} : undefined,
 				]
 			: []
 			)]

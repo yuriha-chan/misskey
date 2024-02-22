@@ -51,9 +51,9 @@ export class NoteUpdateVisibilityService {
 	async updateVisibility(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, visibility?: string, localOnly?: boolean, reactionAcceptance?: MiNote['reactionAcceptance'], quiet = false, updater?: MiUser) {
 		if (note.visibility === 'home' && visibility === 'public') {
 			throw new Error('cannot change home visibility to public');
-		} else if (note.visibility === 'followers' && !visibility === 'specified') {
+		} else if (note.visibility === 'followers' && (visibility === 'home' || visibility === 'public')) {
 			throw new Error('cannot change followers visibility to home or public');
-		} else if (note.visibility === 'specified') {
+		} else if (note.visibility === 'specified' && visibility) {
 			throw new Error('cannot change specified visibility');
 		}
 
@@ -88,11 +88,13 @@ export class NoteUpdateVisibilityService {
 			this.searchService.unindexNote(note);
 		}
 
-		await this.notesRepository.update(note.id, {
-			visibility?,
-			localOnly?,
-			reactionAcceptance?
-		});
+		const to = {
+			visibility: visibility ?? undefined,
+			localOnly: localOnly ?? undefined,
+			reactionAcceptance: reactionAcceptance ?? undefined,
+		};
+
+		await this.notesRepository.update(note.id, to);
 
 		if (updater && (note.userId !== updater.id)) {
 			const user = await this.usersRepository.findOneByOrFail({ id: note.userId });
@@ -102,7 +104,7 @@ export class NoteUpdateVisibilityService {
 				noteUserUsername: user.username,
 				noteUserHost: user.host,
 				note: note,
-				to: { visibility, locaOnly, reactionAcceptance }
+				to
 			});
 		}
 	}
