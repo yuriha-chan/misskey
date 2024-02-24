@@ -90,7 +90,11 @@ export default defineComponent({
 					]),
 				]));
 
-				return [el, separator];
+				if (el) {
+					return [el, separator];
+				} else {
+					return separator;
+				}
 			} else {
 				if (props.ad && item._shouldInsertAd_) {
 					return [h(MkAd, {
