@@ -55,7 +55,7 @@ export default defineComponent({
 		if (props.items.length === 0) return;
 
 		const renderChildrenImpl = () => props.items.map((item, i) => {
-			if (!slots || !slots.default) return;
+			if (!slots || !slots.default) return [];
 
 			const el = slots.default({
 				item: item,
