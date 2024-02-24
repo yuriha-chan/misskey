@@ -1507,6 +1507,7 @@ declare namespace entities {
         NotesCreateRequest,
         NotesCreateResponse,
         NotesDeleteRequest,
+        NotesUpdateVisibilityRequest,
         NotesFavoritesCreateRequest,
         NotesFavoritesDeleteRequest,
         NotesFeaturedRequest,
@@ -2536,6 +2537,9 @@ type NotesTranslateResponse = operations['notes/translate']['responses']['200'][
 
 // @public (undocumented)
 type NotesUnrenoteRequest = operations['notes/unrenote']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesUpdateVisibilityRequest = operations['notes/update-visibility']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesUserListTimelineRequest = operations['notes/user-list-timeline']['requestBody']['content']['application/json'];

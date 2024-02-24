@@ -2531,6 +2531,15 @@ export type paths = {
      */
     post: operations['notes/delete'];
   };
+  '/notes/update-visibility': {
+    /**
+     * notes/update-visibility
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:notes*
+     */
+    post: operations['notes/update-visibility'];
+  };
   '/notes/favorites/create': {
     /**
      * notes/favorites/create
@@ -3695,6 +3704,7 @@ export type components = {
       mutedWords: string[][];
       hardMutedWords: string[][];
       mutedInstances: string[] | null;
+      gtlMutedInstances: string[] | null;
       notificationRecieveConfig: {
         note?: OneOf<[{
           /** @enum {string} */
@@ -4934,6 +4944,7 @@ export type operations = {
               /** Format: date-time */
               createdAt: string;
               comment: string;
+              reason: string;
               /** @example false */
               resolved: boolean;
               /** Format: id */
@@ -8799,6 +8810,7 @@ export type operations = {
           perUserListTimelineCacheMax?: number;
           notesPerOneAd?: number;
           silencedHosts?: string[] | null;
+          gtlMutedHosts?: string[] | null;
         };
       };
     };
@@ -18681,6 +18693,7 @@ export type operations = {
           mutedWords?: (string[] | string)[];
           hardMutedWords?: (string[] | string)[];
           mutedInstances?: string[];
+          gtlMutedInstances?: string[];
           notificationRecieveConfig?: {
             note?: OneOf<[{
               /** @enum {string} */
@@ -20512,6 +20525,72 @@ export type operations = {
     };
   };
   /**
+   * notes/update-visibility
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:notes*
+   */
+  'notes/update-visibility': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          noteId: string;
+          /** @enum {string|null} */
+          visibility?: null | 'public' | 'home' | 'followers' | 'specified';
+          localOnly?: boolean | null;
+          /**
+           * @default null
+           * @enum {string|null}
+           */
+          reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description To many requests */
+      429: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
    * notes/favorites/create
    * @description No description provided.
    *
@@ -20693,6 +20772,8 @@ export type operations = {
           withFiles?: boolean;
           /** @default true */
           withRenotes?: boolean;
+          /** @default true */
+          withHashtags?: boolean;
           /** @default 10 */
           limit?: number;
           /** Format: misskey:id */
@@ -20773,6 +20854,8 @@ export type operations = {
           withFiles?: boolean;
           /** @default true */
           withRenotes?: boolean;
+          /** @default true */
+          withHashtags?: boolean;
           /** @default false */
           withReplies?: boolean;
         };
@@ -20831,6 +20914,11 @@ export type operations = {
           withFiles?: boolean;
           /** @default true */
           withRenotes?: boolean;
+          /** @default true */
+          withHashtags?: boolean;
+          fileType?: string[];
+          /** @default false */
+          excludeNsfw?: boolean;
           /** @default false */
           withReplies?: boolean;
           /** @default 10 */
@@ -21743,6 +21831,8 @@ export type operations = {
           withFiles?: boolean;
           /** @default true */
           withRenotes?: boolean;
+          /** @default true */
+          withHashtags?: boolean;
         };
       };
     };
@@ -25221,6 +25311,8 @@ export type operations = {
           withReplies?: boolean;
           /** @default true */
           withRenotes?: boolean;
+          /** @default true */
+          withSpecified?: boolean;
           /** @default false */
           withChannelNotes?: boolean;
           /** @default 10 */

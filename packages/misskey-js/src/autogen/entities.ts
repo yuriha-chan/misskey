@@ -390,6 +390,7 @@ export type NotesConversationResponse = operations['notes/conversation']['respon
 export type NotesCreateRequest = operations['notes/create']['requestBody']['content']['application/json'];
 export type NotesCreateResponse = operations['notes/create']['responses']['200']['content']['application/json'];
 export type NotesDeleteRequest = operations['notes/delete']['requestBody']['content']['application/json'];
+export type NotesUpdateVisibilityRequest = operations['notes/update-visibility']['requestBody']['content']['application/json'];
 export type NotesFavoritesCreateRequest = operations['notes/favorites/create']['requestBody']['content']['application/json'];
 export type NotesFavoritesDeleteRequest = operations['notes/favorites/delete']['requestBody']['content']['application/json'];
 export type NotesFeaturedRequest = operations['notes/featured']['requestBody']['content']['application/json'];
