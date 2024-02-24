@@ -852,6 +852,13 @@ async function post(ev?: MouseEvent) {
 		if (err.code === "RATE_LIMIT_EXCEEDED") {
 			title = i18n.ts.cannotNoteTemporary;
 			text = i18n.ts.cannotNoteTemporaryDescription;
+		} else if (err.code === "INVALID_PARAM") {
+			title = i18n.ts.invalidParamError;
+			text = i18n.ts.invalidParamErrorDescription;
+			if ((err as any).info) {
+				text += i18n.ts.invalidParamErrorInfoDescription;
+				text += '\n' + JSON.stringify((err as any).info);
+			}
 		} else {
 			title = "Cannot post";
 			text = err.message + '\n' + (err as any).id;

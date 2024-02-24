@@ -221,7 +221,7 @@ export interface Locale extends ILocale {
      */
     "limitToHomeConfirm": string;
     /**
-     * 公開範囲をホームに制限
+     * 公開範囲を「フォロワー」に制限
      */
     "limitToFollowers": string;
     /**
@@ -237,11 +237,11 @@ export interface Locale extends ILocale {
      */
     "limitToLocalOnlyConfirm": string;
     /**
-     * 公開範囲を「ローカルのみ」に制限
+     * リアクションの受け入れを「いいね」のみに制限
      */
     "limitToLikeOnly": string;
     /**
-     * このノートが受け付けるリアクションをハートのみに制限しますか？この操作は取り消せません。
+     * このノートが受け付けるリアクションを「いいね」のみに制限しますか？この操作は取り消せません。
      */
     "limitToLikeOnlyConfirm": string;
     /**
@@ -940,6 +940,14 @@ export interface Locale extends ILocale {
      * サイレンスしたいサーバーのホストを改行で区切って設定します。サイレンスされたサーバーに所属するアカウントはすべて「サイレンス」として扱われ、フォローがすべてリクエストになり、フォロワーでないローカルアカウントにはメンションできなくなります。ブロックしたインスタンスには影響しません。
      */
     "silencedInstancesDescription": string;
+    /**
+     * GTLミュートしたサーバー
+     */
+    "gtlMutedInstances": string;
+    /**
+     * GTLミュートしたいサーバーのホストを改行で区切って設定します。GTLミュートされたサーバーに所属するアカウントに関連する投稿がグローバルタイムラインに表示されなくなります。
+     */
+    "gtlMutedInstancesDescription": string;
     /**
      * ミュートとブロック
      */
@@ -1677,6 +1685,10 @@ export interface Locale extends ILocale {
      */
     "withReplies": string;
     /**
+     * ハッシュタグ付きを含む
+     */
+    "withHashtags": string;
+    /**
      * 次のアカウントに接続されています
      */
     "connectedTo": string;
@@ -1704,6 +1716,10 @@ export interface Locale extends ILocale {
      * サイレンス解除しますか？
      */
     "unsilenceConfirm": string;
+    /**
+     * GTLミュート
+     */
+    "gtlMuted": string;
     /**
      * 人気のユーザー
      */
@@ -2772,41 +2788,90 @@ export interface Locale extends ILocale {
      * サンプル
      */
     "sample": string;
+    /**
+     * 管理者に連絡
+     */
     "contactAdmin": string;
+    /**
+     * 理由を選択
+     */
     "contactAdminReason": string;
+    /**
+     * 報告対象のアカウント
+     */
     "reportOf": string;
     "_contactAdminReason": {
+        /**
+         * 不適切な投稿
+         */
         "abuse": string;
+        /**
+         * スパムを投稿しています
+         */
         "spam": string;
+        /**
+         * プライバシーを侵害しています
+         */
         "privacy": string;
+        /**
+         * 暴言や個人攻撃をしています
+         */
         "attack": string;
+        /**
+         * 適切な閲覧注意タグがついていません
+         */
         "obscene": string;
+        /**
+         * そのほかの理由で不適切です
+         */
         "abuseOther": string;
+        /**
+         * 助けが必要
+         */
         "help": string;
+        /**
+         * 技術的な助けが必要です
+         */
         "technical": string;
+        /**
+         * 精神的な助けが必要です
+         */
         "mental": string;
+        /**
+         * フィルターに誤検知されています
+         */
         "falsePositive": string;
+        /**
+         * そのほかの助けが必要です
+         */
         "helpOther": string;
+        /**
+         * 素晴らしい投稿
+         */
         "good": string;
+        /**
+         * 善い行いをしています
+         */
         "ethical": string;
     };
+    /**
+     * ユーザーの報告を確認
+     */
     "reviewReports": string;
+    /**
+     * 管理者に伝えたい情報の詳細を入力してください
+     */
     "fillReportDescription": string;
+    /**
+     * 報告が送信されました。ありがとうございますby 管理者
+     */
     "reportCompleted": string;
     /**
-     * 通報
-     */
-    "abuseReports": string;
-    /**
-     * 通報
-     */
-    "reportAbuse": string;
-    /**
-     * リノートを通報
+     * リノート行為について管理者に連絡
      */
     "reportAbuseRenote": string;
     /**
-     * 通報者
+     * 報告者
      */
     "reporter": string;
     /**
@@ -4078,6 +4143,14 @@ export interface Locale extends ILocale {
      */
     "cannotPerformTemporaryDescription": string;
     /**
+     * 投稿速度が速すぎます
+     */
+    "cannotNoteTemporary": string;
+    /**
+     * 短時間に多くの投稿を行ったため、投稿速度制限(レートリミット)を超えました。しばらく時間を置いてから投稿してください。
+     */
+    "cannotNoteTemporaryDescription": string;
+    /**
      * パラメータエラー
      */
     "invalidParamError": string;
@@ -4085,6 +4158,10 @@ export interface Locale extends ILocale {
      * リクエストパラメータに問題があります。通常これはバグですが、入力した文字数が多すぎる等の可能性もあります。
      */
     "invalidParamErrorDescription": string;
+    /**
+     * 以下の情報をサポートや管理者に見せると解決するかもしれません。
+     */
+    "invalidParamErrorInfoDescription": string;
     /**
      * 操作が拒否されました
      */
@@ -4321,6 +4398,10 @@ export interface Locale extends ILocale {
      * データセーバー
      */
     "dataSaver": string;
+    /**
+     * 埋め込みコードをコピー
+     */
+    "copyEmbedCode": string;
     /**
      * アカウントの移行
      */
@@ -6426,6 +6507,10 @@ export interface Locale extends ILocale {
              */
             "canPublicNote": string;
             /**
+             * ノート内の最大メンション数
+             */
+            "mentionMax": string;
+            /**
              * サーバー招待コードの発行
              */
             "canInvite": string;
@@ -7054,6 +7139,24 @@ export interface Locale extends ILocale {
         "title": string;
         /**
          * ミュートするサーバー
+         */
+        "heading": string;
+    };
+    "_instanceGtlMute": {
+        /**
+         * ミュートしたサーバーからの投稿をグローバルタイムラインに表示しません。その他のタイムラインでは表示されます。
+         */
+        "instanceMuteDescription": string;
+        /**
+         * 改行で区切って設定します
+         */
+        "instanceMuteDescription2": string;
+        /**
+         * 設定したサーバーのノートをグローバルタイムラインから隠します。
+         */
+        "title": string;
+        /**
+         * GTLミュートするサーバー
          */
         "heading": string;
     };
