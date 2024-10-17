@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkCustomEmoji v-if="reaction[0] === ':'" ref="elRef" :name="reaction" :normal="true" :noStyle="noStyle" :url="emojiUrl"/>
+<MkCustomEmoji v-if="reaction[0] === ':'" ref="elRef" :name="reaction" :normal="true" :noStyle="noStyle" :url="emojiUrl" :fallbackToImage="true"/>
 <MkEmoji v-else ref="elRef" :emoji="reaction" :normal="true" :noStyle="noStyle"/>
 </template>
 
@@ -24,11 +24,13 @@ const elRef = shallowRef();
 
 if (props.withTooltip) {
 	useTooltip(elRef, (showing) => {
-		os.popup(defineAsyncComponent(() => import('@/components/MkReactionTooltip.vue')), {
+		const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkReactionTooltip.vue')), {
 			showing,
 			reaction: props.reaction.replace(/^:(\w+):$/, ':$1@.:'),
 			targetElement: elRef.value.$el,
-		}, {}, 'closed');
+		}, {
+			closed: () => dispose(),
+		});
 	});
 }
 </script>

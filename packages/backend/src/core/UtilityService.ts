@@ -10,6 +10,7 @@ import RE2 from 're2';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
+import { MiMeta } from '@/models/Meta.js';
 
 import { parseFilter } from '@/misc/parse-filter.js';
 
@@ -18,6 +19,9 @@ export class UtilityService {
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
+
+		@Inject(DI.meta)
+		private meta: MiMeta,
 	) {
 	}
 
@@ -42,6 +46,26 @@ export class UtilityService {
 	public isSilencedHost(silencedHosts: string[] | undefined, host: string | null): boolean {
 		if (!silencedHosts || host == null) return false;
 		return silencedHosts.some(x => `.${host.toLowerCase()}`.endsWith(`.${x}`));
+	}
+
+	@bindThis
+	public isMediaSilencedHost(silencedHosts: string[] | undefined, host: string | null): boolean {
+		if (!silencedHosts || host == null) return false;
+		return silencedHosts.some(x => host.toLowerCase() === x);
+	}
+
+	@bindThis
+	public concatNoteContentsForKeyWordCheck(content: {
+		cw?: string | null;
+		text?: string | null;
+		pollChoices?: string[] | null;
+		others?: string[] | null;
+	}): string {
+		/**
+		 * ノートの内容を結合してキーワードチェック用の文字列を生成する
+		 * cwとtextは内容が繋がっているかもしれないので間に何も入れずにチェックする
+		 */
+		return `${content.cw ?? ''}${content.text ?? ''}\n${(content.pollChoices ?? []).join('\n')}\n${(content.others ?? []).join('\n')}`;
 	}
 
 	@bindThis
@@ -113,5 +137,20 @@ export class UtilityService {
 	public toPunyNullable(host: string | null | undefined): string | null {
 		if (host == null) return null;
 		return toASCII(host.toLowerCase());
+	}
+
+	@bindThis
+	public isFederationAllowedHost(host: string): boolean {
+		if (this.meta.federation === 'none') return false;
+		if (this.meta.federation === 'specified' && !this.meta.federationHosts.some(x => `.${host.toLowerCase()}`.endsWith(`.${x}`))) return false;
+		if (this.isBlockedHost(this.meta.blockedHosts, host)) return false;
+
+		return true;
+	}
+
+	@bindThis
+	public isFederationAllowedUri(uri: string): boolean {
+		const host = this.extractDbHost(uri);
+		return this.isFederationAllowedHost(host);
 	}
 }

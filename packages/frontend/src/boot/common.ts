@@ -5,10 +5,10 @@
 
 import { computed, watch, version as vueVersion, App } from 'vue';
 import { compareVersions } from 'compare-versions';
+import { version, lang, updateLocale, locale } from '@@/js/config.js';
 import widgets from '@/widgets/index.js';
 import directives from '@/directives/index.js';
 import components from '@/components/index.js';
-import { version, lang, updateLocale, locale } from '@/config.js';
 import { applyTheme } from '@/scripts/theme.js';
 import { isDeviceDarkmode } from '@/scripts/is-device-darkmode.js';
 import { updateI18n } from '@/i18n.js';
@@ -22,7 +22,8 @@ import { getAccountFromId } from '@/scripts/get-account-from-id.js';
 import { deckStore } from '@/ui/deck/deck-store.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { fetchCustomEmojis } from '@/custom-emojis.js';
-import { setupRouter } from '@/router/definition.js';
+import { setupRouter } from '@/router/main.js';
+import { createMainRouter } from '@/router/definition.js';
 
 export async function common(createVue: () => App<Element>) {
 	console.info(`Misskey v${version}`);
@@ -147,6 +148,8 @@ export async function common(createVue: () => App<Element>) {
 		applyTheme(darkMode ? ColdDeviceStorage.get('darkTheme') : ColdDeviceStorage.get('lightTheme'));
 	}, { immediate: miLocalStorage.getItem('theme') == null });
 
+	document.documentElement.dataset.colorScheme = defaultStore.state.darkMode ? 'dark' : 'light';
+
 	const darkTheme = computed(ColdDeviceStorage.makeGetterSetter('darkTheme'));
 	const lightTheme = computed(ColdDeviceStorage.makeGetterSetter('lightTheme'));
 
@@ -179,24 +182,18 @@ export async function common(createVue: () => App<Element>) {
 			if (instance.defaultLightTheme != null) ColdDeviceStorage.set('lightTheme', JSON.parse(instance.defaultLightTheme));
 			if (instance.defaultDarkTheme != null) ColdDeviceStorage.set('darkTheme', JSON.parse(instance.defaultDarkTheme));
 			defaultStore.set('themeInitial', false);
-		} else {
-			if (defaultStore.state.darkMode) {
-				applyTheme(darkTheme.value);
-			} else {
-				applyTheme(lightTheme.value);
-			}
 		}
 	});
 
 	watch(defaultStore.reactiveState.useBlurEffectForModal, v => {
-		document.documentElement.style.setProperty('--modalBgFilter', v ? 'blur(4px)' : 'none');
+		document.documentElement.style.setProperty('--MI-modalBgFilter', v ? 'blur(4px)' : 'none');
 	}, { immediate: true });
 
 	watch(defaultStore.reactiveState.useBlurEffect, v => {
 		if (v) {
-			document.documentElement.style.removeProperty('--blur');
+			document.documentElement.style.removeProperty('--MI-blur');
 		} else {
-			document.documentElement.style.setProperty('--blur', 'none');
+			document.documentElement.style.setProperty('--MI-blur', 'none');
 		}
 	}, { immediate: true });
 
@@ -236,7 +233,7 @@ export async function common(createVue: () => App<Element>) {
 
 	const app = createVue();
 
-	setupRouter(app);
+	setupRouter(app, createMainRouter);
 
 	if (_DEV_) {
 		app.config.performance = true;

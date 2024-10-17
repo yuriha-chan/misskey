@@ -23,7 +23,7 @@ import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, Wid
 import { GetFormResultType } from '@/scripts/form.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
-import { useInterval } from '@/scripts/use-interval.js';
+import { useInterval } from '@@/js/use-interval.js';
 import { i18n } from '@/i18n.js';
 
 const name = 'slideshow';
@@ -93,10 +93,10 @@ const fetch = () => {
 
 const choose = () => {
 	os.selectDriveFolder(false).then(folder => {
-		if (folder == null) {
+		if (folder[0] == null) {
 			return;
 		}
-		widgetProps.folderId = folder.id;
+		widgetProps.folderId = folder[0].id;
 		save();
 		fetch();
 	});

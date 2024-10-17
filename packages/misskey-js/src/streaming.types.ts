@@ -21,6 +21,14 @@ import {
 	ServerStatsLog,
 	ReversiGameDetailed,
 } from './entities.js';
+import {
+	ReversiUpdateKey,
+} from './consts.js';
+
+type ReversiUpdateSettings<K extends ReversiUpdateKey> = {
+	key: K;
+	value: ReversiGameDetailed[K];
+};
 
 export type Channels = {
 	main: {
@@ -40,6 +48,7 @@ export type Channels = {
 			unreadNotification: (payload: Notification) => void;
 			unreadMention: (payload: Note['id']) => void;
 			readAllUnreadMentions: () => void;
+			notificationFlushed: () => void;
 			unreadSpecifiedNote: (payload: Note['id']) => void;
 			readAllUnreadSpecifiedNotes: () => void;
 			readAllAntennas: () => void;
@@ -50,6 +59,7 @@ export type Channels = {
 			registryUpdated: (payload: {
 				scope?: string[];
 				key: string;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				value: any | null;
 			}) => void;
 			driveFileCreated: (payload: DriveFile) => void;
@@ -114,7 +124,7 @@ export type Channels = {
 	};
 	hashtag: {
 		params: {
-			q?: string;
+			q: string[][];
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -207,8 +217,8 @@ export type Channels = {
 			ended: (payload: { winnerId: User['id'] | null; game: ReversiGameDetailed; }) => void;
 			canceled: (payload: { userId: User['id']; }) => void;
 			changeReadyStates: (payload: { user1: boolean; user2: boolean; }) => void;
-			updateSettings: (payload: { userId: User['id']; key: string; value: any; }) => void;
-			log: (payload: Record<string, any>) => void;
+			updateSettings: <K extends ReversiUpdateKey>(payload: { userId: User['id']; key: K; value: ReversiGameDetailed[K]; }) => void;
+			log: (payload: Record<string, unknown>) => void;
 		};
 		receives: {
 			putStone: {
@@ -217,16 +227,13 @@ export type Channels = {
 			};
 			ready: boolean;
 			cancel: null | Record<string, never>;
-			updateSettings: {
-				key: string;
-				value: any;
-			};
+			updateSettings: ReversiUpdateSettings<ReversiUpdateKey>;
 			claimTimeIsUp: null | Record<string, never>;
 		}
 	}
 };
 
-export type NoteUpdatedEvent = {
+export type NoteUpdatedEvent = { id: Note['id'] } & ({
 	type: 'reacted';
 	body: {
 		reaction: string;
@@ -255,7 +262,7 @@ export type NoteUpdatedEvent = {
 		choice: number;
 		userId: User['id'];
 	};
-};
+});
 
 export type BroadcastEvents = {
 	noteUpdated: (payload: NoteUpdatedEvent) => void;

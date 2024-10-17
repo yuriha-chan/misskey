@@ -57,6 +57,40 @@ export const packedRoleCondFormulaValueIsLocalOrRemoteSchema = {
 	},
 } as const;
 
+export const packedRoleCondFormulaValueUserSettingBooleanSchema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string', optional: false,
+		},
+		type: {
+			type: 'string',
+			nullable: false, optional: false,
+			enum: ['isSuspended', 'isLocked', 'isBot', 'isCat', 'isExplorable'],
+		},
+	},
+} as const;
+
+export const packedRoleCondFormulaValueAssignedRoleSchema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string', optional: false,
+		},
+		type: {
+			type: 'string',
+			nullable: false, optional: false,
+			enum: ['roleAssignedTo'],
+		},
+		roleId: {
+			type: 'string',
+			nullable: false, optional: false,
+			format: 'id',
+			example: 'xxxxxxxxxx',
+		},
+	},
+} as const;
+
 export const packedRoleCondFormulaValueCreatedSchema = {
 	type: 'object',
 	properties: {
@@ -114,6 +148,12 @@ export const packedRoleCondFormulaValueSchema = {
 		},
 		{
 			ref: 'RoleCondFormulaValueIsLocalOrRemote',
+		},
+		{
+			ref: 'RoleCondFormulaValueUserSettingBooleanSchema',
+		},
+		{
+			ref: 'RoleCondFormulaValueAssignedRole',
 		},
 		{
 			ref: 'RoleCondFormulaValueCreated',
@@ -188,6 +228,10 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		canUpdateBioMedia: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 		pinLimit: {
 			type: 'integer',
 			optional: false, nullable: false,
@@ -226,6 +270,26 @@ export const packedRolePoliciesSchema = {
 		},
 		avatarDecorationLimit: {
 			type: 'integer',
+			optional: false, nullable: false,
+		},
+		canImportAntennas: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		canImportBlocking: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		canImportFollowing: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		canImportMuting: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		canImportUserLists: {
+			type: 'boolean',
 			optional: false, nullable: false,
 		},
 	},

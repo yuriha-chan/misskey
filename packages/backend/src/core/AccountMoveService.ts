@@ -9,7 +9,7 @@ import { IsNull, In, MoreThan, Not } from 'typeorm';
 import { bindThis } from '@/decorators.js';
 import { DI } from '@/di-symbols.js';
 import type { MiLocalUser, MiRemoteUser, MiUser } from '@/models/User.js';
-import type { BlockingsRepository, FollowingsRepository, InstancesRepository, MutingsRepository, UserListMembershipsRepository, UsersRepository } from '@/models/_.js';
+import type { BlockingsRepository, FollowingsRepository, InstancesRepository, MiMeta, MutingsRepository, UserListMembershipsRepository, UsersRepository } from '@/models/_.js';
 import type { RelationshipJobData, ThinUser } from '@/queue/types.js';
 
 import { IdService } from '@/core/IdService.js';
@@ -20,16 +20,17 @@ import { ApPersonService } from '@/core/activitypub/models/ApPersonService.js';
 import { ApDeliverManagerService } from '@/core/activitypub/ApDeliverManagerService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { CacheService } from '@/core/CacheService.js';
 import { ProxyAccountService } from '@/core/ProxyAccountService.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
-import { MetaService } from '@/core/MetaService.js';
 import InstanceChart from '@/core/chart/charts/instance.js';
 import PerUserFollowingChart from '@/core/chart/charts/per-user-following.js';
 
 @Injectable()
 export class AccountMoveService {
 	constructor(
+		@Inject(DI.meta)
+		private meta: MiMeta,
+
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
 
@@ -58,9 +59,7 @@ export class AccountMoveService {
 		private perUserFollowingChart: PerUserFollowingChart,
 		private federatedInstanceService: FederatedInstanceService,
 		private instanceChart: InstanceChart,
-		private metaService: MetaService,
 		private relayService: RelayService,
-		private cacheService: CacheService,
 		private queueService: QueueService,
 	) {
 	}
@@ -84,7 +83,7 @@ export class AccountMoveService {
 		Object.assign(src, update);
 
 		// Update cache
-		this.cacheService.uriPersonCache.set(srcUri, src);
+		this.globalEventService.publishInternalEvent('localUserUpdated', src);
 
 		const srcPerson = await this.apRendererService.renderPerson(src);
 		const updateAct = this.apRendererService.addContext(this.apRendererService.renderUpdate(srcPerson, src));
@@ -275,13 +274,15 @@ export class AccountMoveService {
 		}
 
 		// Update instance stats by decreasing remote followers count by the number of local followers who were following the old account.
-		if (this.userEntityService.isRemoteUser(oldAccount)) {
-			this.federatedInstanceService.fetch(oldAccount.host).then(async i => {
-				this.instancesRepository.decrement({ id: i.id }, 'followersCount', localFollowerIds.length);
-				if ((await this.metaService.fetch()).enableChartsForFederatedInstances) {
-					this.instanceChart.updateFollowers(i.host, false);
-				}
-			});
+		if (this.meta.enableStatsForFederatedInstances) {
+			if (this.userEntityService.isRemoteUser(oldAccount)) {
+				this.federatedInstanceService.fetchOrRegister(oldAccount.host).then(async i => {
+					this.instancesRepository.decrement({ id: i.id }, 'followersCount', localFollowerIds.length);
+					if (this.meta.enableChartsForFederatedInstances) {
+						this.instanceChart.updateFollowers(i.host, false);
+					}
+				});
+			}
 		}
 
 		// FIXME: expensive?
@@ -307,7 +308,7 @@ export class AccountMoveService {
 		let resultUser: MiLocalUser | MiRemoteUser | null = null;
 
 		if (this.userEntityService.isRemoteUser(dst)) {
-			if ((new Date()).getTime() - (dst.lastFetchedAt?.getTime() ?? 0) > 10 * 1000) {
+			if (Date.now() - (dst.lastFetchedAt?.getTime() ?? 0) > 10 * 1000) {
 				await this.apPersonService.updatePerson(dst.uri);
 			}
 			dst = await this.apPersonService.fetchPerson(dst.uri) ?? dst;
@@ -323,7 +324,7 @@ export class AccountMoveService {
 				if (!src) continue; // oldAccountを探してもこのサーバーに存在しない場合はフォロー関係もないということなのでスルー
 
 				if (this.userEntityService.isRemoteUser(dst)) {
-					if ((new Date()).getTime() - (src.lastFetchedAt?.getTime() ?? 0) > 10 * 1000) {
+					if (Date.now() - (src.lastFetchedAt?.getTime() ?? 0) > 10 * 1000) {
 						await this.apPersonService.updatePerson(srcUri);
 					}
 

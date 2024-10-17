@@ -8,11 +8,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 	ref="modal"
 	v-slot="{ type, maxHeight }"
 	:zPriority="'middle'"
-	:preferType="defaultStore.state.emojiPickerUseDrawerForMobile === false ? 'popup' : 'auto'"
+	:preferType="defaultStore.state.emojiPickerStyle"
+	:hasInteractionWithOtherFocusTrappedEls="true"
 	:transparentBg="true"
 	:manualShowing="manualShowing"
 	:src="src"
 	@click="modal?.close()"
+	@esc="modal?.close()"
 	@opening="opening"
 	@close="emit('close')"
 	@closed="emit('closed')"
@@ -28,6 +30,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		:asDrawer="type === 'drawer'"
 		:max-height="maxHeight"
 		@chosen="chosen"
+		@esc="modal?.close()"
 	/>
 </MkModal>
 </template>
@@ -56,7 +59,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-	(ev: 'done', v: any): void;
+	(ev: 'done', v: string): void;
 	(ev: 'close'): void;
 	(ev: 'closed'): void;
 }>();
@@ -64,7 +67,7 @@ const emit = defineEmits<{
 const modal = shallowRef<InstanceType<typeof MkModal>>();
 const picker = shallowRef<InstanceType<typeof MkEmojiPicker>>();
 
-function chosen(emoji: any) {
+function chosen(emoji: string) {
 	emit('done', emoji);
 	if (props.choseAndClose) {
 		modal.value?.close();

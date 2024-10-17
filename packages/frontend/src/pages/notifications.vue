@@ -30,7 +30,7 @@ import MkHorizontalSwipe from '@/components/MkHorizontalSwipe.vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
-import { notificationTypes } from '@/const.js';
+import { notificationTypes } from '@@/js/const.js';
 
 const tab = ref('all');
 const includeTypes = ref<string[] | null>(null);
@@ -52,7 +52,7 @@ const directNotesPagination = {
 function setFilter(ev) {
 	const typeItems = notificationTypes.map(t => ({
 		text: i18n.ts._notification._types[t],
-		active: includeTypes.value && includeTypes.value.includes(t),
+		active: (includeTypes.value && includeTypes.value.includes(t)) ?? false,
 		action: () => {
 			includeTypes.value = [t];
 		},
@@ -63,7 +63,7 @@ function setFilter(ev) {
 		action: () => {
 			includeTypes.value = null;
 		},
-	}, { type: 'divider' }, ...typeItems] : typeItems;
+	}, { type: 'divider' as const }, ...typeItems] : typeItems;
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
@@ -102,7 +102,7 @@ definePageMetadata(() => ({
 
 <style module lang="scss">
 .notifications {
-	border-radius: var(--radius);
+	border-radius: var(--MI-radius);
 	overflow: clip;
 }
 </style>

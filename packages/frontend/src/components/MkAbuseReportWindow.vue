@@ -55,7 +55,7 @@ import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
-	user: Misskey.entities.UserDetailed;
+	user: Misskey.entities.UserLite;
 	initialComment?: string;
 }>();
 

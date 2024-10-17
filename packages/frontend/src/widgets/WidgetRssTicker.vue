@@ -28,13 +28,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue';
+import * as Misskey from 'misskey-js';
 import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
 import MarqueeText from '@/components/MkMarquee.vue';
 import { GetFormResultType } from '@/scripts/form.js';
 import MkContainer from '@/components/MkContainer.vue';
 import { shuffle } from '@/scripts/shuffle.js';
-import { url as base } from '@/config.js';
-import { useInterval } from '@/scripts/use-interval.js';
+import { url as base } from '@@/js/config.js';
+import { useInterval } from '@@/js/use-interval.js';
 
 const name = 'rssTicker';
 
@@ -87,7 +88,7 @@ const { widgetProps, configure } = useWidgetPropsManager(name,
 	emit,
 );
 
-const rawItems = ref([]);
+const rawItems = ref<Misskey.entities.FetchRssResponse['items']>([]);
 const items = computed(() => {
 	const newItems = rawItems.value.slice(0, widgetProps.maxEntries);
 	if (widgetProps.shuffle) {
@@ -110,8 +111,8 @@ const tick = () => {
 
 	window.fetch(fetchEndpoint.value, {})
 		.then(res => res.json())
-		.then(feed => {
-			rawItems.value = feed.items ?? [];
+		.then((feed: Misskey.entities.FetchRssResponse) => {
+			rawItems.value = feed.items;
 			fetching.value = false;
 			key.value++;
 		});
@@ -170,7 +171,7 @@ defineExpose<WidgetComponentExpose>({
 	display: inline-flex;
 	align-items: center;
 	vertical-align: bottom;
-	color: var(--fg);
+	color: var(--MI_THEME-fg);
 }
 
 .divider {
@@ -178,6 +179,6 @@ defineExpose<WidgetComponentExpose>({
 	width: 0.5px;
 	height: 16px;
 	margin: 0 1em;
-	background: var(--divider);
+	background: var(--MI_THEME-divider);
 }
 </style>

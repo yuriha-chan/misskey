@@ -16,6 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						$i.notificationRecieveConfig[type]?.type === 'following' ? i18n.ts.following :
 						$i.notificationRecieveConfig[type]?.type === 'follower' ? i18n.ts.followers :
 						$i.notificationRecieveConfig[type]?.type === 'mutualFollow' ? i18n.ts.mutualFollow :
+						$i.notificationRecieveConfig[type]?.type === 'followingOrFollower' ? i18n.ts.followingOrFollower :
 						$i.notificationRecieveConfig[type]?.type === 'list' ? i18n.ts.userList :
 						i18n.ts.all
 					}}
@@ -34,6 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<FormSection>
 		<div class="_gaps_m">
 			<FormLink @click="testNotification">{{ i18n.ts._notification.sendTestNotification }}</FormLink>
+			<FormLink @click="flushNotification">{{ i18n.ts._notification.flushNotification }}</FormLink>
 		</div>
 	</FormSection>
 	<FormSection>
@@ -67,11 +69,11 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
-import { notificationTypes } from '@/const.js';
+import { notificationTypes } from '@@/js/const.js';
 
 const $i = signinRequired();
 
-const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'achievementEarned'];
+const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'achievementEarned', 'test', 'exportCompleted'] as const satisfies (typeof notificationTypes[number])[];
 
 const allowButton = shallowRef<InstanceType<typeof MkPushNotificationAllowButton>>();
 const pushRegistrationInServer = computed(() => allowButton.value?.pushRegistrationInServer);
@@ -111,6 +113,17 @@ function onChangeSendReadMessage(v: boolean) {
 
 function testNotification(): void {
 	misskeyApi('notifications/test-notification');
+}
+
+async function flushNotification() {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.resetAreYouSure,
+	});
+
+	if (canceled) return;
+
+	os.apiWithDialog('notifications/flush');
 }
 
 const headerActions = computed(() => []);

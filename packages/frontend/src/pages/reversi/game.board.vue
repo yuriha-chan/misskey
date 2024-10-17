@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 
-		<div :class="$style.board">
+		<div class="_woodenFrame">
 			<div :class="$style.boardInner">
 				<div v-if="showBoardLabels" :class="$style.labelsX">
 					<span v-for="i in game.map[0].length" :key="i" :class="$style.labelsXLabel">{{ String.fromCharCode(64 + i) }}</span>
@@ -124,8 +124,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkFolder>
 			<template #label>{{ i18n.ts.options }}</template>
 			<div class="_gaps_s" style="text-align: left;">
-				<MkSwitch v-model="showBoardLabels">Show labels</MkSwitch>
-				<MkSwitch v-model="useAvatarAsStone">useAvatarAsStone</MkSwitch>
+				<MkSwitch v-model="showBoardLabels">{{ i18n.ts._reversi.showBoardLabels }}</MkSwitch>
+				<MkSwitch v-model="useAvatarAsStone">{{ i18n.ts._reversi.useAvatarAsStone }}</MkSwitch>
 			</div>
 		</MkFolder>
 
@@ -149,8 +149,9 @@ import MkButton from '@/components/MkButton.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import { deepClone } from '@/scripts/clone.js';
-import { useInterval } from '@/scripts/use-interval.js';
+import { useInterval } from '@@/js/use-interval.js';
 import { signinRequired } from '@/account.js';
+import { url } from '@@/js/config.js';
 import { i18n } from '@/i18n.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { userPage } from '@/filters/user.js';
@@ -168,7 +169,7 @@ const props = defineProps<{
 const showBoardLabels = ref<boolean>(false);
 const useAvatarAsStone = ref<boolean>(true);
 const autoplaying = ref<boolean>(false);
-// eslint-disable-next-line vue/no-setup-props-destructure
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss
 const game = ref<Misskey.entities.ReversiGameDetailed & { logs: Reversi.Serializer.SerializedLog[] }>(deepClone(props.game));
 const logPos = ref<number>(game.value.logs.length);
 const engine = shallowRef<Reversi.Game>(Reversi.Serializer.restoreGame({
@@ -442,7 +443,7 @@ function autoplay() {
 
 function share() {
 	os.post({
-		initialText: `#MisskeyReversi ${location.href}`,
+		initialText: `#MisskeyReversi\n${url}/reversi/g/${game.value.id}`,
 		instant: true,
 	});
 }
@@ -500,21 +501,10 @@ $gap: 4px;
 	text-align: center;
 }
 
-.board {
-	width: 100%;
-	box-sizing: border-box;
-	margin: 0 auto;
-
-	padding: 7px;
-	background: #8C4F26;
-	box-shadow: 0 6px 16px #0007, 0 0 1px 1px #693410, inset 0 0 2px 1px #ce8a5c;
-	border-radius: 12px;
-}
-
 .boardInner {
 	padding: 32px;
 
-	background: var(--panel);
+	background: var(--MI_THEME-panel);
 	box-shadow: 0 0 2px 1px #ce8a5c, inset 0 0 1px 1px #693410;
 	border-radius: 8px;
 }
@@ -584,34 +574,34 @@ $gap: 4px;
 	transition: border 0.25s ease, opacity 0.25s ease;
 
 	&.boardCell_empty {
-		border: solid 2px var(--divider);
+		border: solid 2px var(--MI_THEME-divider);
 	}
 
 	&.boardCell_empty.boardCell_can {
-		border-color: var(--accent);
+		border-color: var(--MI_THEME-accent);
 		opacity: 0.5;
 	}
 
 	&.boardCell_empty.boardCell_myTurn {
-		border-color: var(--divider);
+		border-color: var(--MI_THEME-divider);
 		opacity: 1;
 
 		&.boardCell_can {
-			border-color: var(--accent);
+			border-color: var(--MI_THEME-accent);
 			cursor: pointer;
 
 			&:hover {
-				background: var(--accent);
+				background: var(--MI_THEME-accent);
 			}
 		}
 	}
 
 	&.boardCell_prev {
-		box-shadow: 0 0 0 4px var(--accent);
+		box-shadow: 0 0 0 4px var(--MI_THEME-accent);
 	}
 
 	&.boardCell_isEnded {
-		border-color: var(--divider);
+		border-color: var(--MI_THEME-divider);
 	}
 
 	&.boardCell_none {

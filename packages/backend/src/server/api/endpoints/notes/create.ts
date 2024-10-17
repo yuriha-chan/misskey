@@ -16,9 +16,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { DI } from '@/di-symbols.js';
-import { isPureRenote } from '@/misc/is-pure-renote.js';
-import { MetaService } from '@/core/MetaService.js';
-import { UtilityService } from '@/core/UtilityService.js';
+import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { ApiError } from '../../error.js';
 
@@ -83,6 +81,12 @@ export const meta = {
 			message: 'You can not reply to a pure Renote.',
 			code: 'CANNOT_REPLY_TO_A_PURE_RENOTE',
 			id: '3ac74a84-8fd5-4bb0-870f-01804f82ce15',
+		},
+
+		cannotReplyToSpecifiedVisibilityNoteWithExtendedVisibility: {
+			message: 'You cannot reply to a specified visibility note with extended visibility.',
+			code: 'CANNOT_REPLY_TO_SPECIFIED_VISIBILITY_NOTE_WITH_EXTENDED_VISIBILITY',
+			id: 'ed940410-535c-4d5e-bfa3-af798671e93c',
 		},
 
 		cannotCreateAlreadyExpiredPoll: {
@@ -269,7 +273,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 				if (renote == null) {
 					throw new ApiError(meta.errors.noSuchRenoteTarget);
-				} else if (isPureRenote(renote)) {
+				} else if (isRenote(renote) && !isQuote(renote)) {
 					throw new ApiError(meta.errors.cannotReRenote);
 				}
 
@@ -315,10 +319,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 				if (reply == null) {
 					throw new ApiError(meta.errors.noSuchReplyTarget);
-				} else if (isPureRenote(reply)) {
+				} else if (isRenote(reply) && !isQuote(reply)) {
 					throw new ApiError(meta.errors.cannotReplyToPureRenote);
 				} else if (!await this.noteEntityService.isVisibleForMe(reply, me.id)) {
 					throw new ApiError(meta.errors.cannotReplyToInvisibleNote);
+				} else if (reply.visibility === 'specified' && ps.visibility !== 'specified') {
+					throw new ApiError(meta.errors.cannotReplyToSpecifiedVisibilityNoteWithExtendedVisibility);
 				}
 
 				// Check blocking

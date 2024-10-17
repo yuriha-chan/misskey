@@ -69,6 +69,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			enableTestcaptcha: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			swPublickey: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -138,6 +142,16 @@ export const meta = {
 					nullable: false,
 				},
 			},
+			mediaSilencedHosts: {
+				type: 'array',
+				optional: false,
+				nullable: false,
+				items: {
+					type: 'string',
+					optional: false,
+					nullable: false,
+				},
+			},
 			pinnedUsers: {
 				type: 'array',
 				optional: false, nullable: false,
@@ -167,6 +181,13 @@ export const meta = {
 				},
 			},
 			prohibitedWords: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+				},
+			},
+			prohibitedWordsForNameOfUser: {
 				type: 'array',
 				optional: false, nullable: false,
 				items: {
@@ -337,6 +358,10 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			enableStatsForFederatedInstances: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			enableServerMachineStats: {
 				type: 'boolean',
 				optional: false, nullable: false,
@@ -375,6 +400,10 @@ export const meta = {
 			},
 			perUserListTimelineCacheMax: {
 				type: 'number',
+				optional: false, nullable: false,
+			},
+			enableReactionsBuffering: {
+				type: 'boolean',
 				optional: false, nullable: false,
 			},
 			notesPerOneAd: {
@@ -437,6 +466,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			inquiryUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			repositoryUrl: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -444,6 +477,8 @@ export const meta = {
 			summalyProxy: {
 				type: 'string',
 				optional: false, nullable: true,
+				deprecated: true,
+				description: '[Deprecated] Use "urlPreviewSummaryProxyUrl" instead.',
 			},
 			themeColor: {
 				type: 'string',
@@ -460,6 +495,42 @@ export const meta = {
 			version: {
 				type: 'string',
 				optional: false, nullable: false,
+			},
+			urlPreviewEnabled: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			urlPreviewTimeout: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			urlPreviewMaximumContentLength: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			urlPreviewRequireContentLength: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			urlPreviewUserAgent: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			urlPreviewSummaryProxyUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			federation: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			federationHosts: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
 			},
 		},
 	},
@@ -497,6 +568,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				feedbackUrl: instance.feedbackUrl,
 				impressumUrl: instance.impressumUrl,
 				privacyPolicyUrl: instance.privacyPolicyUrl,
+				inquiryUrl: instance.inquiryUrl,
 				disableRegistration: instance.disableRegistration,
 				emailRequiredForSignup: instance.emailRequiredForSignup,
 				enableHcaptcha: instance.enableHcaptcha,
@@ -508,6 +580,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				recaptchaSiteKey: instance.recaptchaSiteKey,
 				enableTurnstile: instance.enableTurnstile,
 				turnstileSiteKey: instance.turnstileSiteKey,
+				enableTestcaptcha: instance.enableTestcaptcha,
 				swPublickey: instance.swPublicKey,
 				themeColor: instance.themeColor,
 				mascotImageUrl: instance.mascotImageUrl,
@@ -532,8 +605,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				blockedHosts: instance.blockedHosts,
 				silencedHosts: instance.silencedHosts,
 				gtlMutedHosts: instance.gtlMutedHosts,
+				mediaSilencedHosts: instance.mediaSilencedHosts,
 				sensitiveWords: instance.sensitiveWords,
 				prohibitedWords: instance.prohibitedWords,
+				prohibitedWordsForNameOfUser: instance.prohibitedWordsForNameOfUser,
 				preservedUsernames: instance.preservedUsernames,
 				hcaptchaSecretKey: instance.hcaptchaSecretKey,
 				mcaptchaSecretKey: instance.mcaptchaSecretKey,
@@ -544,7 +619,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				setSensitiveFlagAutomatically: instance.setSensitiveFlagAutomatically,
 				enableSensitiveMediaDetectionForVideos: instance.enableSensitiveMediaDetectionForVideos,
 				proxyAccountId: instance.proxyAccountId,
-				summalyProxy: instance.summalyProxy,
 				email: instance.email,
 				smtpSecure: instance.smtpSecure,
 				smtpHost: instance.smtpHost,
@@ -576,6 +650,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				truemailAuthKey: instance.truemailAuthKey,
 				enableChartsForRemoteUser: instance.enableChartsForRemoteUser,
 				enableChartsForFederatedInstances: instance.enableChartsForFederatedInstances,
+				enableStatsForFederatedInstances: instance.enableStatsForFederatedInstances,
 				enableServerMachineStats: instance.enableServerMachineStats,
 				enableIdenticonGeneration: instance.enableIdenticonGeneration,
 				bannedEmailDomains: instance.bannedEmailDomains,
@@ -587,7 +662,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				perRemoteUserUserTimelineCacheMax: instance.perRemoteUserUserTimelineCacheMax,
 				perUserHomeTimelineCacheMax: instance.perUserHomeTimelineCacheMax,
 				perUserListTimelineCacheMax: instance.perUserListTimelineCacheMax,
+				enableReactionsBuffering: instance.enableReactionsBuffering,
 				notesPerOneAd: instance.notesPerOneAd,
+				summalyProxy: instance.urlPreviewSummaryProxyUrl,
+				urlPreviewEnabled: instance.urlPreviewEnabled,
+				urlPreviewTimeout: instance.urlPreviewTimeout,
+				urlPreviewMaximumContentLength: instance.urlPreviewMaximumContentLength,
+				urlPreviewRequireContentLength: instance.urlPreviewRequireContentLength,
+				urlPreviewUserAgent: instance.urlPreviewUserAgent,
+				urlPreviewSummaryProxyUrl: instance.urlPreviewSummaryProxyUrl,
+				federation: instance.federation,
+				federationHosts: instance.federationHosts,
 			};
 		});
 	}

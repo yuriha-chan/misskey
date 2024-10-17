@@ -6,8 +6,13 @@
 import { Module } from '@nestjs/common';
 
 import { CoreModule } from '@/core/CoreModule.js';
-import * as ep___admin_meta from './endpoints/admin/meta.js';
+import * as ep___admin_abuseReport_notificationRecipient_list from '@/server/api/endpoints/admin/abuse-report/notification-recipient/list.js';
+import * as ep___admin_abuseReport_notificationRecipient_show from '@/server/api/endpoints/admin/abuse-report/notification-recipient/show.js';
+import * as ep___admin_abuseReport_notificationRecipient_create from '@/server/api/endpoints/admin/abuse-report/notification-recipient/create.js';
+import * as ep___admin_abuseReport_notificationRecipient_update from '@/server/api/endpoints/admin/abuse-report/notification-recipient/update.js';
+import * as ep___admin_abuseReport_notificationRecipient_delete from '@/server/api/endpoints/admin/abuse-report/notification-recipient/delete.js';
 import * as ep___admin_abuseUserReports from './endpoints/admin/abuse-user-reports.js';
+import * as ep___admin_meta from './endpoints/admin/meta.js';
 import * as ep___admin_accounts_create from './endpoints/admin/accounts/create.js';
 import * as ep___admin_accounts_delete from './endpoints/admin/accounts/delete.js';
 import * as ep___admin_accounts_findByEmail from './endpoints/admin/accounts/find-by-email.js';
@@ -63,6 +68,8 @@ import * as ep___admin_relays_list from './endpoints/admin/relays/list.js';
 import * as ep___admin_relays_remove from './endpoints/admin/relays/remove.js';
 import * as ep___admin_resetPassword from './endpoints/admin/reset-password.js';
 import * as ep___admin_resolveAbuseUserReport from './endpoints/admin/resolve-abuse-user-report.js';
+import * as ep___admin_forwardAbuseUserReport from './endpoints/admin/forward-abuse-user-report.js';
+import * as ep___admin_updateAbuseUserReport from './endpoints/admin/update-abuse-user-report.js';
 import * as ep___admin_sendEmail from './endpoints/admin/send-email.js';
 import * as ep___admin_serverInfo from './endpoints/admin/server-info.js';
 import * as ep___admin_showModerationLogs from './endpoints/admin/show-moderation-logs.js';
@@ -82,7 +89,14 @@ import * as ep___admin_roles_assign from './endpoints/admin/roles/assign.js';
 import * as ep___admin_roles_unassign from './endpoints/admin/roles/unassign.js';
 import * as ep___admin_roles_updateDefaultPolicies from './endpoints/admin/roles/update-default-policies.js';
 import * as ep___admin_roles_users from './endpoints/admin/roles/users.js';
+import * as ep___admin_systemWebhook_create from './endpoints/admin/system-webhook/create.js';
+import * as ep___admin_systemWebhook_delete from './endpoints/admin/system-webhook/delete.js';
+import * as ep___admin_systemWebhook_list from './endpoints/admin/system-webhook/list.js';
+import * as ep___admin_systemWebhook_show from './endpoints/admin/system-webhook/show.js';
+import * as ep___admin_systemWebhook_update from './endpoints/admin/system-webhook/update.js';
+import * as ep___admin_systemWebhook_test from './endpoints/admin/system-webhook/test.js';
 import * as ep___announcements from './endpoints/announcements.js';
+import * as ep___announcements_show from './endpoints/announcements/show.js';
 import * as ep___antennas_create from './endpoints/antennas/create.js';
 import * as ep___antennas_delete from './endpoints/antennas/delete.js';
 import * as ep___antennas_list from './endpoints/antennas/list.js';
@@ -247,6 +261,7 @@ import * as ep___i_webhooks_show from './endpoints/i/webhooks/show.js';
 import * as ep___i_webhooks_list from './endpoints/i/webhooks/list.js';
 import * as ep___i_webhooks_update from './endpoints/i/webhooks/update.js';
 import * as ep___i_webhooks_delete from './endpoints/i/webhooks/delete.js';
+import * as ep___i_webhooks_test from './endpoints/i/webhooks/test.js';
 import * as ep___invite_create from './endpoints/invite/create.js';
 import * as ep___invite_delete from './endpoints/invite/delete.js';
 import * as ep___invite_list from './endpoints/invite/list.js';
@@ -294,6 +309,7 @@ import * as ep___notes_translate from './endpoints/notes/translate.js';
 import * as ep___notes_unrenote from './endpoints/notes/unrenote.js';
 import * as ep___notes_userListTimeline from './endpoints/notes/user-list-timeline.js';
 import * as ep___notifications_create from './endpoints/notifications/create.js';
+import * as ep___notifications_flush from './endpoints/notifications/flush.js';
 import * as ep___notifications_markAllAsRead from './endpoints/notifications/mark-all-as-read.js';
 import * as ep___notifications_testNotification from './endpoints/notifications/test-notification.js';
 import * as ep___pagePush from './endpoints/page-push.js';
@@ -380,6 +396,11 @@ import type { Provider } from '@nestjs/common';
 
 const $admin_meta: Provider = { provide: 'ep:admin/meta', useClass: ep___admin_meta.default };
 const $admin_abuseUserReports: Provider = { provide: 'ep:admin/abuse-user-reports', useClass: ep___admin_abuseUserReports.default };
+const $admin_abuseReport_notificationRecipient_list: Provider = { provide: 'ep:admin/abuse-report/notification-recipient/list', useClass: ep___admin_abuseReport_notificationRecipient_list.default };
+const $admin_abuseReport_notificationRecipient_show: Provider = { provide: 'ep:admin/abuse-report/notification-recipient/show', useClass: ep___admin_abuseReport_notificationRecipient_show.default };
+const $admin_abuseReport_notificationRecipient_create: Provider = { provide: 'ep:admin/abuse-report/notification-recipient/create', useClass: ep___admin_abuseReport_notificationRecipient_create.default };
+const $admin_abuseReport_notificationRecipient_update: Provider = { provide: 'ep:admin/abuse-report/notification-recipient/update', useClass: ep___admin_abuseReport_notificationRecipient_update.default };
+const $admin_abuseReport_notificationRecipient_delete: Provider = { provide: 'ep:admin/abuse-report/notification-recipient/delete', useClass: ep___admin_abuseReport_notificationRecipient_delete.default };
 const $admin_accounts_create: Provider = { provide: 'ep:admin/accounts/create', useClass: ep___admin_accounts_create.default };
 const $admin_accounts_delete: Provider = { provide: 'ep:admin/accounts/delete', useClass: ep___admin_accounts_delete.default };
 const $admin_accounts_findByEmail: Provider = { provide: 'ep:admin/accounts/find-by-email', useClass: ep___admin_accounts_findByEmail.default };
@@ -435,6 +456,8 @@ const $admin_relays_list: Provider = { provide: 'ep:admin/relays/list', useClass
 const $admin_relays_remove: Provider = { provide: 'ep:admin/relays/remove', useClass: ep___admin_relays_remove.default };
 const $admin_resetPassword: Provider = { provide: 'ep:admin/reset-password', useClass: ep___admin_resetPassword.default };
 const $admin_resolveAbuseUserReport: Provider = { provide: 'ep:admin/resolve-abuse-user-report', useClass: ep___admin_resolveAbuseUserReport.default };
+const $admin_forwardAbuseUserReport: Provider = { provide: 'ep:admin/forward-abuse-user-report', useClass: ep___admin_forwardAbuseUserReport.default };
+const $admin_updateAbuseUserReport: Provider = { provide: 'ep:admin/update-abuse-user-report', useClass: ep___admin_updateAbuseUserReport.default };
 const $admin_sendEmail: Provider = { provide: 'ep:admin/send-email', useClass: ep___admin_sendEmail.default };
 const $admin_serverInfo: Provider = { provide: 'ep:admin/server-info', useClass: ep___admin_serverInfo.default };
 const $admin_showModerationLogs: Provider = { provide: 'ep:admin/show-moderation-logs', useClass: ep___admin_showModerationLogs.default };
@@ -454,7 +477,14 @@ const $admin_roles_assign: Provider = { provide: 'ep:admin/roles/assign', useCla
 const $admin_roles_unassign: Provider = { provide: 'ep:admin/roles/unassign', useClass: ep___admin_roles_unassign.default };
 const $admin_roles_updateDefaultPolicies: Provider = { provide: 'ep:admin/roles/update-default-policies', useClass: ep___admin_roles_updateDefaultPolicies.default };
 const $admin_roles_users: Provider = { provide: 'ep:admin/roles/users', useClass: ep___admin_roles_users.default };
+const $admin_systemWebhook_create: Provider = { provide: 'ep:admin/system-webhook/create', useClass: ep___admin_systemWebhook_create.default };
+const $admin_systemWebhook_delete: Provider = { provide: 'ep:admin/system-webhook/delete', useClass: ep___admin_systemWebhook_delete.default };
+const $admin_systemWebhook_list: Provider = { provide: 'ep:admin/system-webhook/list', useClass: ep___admin_systemWebhook_list.default };
+const $admin_systemWebhook_show: Provider = { provide: 'ep:admin/system-webhook/show', useClass: ep___admin_systemWebhook_show.default };
+const $admin_systemWebhook_update: Provider = { provide: 'ep:admin/system-webhook/update', useClass: ep___admin_systemWebhook_update.default };
+const $admin_systemWebhook_test: Provider = { provide: 'ep:admin/system-webhook/test', useClass: ep___admin_systemWebhook_test.default };
 const $announcements: Provider = { provide: 'ep:announcements', useClass: ep___announcements.default };
+const $announcements_show: Provider = { provide: 'ep:announcements/show', useClass: ep___announcements_show.default };
 const $antennas_create: Provider = { provide: 'ep:antennas/create', useClass: ep___antennas_create.default };
 const $antennas_delete: Provider = { provide: 'ep:antennas/delete', useClass: ep___antennas_delete.default };
 const $antennas_list: Provider = { provide: 'ep:antennas/list', useClass: ep___antennas_list.default };
@@ -619,6 +649,7 @@ const $i_webhooks_list: Provider = { provide: 'ep:i/webhooks/list', useClass: ep
 const $i_webhooks_show: Provider = { provide: 'ep:i/webhooks/show', useClass: ep___i_webhooks_show.default };
 const $i_webhooks_update: Provider = { provide: 'ep:i/webhooks/update', useClass: ep___i_webhooks_update.default };
 const $i_webhooks_delete: Provider = { provide: 'ep:i/webhooks/delete', useClass: ep___i_webhooks_delete.default };
+const $i_webhooks_test: Provider = { provide: 'ep:i/webhooks/test', useClass: ep___i_webhooks_test.default };
 const $invite_create: Provider = { provide: 'ep:invite/create', useClass: ep___invite_create.default };
 const $invite_delete: Provider = { provide: 'ep:invite/delete', useClass: ep___invite_delete.default };
 const $invite_list: Provider = { provide: 'ep:invite/list', useClass: ep___invite_list.default };
@@ -666,6 +697,7 @@ const $notes_translate: Provider = { provide: 'ep:notes/translate', useClass: ep
 const $notes_unrenote: Provider = { provide: 'ep:notes/unrenote', useClass: ep___notes_unrenote.default };
 const $notes_userListTimeline: Provider = { provide: 'ep:notes/user-list-timeline', useClass: ep___notes_userListTimeline.default };
 const $notifications_create: Provider = { provide: 'ep:notifications/create', useClass: ep___notifications_create.default };
+const $notifications_flush: Provider = { provide: 'ep:notifications/flush', useClass: ep___notifications_flush.default };
 const $notifications_markAllAsRead: Provider = { provide: 'ep:notifications/mark-all-as-read', useClass: ep___notifications_markAllAsRead.default };
 const $notifications_testNotification: Provider = { provide: 'ep:notifications/test-notification', useClass: ep___notifications_testNotification.default };
 const $pagePush: Provider = { provide: 'ep:page-push', useClass: ep___pagePush.default };
@@ -756,6 +788,11 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		ApiLoggerService,
 		$admin_meta,
 		$admin_abuseUserReports,
+		$admin_abuseReport_notificationRecipient_list,
+		$admin_abuseReport_notificationRecipient_show,
+		$admin_abuseReport_notificationRecipient_create,
+		$admin_abuseReport_notificationRecipient_update,
+		$admin_abuseReport_notificationRecipient_delete,
 		$admin_accounts_create,
 		$admin_accounts_delete,
 		$admin_accounts_findByEmail,
@@ -811,6 +848,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_relays_remove,
 		$admin_resetPassword,
 		$admin_resolveAbuseUserReport,
+		$admin_forwardAbuseUserReport,
+		$admin_updateAbuseUserReport,
 		$admin_sendEmail,
 		$admin_serverInfo,
 		$admin_showModerationLogs,
@@ -830,7 +869,14 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_roles_unassign,
 		$admin_roles_updateDefaultPolicies,
 		$admin_roles_users,
+		$admin_systemWebhook_create,
+		$admin_systemWebhook_delete,
+		$admin_systemWebhook_list,
+		$admin_systemWebhook_show,
+		$admin_systemWebhook_update,
+		$admin_systemWebhook_test,
 		$announcements,
+		$announcements_show,
 		$antennas_create,
 		$antennas_delete,
 		$antennas_list,
@@ -995,6 +1041,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$i_webhooks_show,
 		$i_webhooks_update,
 		$i_webhooks_delete,
+		$i_webhooks_test,
 		$invite_create,
 		$invite_delete,
 		$invite_list,
@@ -1042,6 +1089,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_unrenote,
 		$notes_userListTimeline,
 		$notifications_create,
+		$notifications_flush,
 		$notifications_markAllAsRead,
 		$notifications_testNotification,
 		$pagePush,
@@ -1126,6 +1174,11 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 	exports: [
 		$admin_meta,
 		$admin_abuseUserReports,
+		$admin_abuseReport_notificationRecipient_list,
+		$admin_abuseReport_notificationRecipient_show,
+		$admin_abuseReport_notificationRecipient_create,
+		$admin_abuseReport_notificationRecipient_update,
+		$admin_abuseReport_notificationRecipient_delete,
 		$admin_accounts_create,
 		$admin_accounts_delete,
 		$admin_accounts_findByEmail,
@@ -1181,6 +1234,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_relays_remove,
 		$admin_resetPassword,
 		$admin_resolveAbuseUserReport,
+		$admin_forwardAbuseUserReport,
+		$admin_updateAbuseUserReport,
 		$admin_sendEmail,
 		$admin_serverInfo,
 		$admin_showModerationLogs,
@@ -1200,7 +1255,14 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_roles_unassign,
 		$admin_roles_updateDefaultPolicies,
 		$admin_roles_users,
+		$admin_systemWebhook_create,
+		$admin_systemWebhook_delete,
+		$admin_systemWebhook_list,
+		$admin_systemWebhook_show,
+		$admin_systemWebhook_update,
+		$admin_systemWebhook_test,
 		$announcements,
+		$announcements_show,
 		$antennas_create,
 		$antennas_delete,
 		$antennas_list,
@@ -1365,6 +1427,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$i_webhooks_show,
 		$i_webhooks_update,
 		$i_webhooks_delete,
+		$i_webhooks_test,
 		$invite_create,
 		$invite_delete,
 		$invite_list,
@@ -1412,7 +1475,9 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_unrenote,
 		$notes_userListTimeline,
 		$notifications_create,
+		$notifications_flush,
 		$notifications_markAllAsRead,
+		$notifications_testNotification,
 		$pagePush,
 		$pages_create,
 		$pages_delete,

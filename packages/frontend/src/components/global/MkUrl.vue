@@ -6,6 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <component
 	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? props.url.substring(local.length) : props.url" :rel="rel ?? 'nofollow noopener'" :target="target"
+	:behavior="props.navigationBehavior"
 	@contextmenu.stop="() => {}"
 >
 	<template v-if="!self">
@@ -26,15 +27,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { defineAsyncComponent, ref } from 'vue';
 import { toUnicode as decodePunycode } from 'punycode/';
-import { url as local } from '@/config.js';
+import { url as local } from '@@/js/config.js';
 import * as os from '@/os.js';
 import { useTooltip } from '@/scripts/use-tooltip.js';
-import { safeURIDecode } from '@/scripts/safe-uri-decode.js';
+import { isEnabledUrlPreview } from '@/instance.js';
+import { MkABehavior } from '@/components/global/MkA.vue';
+
+function safeURIDecode(str: string): string {
+	try {
+		return decodeURIComponent(str);
+	} catch {
+		return str;
+	}
+}
 
 const props = withDefaults(defineProps<{
 	url: string;
 	rel?: string;
 	showUrlPreview?: boolean;
+	navigationBehavior?: MkABehavior;
 }>(), {
 	showUrlPreview: true,
 });
@@ -44,13 +55,15 @@ const url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
 const el = ref();
 
-if (props.showUrlPreview) {
+if (props.showUrlPreview && isEnabledUrlPreview.value) {
 	useTooltip(el, (showing) => {
-		os.popup(defineAsyncComponent(() => import('@/components/MkUrlPreviewPopup.vue')), {
+		const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkUrlPreviewPopup.vue')), {
 			showing,
 			url: props.url,
-			source: el.value,
-		}, {}, 'closed');
+			source: el.value instanceof HTMLElement ? el.value : el.value?.$el,
+		}, {
+			closed: () => dispose(),
+		});
 	});
 }
 

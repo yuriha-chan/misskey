@@ -31,10 +31,11 @@ import MkDateSeparatedList from '@/components/MkDateSeparatedList.vue';
 import MkNote from '@/components/MkNote.vue';
 import { useStream } from '@/stream.js';
 import { i18n } from '@/i18n.js';
-import { notificationTypes } from '@/const.js';
+import { notificationTypes } from '@@/js/const.js';
 import { infoImageUrl } from '@/instance.js';
 import { defaultStore } from '@/store.js';
 import MkPullToRefresh from '@/components/MkPullToRefresh.vue';
+import * as Misskey from 'misskey-js';
 
 const props = defineProps<{
 	excludeTypes?: typeof notificationTypes[number][];
@@ -75,17 +76,19 @@ function reload() {
 	});
 }
 
-let connection;
+let connection: Misskey.ChannelConnection<Misskey.Channels['main']>;
 
 onMounted(() => {
 	connection = useStream().useChannel('main');
 	connection.on('notification', onNotification);
+	connection.on('notificationFlushed', reload);
 });
 
 onActivated(() => {
 	pagingComponent.value?.reload();
 	connection = useStream().useChannel('main');
 	connection.on('notification', onNotification);
+	connection.on('notificationFlushed', reload);
 });
 
 onUnmounted(() => {
@@ -103,6 +106,6 @@ defineExpose({
 
 <style lang="scss" module>
 .list {
-	background: var(--panel);
+	background: var(--MI_THEME-panel);
 }
 </style>
