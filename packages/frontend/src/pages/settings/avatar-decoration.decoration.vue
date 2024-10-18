@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 >
 	<div :class="$style.name"><MkCondensedLine :minScale="0.5">{{ decoration.name }}</MkCondensedLine></div>
 	<div :class="$style.description"><Mfm :text="decoration.description"/></div>
-	<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: decoration.url, angle, flipH, offsetX, offsetY }]" forceShowDecoration/>
+	<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: decoration.url, bgUrl: decoration.bgUrl, animation: decoration.animation, imgAnimation: decoration.imgAnimation, bgAnimation: decoration.bgAnimation, mixBlendMode: decoration.mixBlendMode, bgMixBlendMode: decoration.bgMixBlendMode, angle, flipH, offsetX, offsetY }]" forceShowDecoration/>
 	<i v-if="decoration.roleIdsThatCanBeUsedThisDecoration.length > 0 && !$i.roles.some(r => decoration.roleIdsThatCanBeUsedThisDecoration.includes(r.id))" :class="$style.lock" class="ti ti-lock"></i>
 </div>
 </template>
@@ -26,6 +26,12 @@ const props = defineProps<{
 	decoration: {
 		id: string;
 		url: string;
+		bgUrl: string;
+		animation: string;
+		imgAnimation: string;
+		bgAnimation: string;
+		mixBlendMode: string;
+		bgMixBlendMode: string;
 		name: string;
 		roleIdsThatCanBeUsedThisDecoration: string[];
 	};

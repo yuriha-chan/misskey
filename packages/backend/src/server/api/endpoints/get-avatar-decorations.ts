@@ -40,6 +40,30 @@ export const meta = {
 					type: 'string',
 					optional: false, nullable: false,
 				},
+				bgUrl: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				animation: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				imgAnimation: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				bgAnimation: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				mixBlendMode: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+				bgMixBlendMode: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
 				roleIdsThatCanBeUsedThisDecoration: {
 					type: 'array',
 					optional: false, nullable: false,
@@ -75,6 +99,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				name: decoration.name,
 				description: decoration.description,
 				url: decoration.url,
+				bgUrl: decoration.bgUrl,
+				animation: decoration.animation,
+				imgAnimation: decoration.imgAnimation,
+				bgAnimation: decoration.bgAnimation,
+				mixBlendMode: decoration.mixBlendMode,
+				bgMixBlendMode: decoration.bgMixBlendMode,
 				roleIdsThatCanBeUsedThisDecoration: decoration.roleIdsThatCanBeUsedThisDecoration.filter(roleId => allRoles.some(role => role.id === roleId)),
 			}));
 		});

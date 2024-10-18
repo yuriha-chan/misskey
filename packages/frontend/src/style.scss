@@ -688,3 +688,28 @@ html[data-color-scheme=dark] ._woodenFrame {
 	0% { filter: hue-rotate(0deg) contrast(150%) saturate(150%); }
 	100% { filter: hue-rotate(360deg) contrast(150%) saturate(150%); }
 }
+
+@keyframes unblur {
+	0% { filter: blur(5px); }
+	100% { filter: blur(0px); }
+}
+
+@keyframes brighten {
+	0% { filter: brighten(0); }
+	100% { filter: brighten(2); }
+}
+
+@keyframes fadeout {
+	0% { opacity: 1; }
+	100% { opacity: 0; }
+}
+
+@keyframes fadein {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@keyframes up {
+	0% { transform: translate(0, 0), rotate(0deg); }
+	100% { transform: translate(0, -12px), rotate(-5deg); }
+}

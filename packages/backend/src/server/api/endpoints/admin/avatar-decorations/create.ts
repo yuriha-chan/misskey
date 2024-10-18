@@ -20,7 +20,13 @@ export const paramDef = {
 	properties: {
 		name: { type: 'string', minLength: 1 },
 		description: { type: 'string' },
-		url: { type: 'string', minLength: 1 },
+		url: { type: 'string' },
+		bgUrl: { type: 'string' },
+		animation: { type: 'string' },
+		imgAnimation: { type: 'string' },
+		bgAnimation: { type: 'string' },
+		mixBlendMode: { type: 'string' },
+		bgMixBlendMode: { type: 'string' },
 		roleIdsThatCanBeUsedThisDecoration: { type: 'array', items: {
 			type: 'string',
 		} },
@@ -38,6 +44,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				name: ps.name,
 				description: ps.description,
 				url: ps.url,
+				bgUrl: ps.bgUrl,
+				animation: ps.animation,
+				imgAnimation: ps.imgAnimation,
+				bgAnimation: ps.bgAnimation,
+				mixBlendMode: ps.mixBlendMode,
+				bgMixBlendMode: ps.bgMixBlendMode,
 				roleIdsThatCanBeUsedThisDecoration: ps.roleIdsThatCanBeUsedThisDecoration,
 			}, me);
 		});

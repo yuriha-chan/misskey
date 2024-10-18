@@ -5,7 +5,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <component :is="link ? MkA : 'span'" v-user-preview="preview ? user.id : undefined" v-bind="bound" class="_noSelect" :class="[$style.root, { [$style.animation]: animation, [$style.cat]: user.isCat, [$style.square]: squareAvatars }]" :style="{ color }" :title="acct(user)" @click="onClick">
-	<MkImgWithBlurhash :class="$style.inner" :src="url" :hash="user.avatarBlurhash" :cover="true" :onlyAvgColor="true"/>
+	<template v-if="showDecoration">
+		<img
+			v-for="decoration in backgroundDecorations"
+			:class="[$style.decoration, { [$style.decorationBlink]: decoration.blink }]"
+			:src="getDecorationUrl(decoration, 'bg')"
+			:style="{
+				rotate: getDecorationAngle(decoration),
+				scale: getDecorationScale(decoration),
+				translate: getDecorationOffset(decoration),
+				mixBlendMode: getDecorationMixBlendMode(decoration, 'bg'),
+				animation: getDecorationAnimation(decoration, 'bg'),
+			}"
+			alt=""
+		>
+	</template>
+	<MkImgWithBlurhash :class="$style.inner" :src="url" :hash="user.avatarBlurhash" :animations="imgAnimations" :cover="true" :onlyAvgColor="true"/>
 	<MkUserOnlineIndicator v-if="indicator" :class="$style.indicator" :user="user"/>
 	<div v-if="user.isCat" :class="[$style.ears]">
 		<div :class="$style.earLeft">
@@ -25,13 +40,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<template v-if="showDecoration">
 		<img
-			v-for="decoration in decorations ?? user.avatarDecorations"
+			v-for="decoration in foregroundDecorations"
 			:class="[$style.decoration, { [$style.decorationBlink]: decoration.blink }]"
-			:src="getDecorationUrl(decoration)"
+			:src="getDecorationUrl(decoration, 'fg')"
 			:style="{
 				rotate: getDecorationAngle(decoration),
 				scale: getDecorationScale(decoration),
 				translate: getDecorationOffset(decoration),
+				mixBlendMode: getDecorationMixBlendMode(decoration, 'fg'),
+				animation: getDecorationAnimation(decoration, 'fg'),
 			}"
 			alt=""
 		>
@@ -87,14 +104,31 @@ const url = computed(() => {
 	return props.user.avatarUrl;
 });
 
+const backgroundDecorations = computed(() => {
+	const decorations = props.decorations ?? props.user.avatarDecorations;
+	return decorations.filter((deco) => (deco.bgUrl !== ''));
+});
+
+const foregroundDecorations = computed(() => {
+	const decorations = props.decorations ?? props.user.avatarDecorations;
+	return decorations.filter((deco) => (deco.url !== ''));
+});
+
+const imgAnimations = computed(() => {
+	if (defaultStore.state.disableShowingAnimatedImages) { return ["none"]; }
+	const decorations = props.decorations ?? props.user.avatarDecorations;
+	return decorations.filter((deco) => (deco.imgAnimation !== '' && deco.imgAnimation !== 'none')).map((deco) => deco.imgAnimation);
+});
+
 function onClick(ev: MouseEvent): void {
 	if (props.link) return;
 	emit('click', ev);
 }
 
-function getDecorationUrl(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>) {
-	if (defaultStore.state.disableShowingAnimatedImages || defaultStore.state.dataSaver.avatar) return getStaticImageUrl(decoration.url);
-	return decoration.url;
+function getDecorationUrl(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+	const url = (slot === "bg") ? decoration.bgUrl : decoration.url;
+	if (defaultStore.state.disableShowingAnimatedImages || defaultStore.state.dataSaver.avatar) return getStaticImageUrl(url);
+	return url;
 }
 
 function getDecorationAngle(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>) {
@@ -111,6 +145,17 @@ function getDecorationOffset(decoration: Omit<Misskey.entities.UserDetailed['ava
 	const offsetX = decoration.offsetX ?? 0;
 	const offsetY = decoration.offsetY ?? 0;
 	return offsetX === 0 && offsetY === 0 ? undefined : `${offsetX * 100}% ${offsetY * 100}%`;
+}
+
+function getDecorationMixBlendMode(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+	const animation = (slot === "bg") ? decoration.bgMixBlendMode : decoration.mixBlendMode;
+	return animation ? animation : "normal";
+}
+
+function getDecorationAnimation(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+	if (defaultStore.state.disableShowingAnimatedImages) { return "none"; }
+	const animation = (slot === "bg") ? decoration.bgAnimation : decoration.animation;
+	return animation ? animation : "none";
 }
 
 const color = ref<string | undefined>();
@@ -343,4 +388,5 @@ watch(() => props.user.avatarBlurhash, () => {
 		filter: brightness(1);
 	}
 }
+
 </style>
