@@ -22,6 +22,36 @@ export class MiAvatarDecoration {
 	public url: string;
 
 	@Column('varchar', {
+		length: 1024,
+	})
+	public bgUrl: string;
+
+	@Column('varchar', {
+		length: 1024,
+	})
+	public animation: string;
+
+	@Column('varchar', {
+		length: 1024,
+	})
+	public imgAnimation: string;
+
+	@Column('varchar', {
+		length: 1024,
+	})
+	public bgAnimation: string;
+
+	@Column('varchar', {
+		length: 256,
+	})
+	public mixBlendMode: string;
+
+	@Column('varchar', {
+		length: 256,
+	})
+	public bgMixBlendMode: string;
+
+	@Column('varchar', {
 		length: 256,
 	})
 	public name: string;

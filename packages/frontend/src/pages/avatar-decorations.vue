@@ -32,6 +32,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkInput v-model="avatarDecoration.url">
 								<template #label>{{ i18n.ts.imageUrl }}</template>
 							</MkInput>
+							<MkInput v-model="avatarDecoration.bgUrl">
+								<template #label>{{ i18n.ts.imageUrl }} ({{ i18n.ts.background }})</template>
+							</MkInput>
+							<MkInput v-model="avatarDecoration.animation">
+								<template #label>{{ i18n.ts.animationCSS }}</template>
+							</MkInput>
+							<MkInput v-model="avatarDecoration.imgAnimation">
+								<template #label>{{ i18n.ts.animationCSS }} ({{ i18n.ts.image }})</template>
+							</MkInput>
+							<MkInput v-model="avatarDecoration.bgAnimation">
+								<template #label>{{ i18n.ts.animationCSS }} ({{ i18n.ts.background }})</template>
+							</MkInput>
+							<MkSelect v-model="avatarDecoration.mixBlendMode">
+								<template #label>{{ i18n.ts.mixBlendMode }}</template>
+								<option v-for="mode in mixBlendModeOptions" :value="mode">{{ mode }}</option>
+							</MkSelect>
+							<MkSelect v-model="avatarDecoration.bgMixBlendMode">
+								<template #label>{{ i18n.ts.mixBlendMode }} ({{ i18n.ts.background }}) </template>
+								<option v-for="mode in mixBlendModeOptions" :value="mode">{{ mode }}</option>
+							</MkSelect>
 							<div class="_buttons">
 								<MkButton inline primary @click="save(avatarDecoration)"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</MkButton>
 								<MkButton v-if="avatarDecoration.id != null" inline danger @click="del(avatarDecoration)"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
@@ -62,6 +82,8 @@ const avatarDecorations = ref<Misskey.entities.AdminAvatarDecorationsListRespons
 
 const $i = signinRequired();
 
+const mixBlnedModeOptions = ["normal" "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]
+
 function add() {
 	avatarDecorations.value.unshift({
 		_id: Math.random().toString(36),
@@ -69,6 +91,12 @@ function add() {
 		name: '',
 		description: '',
 		url: '',
+		bgUrl: '',
+		animation: '',
+		imgAnimation: '',
+		bgAnimation: '',
+		mixBlendMode: '',
+		bgMixBlnedMode: '',
 	});
 }
 

@@ -60,6 +60,12 @@ const props = defineProps<{
 	decoration: {
 		id: string;
 		url: string;
+		bgUrl: string;
+		animation: string;
+		imgAnimation: string;
+		bgAnimation: string;
+		mixBlendMode: string;
+		bgMixBlendMode: string;
 		name: string;
 	};
 }>();
@@ -92,6 +98,12 @@ const decorationsForPreview = computed(() => {
 	const decoration = {
 		id: props.decoration.id,
 		url: props.decoration.url,
+		bgUrl: props.decoration.bgUrl,
+		animation: props.decoration.animation,
+		imgAnimation: props.decoration.imgAnimation,
+		bgAnimation: props.decoration.bgAnimation,
+		mixBlendMode: props.decoration.mixBlendMode,
+		bgMixBlendMode: props.decoration.bgMixBlendMode,
 		angle: angle.value,
 		flipH: flipH.value,
 		offsetX: offsetX.value,
