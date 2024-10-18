@@ -19,7 +19,7 @@ import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { SearchService } from '@/core/SearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
-import { isPureRenote } from '@/misc/is-pure-renote.js';
+import { isQuote, isRenote } from '@/misc/is-renote.js';
 
 @Injectable()
 export class NoteUpdateVisibilityService {
@@ -68,8 +68,8 @@ export class NoteUpdateVisibilityService {
 			if (this.userEntityService.isLocalUser(user) && !note.localOnly && localOnly) {
 				let renote: MiNote | null = null;
 
-				// if deleted note is renote
-				if (isPureRenote(note)) {
+				// if updated note is renote
+				if (isRenote(note) && !isQuote(note)) {
 					renote = await this.notesRepository.findOneBy({
 						id: note.renoteId,
 					});

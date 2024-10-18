@@ -192,7 +192,6 @@ export const paramDef = {
 				type: 'string',
 			},
 		},
->>>>>>> develop
 	},
 	required: [],
 } as const;

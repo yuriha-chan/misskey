@@ -416,6 +416,7 @@ export type NotesConversationResponse = operations['notes___conversation']['resp
 export type NotesCreateRequest = operations['notes___create']['requestBody']['content']['application/json'];
 export type NotesCreateResponse = operations['notes___create']['responses']['200']['content']['application/json'];
 export type NotesDeleteRequest = operations['notes___delete']['requestBody']['content']['application/json'];
+export type NotesUpdateVisibilityRequest = operations['notes___update-visibility']['requestBody']['content']['application/json'];
 export type NotesFavoritesCreateRequest = operations['notes___favorites___create']['requestBody']['content']['application/json'];
 export type NotesFavoritesDeleteRequest = operations['notes___favorites___delete']['requestBody']['content']['application/json'];
 export type NotesFeaturedRequest = operations['notes___featured']['requestBody']['content']['application/json'];

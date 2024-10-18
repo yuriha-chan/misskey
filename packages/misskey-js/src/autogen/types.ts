@@ -2685,7 +2685,7 @@ export type paths = {
      *
      * **Credential required**: *Yes* / **Permission**: *write:notes*
      */
-    post: operations['notes/update-visibility'];
+    post: operations['notes___update-visibility'];
   };
   '/notes/favorites/create': {
     /**
@@ -21689,7 +21689,7 @@ export type operations = {
    *
    * **Credential required**: *Yes* / **Permission**: *write:notes*
    */
-  'notes/update-visibility': {
+  'notes___update-visibility': {
     requestBody: {
       content: {
         'application/json': {

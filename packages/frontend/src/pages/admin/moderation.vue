@@ -175,7 +175,7 @@ async function init() {
 	blockedHosts.value = meta.blockedHosts.join('\n');
 	silencedHosts.value = meta.silencedHosts?.join('\n') ?? '';
 	gtlMutedHosts.value = meta.gtlMutedHosts?.join('\n') ?? '';
-	mediaSilencedHosts.value = meta.mediaSilencedHosts.join('\n');
+	mediaSilencedHosts.value = meta.mediaSilencedHosts?.join('\n') ?? '';
 }
 
 function onChange_enableRegistration(value: boolean) {

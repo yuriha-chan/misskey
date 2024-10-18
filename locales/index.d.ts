@@ -995,17 +995,10 @@ export interface Locale extends ILocale {
      */
     "silencedInstances": string;
     /**
-     * サイレンスしたいサーバーのホストを改行で区切って設定します。サイレンスされたサーバーに所属するアカウントはすべて「サイレンス」として扱われ、フォローがすべてリクエストになります。ブロックしたインスタンスには影響しません。
+     * サイレンスしたいサーバーのホストを改行で区切って設定します。サイレンスされたサーバーに所属するアカウントはすべて「サイレンス」として扱われ、フォローがすべてリクエストになり、フォロワーでないローカルアカウントにはメンションできなくなります。ブロックしたインスタンスには影響しません。
      */
     "silencedInstancesDescription": string;
     /**
-     * GTLミュートしたサーバー
-     */
-    "gtlMutedInstances": string;
-    /**
-     * GTLミュートしたいサーバーのホストを改行で区切って設定します。GTLミュートされたサーバーに所属するアカウントに関連する投稿がグローバルタイムラインに表示されなくなります。
-     */
-    "gtlMutedInstancesDescription": string;
      * メディアサイレンスしたサーバー
      */
     "mediaSilencedInstances": string;
@@ -1021,6 +1014,14 @@ export interface Locale extends ILocale {
      * 連合を許可するサーバーのホストを改行で区切って設定します。
      */
     "federationAllowedHostsDescription": string;
+    /**
+     * GTLミュートしたサーバー
+     */
+    "gtlMutedInstances": string;
+    /**
+     * GTLミュートしたいサーバーのホストを改行で区切って設定します。GTLミュートされたサーバーに所属するアカウントに関連する投稿がグローバルタイムラインに表示されなくなります。
+     */
+    "gtlMutedInstancesDescription": string;
     /**
      * ミュートとブロック
      */
@@ -2993,19 +2994,6 @@ export interface Locale extends ILocale {
     "reportAbuseRenote": string;
     /**
      * 報告者
-     * {name}を通報する
-     */
-    "reportAbuseOf": ParameterizedString<"name">;
-    /**
-     * 通報理由の詳細を記入してください。対象のノートやページなどがある場合はそのURLも記入してください。
-     */
-    "fillAbuseReportDescription": string;
-    /**
-     * 内容が送信されました。ご報告ありがとうございました。
-     */
-    "abuseReported": string;
-    /**
-     * 通報者
      */
     "reporter": string;
     /**

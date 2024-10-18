@@ -51,7 +51,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw err;
 			});
 
-			const report = await this.abuseUserReportsRepository.insert({
+			const report = await this.abuseReportService.report({
 				id: this.idService.gen(),
 				targetUserId: user.id,
 				targetUserHost: user.host,
@@ -59,28 +59,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				reporterHost: null,
 				comment: ps.comment,
 				reason: ps.reason,
-			}).then(x => this.abuseUserReportsRepository.findOneByOrFail(x.identifiers[0]));
-
-			// Publish event to moderators
-			setImmediate(async () => {
-				const moderators = await this.roleService.getModerators();
-
-				for (const moderator of moderators) {
-					this.globalEventService.publishAdminStream(moderator.id, 'newAbuseUserReport', {
-						id: report.id,
-						targetUserId: report.targetUserId,
-						reporterId: report.reporterId,
-						comment: report.comment,
-						reason: report.reason,
-					});
-				}
-
-				const meta = await this.metaService.fetch();
-				if (meta.email) {
-					this.emailService.sendEmail(meta.email, 'New abuse report',
-						sanitizeHtml(ps.comment),
-						sanitizeHtml(ps.comment));
-				}
 			});
 		});
 	}

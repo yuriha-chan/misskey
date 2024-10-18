@@ -387,7 +387,7 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 			icon: 'ti ti-exclamation-circle',
 			text: i18n.ts.contactAdmin,
 			action: contactAdmin,
-		}]);
+		});
 	}
 
 	if (user.host !== null) {
