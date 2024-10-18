@@ -32,5 +32,6 @@ const urls = props.block.text ? extractUrlFromMfm(mfm.parse(props.block.text)) :
 <style lang="scss" module>
 .textRoot {
 	font-size: 1.1rem;
+	line-height: 1.7;
 }
 </style>

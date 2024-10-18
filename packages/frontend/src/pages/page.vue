@@ -41,16 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							/>
 						</div>
 						<div :class="$style.pageBannerTitle" class="_gaps_s">
-							<h1 v-if="page.title || page.name">{{ page.title || page.name }}</h1>
-							<div :class="$style.pageBannerTitleSub">
-								<div v-if="page.user" :class="$style.pageBannerTitleUser">
-									<MkAvatar :user="page.user" :class="$style.avatar" indicator link preview/> <MkA :to="`/@${username}`"><MkUserName :user="page.user" :nowrap="false"/></MkA>
-								</div>
-								<div :class="$style.pageBannerTitleSubActions">
-									<MkA v-if="page.userId === $i?.id" v-tooltip="i18n.ts._pages.editThisPage" :to="`/pages/edit/${page.id}`" class="_button" :class="$style.generalActionButton"><i class="ti ti-pencil ti-fw"></i></MkA>
-									<button v-tooltip="i18n.ts.share" class="_button" :class="$style.generalActionButton" @click="share"><i class="ti ti-share ti-fw"></i></button>
-								</div>
-							</div>
+							<h1 v-if="page.title">{{ page.title }}</h1>
 						</div>
 					</div>
 					<div :class="$style.pageContent">
@@ -365,9 +356,6 @@ definePageMetadata(() => ({
 }
 
 .pageMain {
-	border-radius: var(--MI-radius);
-	padding: 2rem;
-	background: var(--MI_THEME-panel);
 	box-sizing: border-box;
 }
 

@@ -42,7 +42,7 @@ defineProps<{
 .h3 {
 	font-size: 1.25em;
 	margin: 0 0 0.5em 0;
-	border-left: 3px solid var(--accentLighten);
+	border-left: 3px solid var(--MI_THEME-accentLighten);
 	padding: 0.05em 0.5em 0.15em;
 	border-bottom: 1px dashed;
 }
