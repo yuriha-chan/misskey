@@ -120,7 +120,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				description: avatarDecoration.description,
 				url: avatarDecoration.url,
 				bgUrl: avatarDecoration.bgUrl,
-				animation: avatarDecoration.url,
+				animation: avatarDecoration.animation,
 				imgAnimation: avatarDecoration.imgAnimation,
 				bgAnimation: avatarDecoration.bgAnimation,
 				mixBlendMode: avatarDecoration.mixBlendMode,

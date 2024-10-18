@@ -48,7 +48,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				scale: getDecorationScale(decoration),
 				translate: getDecorationOffset(decoration),
 				mixBlendMode: getDecorationMixBlendMode(decoration, 'fg'),
-				animation: getDecorationAnimation(decoration, 'bg'),
+				animation: getDecorationAnimation(decoration, 'fg'),
 			}"
 			alt=""
 		>
@@ -115,6 +115,7 @@ const foregroundDecorations = computed(() => {
 });
 
 const imgAnimations = computed(() => {
+	if (defaultStore.state.disableShowingAnimatedImages) { return ["none"]; }
 	const decorations = props.decorations ?? props.user.avatarDecorations;
 	return decorations.filter((deco) => (deco.imgAnimation !== '' && deco.imgAnimation !== 'none')).map((deco) => deco.imgAnimation);
 });
@@ -152,6 +153,7 @@ function getDecorationMixBlendMode(decoration: Omit<Misskey.entities.UserDetaile
 }
 
 function getDecorationAnimation(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+	if (defaultStore.state.disableShowingAnimatedImages) { return "none"; }
 	const animation = (slot === "bg") ? decoration.bgAnimation : decoration.animation;
 	return animation ? animation : "none";
 }
@@ -387,39 +389,4 @@ watch(() => props.user.avatarBlurhash, () => {
 	}
 }
 
-@keyframes unblur {
-	0% {
-		filter: blur(5px);
-	}
-	100% {
-		filter: blur(0px);
-	}
-}
-
-@keyframes brighten {
-	0% {
-		filter: brighten(0);
-	}
-	100% {
-		filter: brighten(2);
-	}
-}
-
-@keyframes fadeout {
-	0% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 0;
-	}
-}
-
-@keyframes up {
-	0% {
-		filter: translate(0, 0);
-	}
-	100% {
-		filter: translate(0, -12px), rotate(-5deg);
-	}
-}
 </style>

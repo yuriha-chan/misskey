@@ -480,14 +480,26 @@ export class UserEntityService implements OnModuleInit {
 			host: user.host,
 			avatarUrl: user.avatarUrl ?? this.getIdenticonUrl(user),
 			avatarBlurhash: user.avatarBlurhash,
-			avatarDecorations: user.avatarDecorations.length > 0 ? this.avatarDecorationService.getAll().then(decorations => user.avatarDecorations.filter(ud => decorations.some(d => d.id === ud.id)).map(ud => ({
-				id: ud.id,
-				angle: ud.angle || undefined,
-				flipH: ud.flipH || undefined,
-				offsetX: ud.offsetX || undefined,
-				offsetY: ud.offsetY || undefined,
-				url: decorations.find(d => d.id === ud.id)!.url,
-			}))) : [],
+			avatarDecorations: user.avatarDecorations.length > 0 ? this.avatarDecorationService.getAll().then(
+				decorations => user.avatarDecorations
+					.filter(ud => decorations.some(d => d.id === ud.id))
+					.map(ud => {
+						const d = decorations.find(d => d.id === ud.id);
+						return {
+							id: ud.id,
+							angle: ud.angle || undefined,
+							flipH: ud.flipH || undefined,
+							offsetX: ud.offsetX || undefined,
+							offsetY: ud.offsetY || undefined,
+							url: d!.url,
+							bgUrl: d!.bgUrl,
+							animation: d!.animation,
+							imgAnimation: d!.imgAnimation,
+							bgAnimation: d!.bgAnimation,
+							mixBlendMode: d!.mixBlendMode,
+							bgMixBlendMode: d!.bgMixBlendMode,
+						};
+					})) : [],
 			isBot: user.isBot,
 			isCat: user.isCat,
 			instance: user.host ? this.federatedInstanceService.federatedInstanceCache.fetch(user.host).then(instance => instance ? {

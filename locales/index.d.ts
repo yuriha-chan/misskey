@@ -1571,6 +1571,10 @@ export interface Locale extends ILocale {
      */
     "bannerUrl": string;
     /**
+     * 背景
+     */
+    "background": string;
+    /**
      * 背景画像のURL
      */
     "backgroundImageUrl": string;
@@ -4974,6 +4978,14 @@ export interface Locale extends ILocale {
      * デコる
      */
     "decorate": string;
+    /**
+     * アニメーション (CSS)
+     */
+    "animationCSS": string;
+    /**
+     * ブレンドモード
+     */
+    "mixBlendMode": string;
     /**
      * 装飾を追加
      */

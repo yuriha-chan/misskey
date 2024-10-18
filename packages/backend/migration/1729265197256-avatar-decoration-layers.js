@@ -7,7 +7,7 @@ export class AvatarDecorationLayers1729265197256 {
     name = 'AvatarDecorationLayers1729265197256'
 
     async up(queryRunner) {
-        await queryRunner.query(`ALTER TABLE "avatar_decoration" ("bgUrl" character varying(1024) NOT NULL DEFAULT '', "animation" character varying(1024) NOT NULL DEFAULT '', "imgAnimation" character varying(1024) NOT NULL DEFAULT '', "bgAnimation" character varying(1024) NOT NULL DEFAULT '', "mixBlendMode" character varying(256) NOT NULL DEFAULT '', "bgMixBlendMode" character varying(256) NOT NULL DEFAULT ''`);
+        await queryRunner.query(`ALTER TABLE "avatar_decoration" ADD "bgUrl" character varying(1024) NOT NULL DEFAULT '', ADD "animation" character varying(1024) NOT NULL DEFAULT '', ADD "imgAnimation" character varying(1024) NOT NULL DEFAULT '', ADD "bgAnimation" character varying(1024) NOT NULL DEFAULT '', ADD "mixBlendMode" character varying(256) NOT NULL DEFAULT '', ADD "bgMixBlendMode" character varying(256) NOT NULL DEFAULT ''`);
     }
     async down(queryRunner) {
         await queryRunner.query(`ALTER TABLE "avatar_decoration" DROP COLUMN "bgUrl", DROP COLUMN "animation", DROP COLUMN "imgAnimation", DROP COLUMN "bgAnimation", DROP COLUMN "mixBlendMode", DROP COLUMN "bgMixBlendMode"`);

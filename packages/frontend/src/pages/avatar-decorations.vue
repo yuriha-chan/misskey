@@ -70,6 +70,7 @@ import { ref, computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
+import MkSelect from '@/components/MkSelect.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
 import { signinRequired } from '@/account.js';
 import * as os from '@/os.js';
@@ -82,7 +83,7 @@ const avatarDecorations = ref<Misskey.entities.AdminAvatarDecorationsListRespons
 
 const $i = signinRequired();
 
-const mixBlnedModeOptions = ["normal" "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]
+const mixBlendModeOptions = ["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]
 
 function add() {
 	avatarDecorations.value.unshift({
@@ -96,7 +97,7 @@ function add() {
 		imgAnimation: '',
 		bgAnimation: '',
 		mixBlendMode: '',
-		bgMixBlnedMode: '',
+		bgMixBlendMode: '',
 	});
 }
 
