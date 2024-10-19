@@ -710,6 +710,6 @@ html[data-color-scheme=dark] ._woodenFrame {
 }
 
 @keyframes up {
-	0% { transform: translate(0, 0), rotate(0deg); }
-	100% { transform: translate(0, -12px), rotate(-5deg); }
+	0% { transform: translate(0, 0) rotate(0deg); }
+	100% { transform: translate(0, -12px) rotate(-5deg); }
 }

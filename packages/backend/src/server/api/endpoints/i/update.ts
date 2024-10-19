@@ -467,7 +467,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (newName != null) {
 				let hasProhibitedWords = false;
 				if (!await this.roleService.isModerator(user)) {
-					hasProhibitedWords = this.utilityService.isKeyWordIncluded(newName, this.instanceMeta.prohibitedWordsForNameOfUser);
+					// hasProhibitedWords = this.utilityService.isKeyWordIncluded(newName, this.instanceMeta.prohibitedWordsForNameOfUser);
 				}
 				if (hasProhibitedWords) {
 					throw new ApiError(meta.errors.nameContainsProhibitedWords);
