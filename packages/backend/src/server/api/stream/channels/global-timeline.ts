@@ -69,13 +69,6 @@ class GlobalTimelineChannel extends Channel {
 		// Ignore notes from instances this server has muted
 		if (isInstanceMuted(note, new Set<string>(this.meta.gtlMutedHosts ?? []))) return;
 
-		// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
-		if (isUserRelated(note, this.userIdsWhoMeMuting)) return;
-		// 流れてきたNoteがブロックされているユーザーが関わるものだったら無視する
-		if (isUserRelated(note, this.userIdsWhoBlockingMe)) return;
-
-		if (note.renote && !note.text && isUserRelated(note, this.userIdsWhoMeMutingRenotes)) return;
-
 		if (this.user && isRenotePacked(note) && !isQuotePacked(note)) {
 			if (note.renote && Object.keys(note.renote.reactions).length > 0) {
 				const myRenoteReaction = await this.noteEntityService.populateMyReaction(note.renote, this.user.id);
