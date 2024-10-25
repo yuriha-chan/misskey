@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i v-else class="ti ti-exclamation-circle" style="color: var(--MI_THEME-warn)"></i>
 	</template>
 	<template #label><MkAcct :user="report.targetUser"/> (by <MkAcct :user="report.reporter"/>)</template>
-	<template #caption>{{ report.comment }}</template>
+	<template #caption><span :class="['reason', report.reason]">{{ i18n.ts._contactAdminReason[report.reason] }}</span>{{ report.comment }}</template>
 	<template #suffix><MkTime :time="report.createdAt"/></template>
 	<template #footer>
 		<div class="_buttons">
@@ -42,11 +42,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<MkFolder :defaultOpen="true">
 			<template #icon><i class="ti ti-message-2"></i></template>
-			<template #label>{{ i18n.ts.details }}</template>
+			<template #label><span :class="['reason', report.reason]">{{ i18n.ts._contactAdminReason[report.reason] }}</span></template>
 			<div class="_gaps_s">
-				<div :class="['reason', report.reason]">
-					{{ i18n.ts._contactAdminReason[report.reason] }}
-				</div>
 				<Mfm :text="report.comment" :linkNavigationBehavior="'window'"/>
 			</div>
 		</MkFolder>
@@ -153,14 +150,12 @@ function showMenu(ev: MouseEvent) {
 }
 </script>
 <style lang="scss" module>
-.root {
-		.reason.spam, .reason.privacy, .reason.attack, .reason.abuseOther {
-			background: var(--infoWarnBg);
-			color: var(--infoWarnFg);
-		}
-		.reason.technical, .reason.mental, .reason.helpOther {
-			background: var(--infoBg);
-			color: var(--infoFg);
-		}
+.reason.spam, .reason.privacy, .reason.attack, .reason.abuseOther {
+		background: var(--infoWarnBg);
+		color: var(--infoWarnFg);
+}
+.reason.technical, .reason.mental, .reason.helpOther {
+	background: var(--infoBg);
+	color: var(--infoFg);
 }
 </style>

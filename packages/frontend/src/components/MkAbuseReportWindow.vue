@@ -36,6 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #caption>{{ i18n.ts.fillReportDescription }}</template>
 				</MkTextarea>
 			</div>
+			<div v-if="guideReportNote">{{ i18n.ts.guideReportNote }}</div>
 			<div class="">
 				<MkButton primary full :disabled="comment.length === 0" @click="send">{{ i18n.ts.send }}</MkButton>
 			</div>
@@ -57,6 +58,7 @@ import { i18n } from '@/i18n.js';
 const props = defineProps<{
 	user: Misskey.entities.UserLite;
 	initialComment?: string;
+	guideReportNote?: boolean;
 }>();
 
 const emit = defineEmits<{
