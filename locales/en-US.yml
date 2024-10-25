@@ -741,6 +741,7 @@ _contactAdminReason:
   good: "Report a good post"
   ethical: "I observed ethically outstanding conduct"
 reviewReports: "Review reports from users"
+guideReportNote: 'If you want to contact administrator about **a note or a direct message** related with this user, please close this window and select "Contact admin" menu in the options ("...") in that note to help the admins locate the issue. If you are about to report something other than issues on a specific note, continue to report.'
 fillReportDescription: "Please fill in details regarding this report. If it is about a specific note, please include its URL."
 reportCompleted: "Your report has been sent. Thank you very much :)"
 reporter: "Reporter"
