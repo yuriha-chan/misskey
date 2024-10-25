@@ -51,15 +51,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw err;
 			});
 
-			const report = await this.abuseReportService.report({
-				id: this.idService.gen(),
-				targetUserId: user.id,
-				targetUserHost: user.host,
+			await this.abuseReportService.report([{
+				targetUserId: targetUser.id,
+				targetUserHost: targetUser.host,
 				reporterId: me.id,
 				reporterHost: null,
 				comment: ps.comment,
 				reason: ps.reason,
-			});
+			}]);
 		});
 	}
 }

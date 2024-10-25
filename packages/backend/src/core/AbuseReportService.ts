@@ -49,6 +49,7 @@ export class AbuseReportService {
 		reporterId: MiAbuseUserReport['reporterId'],
 		reporterHost: MiAbuseUserReport['reporterHost'],
 		comment: string,
+		reason: string,
 	}[]) {
 		const entities = params.map(param => {
 			return {
@@ -58,6 +59,7 @@ export class AbuseReportService {
 				reporterId: param.reporterId,
 				reporterHost: param.reporterHost,
 				comment: param.comment,
+				reason: param.reason,
 			};
 		});
 
