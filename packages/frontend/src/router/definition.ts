@@ -239,6 +239,9 @@ const routes: RouteDef[] = [{
 		origin: 'origin',
 	},
 }, {
+	path: '/image-search/:fileId',
+	component: page(() => import('@/pages/image-search.vue')),
+}, {
 	// Legacy Compatibility
 	path: '/authorize-follow',
 	redirect: '/lookup',

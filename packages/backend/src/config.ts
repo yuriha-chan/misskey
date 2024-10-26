@@ -58,6 +58,10 @@ type Source = {
 		index: string;
 		scope?: 'local' | 'global' | string[];
 	};
+	imageSearch?: {
+		host: string;
+		port: string;
+	};
 	sentryForBackend?: { options: Partial<Sentry.NodeOptions>; enableNodeProfiling: boolean; };
 	sentryForFrontend?: { options: Partial<Sentry.NodeOptions> };
 
@@ -131,6 +135,10 @@ export type Config = {
 		ssl?: boolean;
 		index: string;
 		scope?: 'local' | 'global' | string[];
+	} | undefined;
+	imageSearch: {
+		host: string;
+		port: string;
 	} | undefined;
 	proxy: string | undefined;
 	proxySmtp: string | undefined;
@@ -252,6 +260,7 @@ export function loadConfig(): Config {
 		dbReplications: config.dbReplications,
 		dbSlaves: config.dbSlaves,
 		meilisearch: config.meilisearch,
+		imageSearch: config.imageSearch,
 		redis,
 		redisForPubsub: config.redisForPubsub ? convertRedisOptions(config.redisForPubsub, host) : redis,
 		redisForJobQueue: config.redisForJobQueue ? convertRedisOptions(config.redisForJobQueue, host) : redis,

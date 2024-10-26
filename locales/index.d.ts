@@ -37,6 +37,10 @@ export interface Locale extends ILocale {
      */
     "search": string;
     /**
+     * 類似画像を検索
+     */
+    "searchSimilarImage": string;
+    /**
      * 通知
      */
     "notifications": string;
@@ -3009,7 +3013,7 @@ export interface Locale extends ILocale {
      */
     "reporterOrigin": string;
     /**
-     * このユーザーの投稿したノートや、受け取ったダイレクト投稿について管理者に伝えたいことがある場合は、この画面を閉じて、該当するノートの「…」から「管理者に連絡」を選択して連絡してください。そのようにすると、管理者が問題を特定しやすくなります。ノート投稿以外について連絡したいことがある場合は、このまま送信してください。
+     * このユーザーの投稿したノートや、受け取ったダイレクト投稿について管理者に伝えたいことがある場合は、この画面を閉じて、該当するノートの「…」から「管理者に連絡」を選択して連絡してください。ノート投稿以外について連絡したいことがある場合は、このまま送信してください。
      */
     "guideReportNote": string;
     /**

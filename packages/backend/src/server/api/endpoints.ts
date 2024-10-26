@@ -306,6 +306,7 @@ import * as ep___notes_renotes from './endpoints/notes/renotes.js';
 import * as ep___notes_replies from './endpoints/notes/replies.js';
 import * as ep___notes_searchByTag from './endpoints/notes/search-by-tag.js';
 import * as ep___notes_search from './endpoints/notes/search.js';
+import * as ep___notes_imageSearch from './endpoints/notes/image-search.js';
 import * as ep___notes_show from './endpoints/notes/show.js';
 import * as ep___notes_state from './endpoints/notes/state.js';
 import * as ep___notes_threadMuting_create from './endpoints/notes/thread-muting/create.js';
@@ -692,6 +693,7 @@ const eps = [
 	['notes/replies', ep___notes_replies],
 	['notes/search-by-tag', ep___notes_searchByTag],
 	['notes/search', ep___notes_search],
+	['notes/image-search', ep___notes_imageSearch],
 	['notes/show', ep___notes_show],
 	['notes/state', ep___notes_state],
 	['notes/thread-muting/create', ep___notes_threadMuting_create],

@@ -5,6 +5,7 @@ introMisskey: "Welcome! Misskey is an open source, decentralized microblogging s
 poweredByMisskeyDescription: "{name} is one of the services powered by the open source platform <b>Misskey</b> (referred to as a \"Misskey instance\")."
 monthAndDay: "{month}/{day}"
 search: "Search"
+searchSimilarImage: "Search for similar images"
 notifications: "Notifications"
 username: "Username"
 password: "Password"

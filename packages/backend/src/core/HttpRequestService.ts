@@ -143,6 +143,22 @@ export class HttpRequestService {
 	}
 
 	@bindThis
+	public async postJson<T = unknown>(url: string, data: any, accept = 'application/json, */*', headers?: Record<string, string>): Promise<T> {
+		const res = await this.send(url, {
+			method: 'POST',
+			body: JSON.stringify(data),
+			headers: Object.assign({
+				Accept: accept,
+				"Content-Type": "application/json",
+			}, headers ?? {}),
+			timeout: 5000,
+			size: 1024 * 256,
+		});
+
+		return await res.json() as T;
+	}
+
+	@bindThis
 	public async getHtml(url: string, accept = 'text/html, */*', headers?: Record<string, string>): Promise<string> {
 		const res = await this.send(url, {
 			method: 'GET',
