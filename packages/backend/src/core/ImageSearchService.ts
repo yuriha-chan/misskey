@@ -57,12 +57,15 @@ export class ImageSearchService {
 	@bindThis
 	public async indexNote(note: MiNote): Promise<void> {
 		if (!['public'].includes(note.visibility)) return;
+		if (note.userHost && this.config.imageSearch.indexHosts && !this.config.imageSearch.indexHosts.includes(note.userHost)) {
+			return;
+		}
 		for (const fileId of note.fileIds) {
 			const file = await this.driveFilesRepository.findOneBy({ id: fileId });
 			if (file === null) { continue; };
 			if (file.isSensitive) { continue; };
 			const url = file.url;
-			return await this.update({ fileId, url, searchable: true, exists: "set" });
+			await this.update({ fileId, url, searchable: true, exists: "set" });
 		}
 	}
 
@@ -86,7 +89,7 @@ export class ImageSearchService {
 		const results = await this.search({ fileId, limit: pagination.limit, offset: pagination.offset, weights: opts.weights })
 		const query = this.notesRepository.createQueryBuilder('note');
 		for (const result of results) {
-			query.andWhere(':id = ANY(note.fileIds)', { id: result.fileId })
+			query.andWhere(':id <@ note.fileIds', { id: [result.fileId] })
 			if (opts.host) {
 				if (opts.host === '.') {
 					query.andWhere('note.userHost IS NULL');

@@ -61,6 +61,7 @@ type Source = {
 	imageSearch?: {
 		host: string;
 		port: string;
+		indexHosts?: string[];
 	};
 	sentryForBackend?: { options: Partial<Sentry.NodeOptions>; enableNodeProfiling: boolean; };
 	sentryForFrontend?: { options: Partial<Sentry.NodeOptions> };
@@ -139,6 +140,7 @@ export type Config = {
 	imageSearch: {
 		host: string;
 		port: string;
+		indexHosts?: string[];
 	} | undefined;
 	proxy: string | undefined;
 	proxySmtp: string | undefined;

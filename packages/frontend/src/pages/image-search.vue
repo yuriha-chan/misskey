@@ -68,7 +68,7 @@ const hostSelect = ref<'all' | 'local' | 'specified'>('all');
 const updatePagination = () => {
   notePagination.value = {
   	endpoint: 'notes/image-search' as const,
-  	limit: 30,
+  	limit: 20,
   	params: {
   		fileId: props.fileId,
   		...(searchHost.value ? { host: searchHost.value } : {}),
