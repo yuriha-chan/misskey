@@ -9135,6 +9135,10 @@ export interface Locale extends ILocale {
          */
         "global": string;
     };
+    /**
+     * フォロー中ユーザーの投稿
+     */
+    "followingsUpdates": string;
     "_play": {
         /**
          * Playの作成
