@@ -5,11 +5,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-	<template #header><MkPageHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs"/></template>
+	<template #header><MkPageHeader v-if="mainContentLoaded" v-model:tab="tab" :actions="headerActions" :tabs="headerTabs"/></template>
 	<div>
 		<div v-if="user">
 			<MkHorizontalSwipe v-model:tab="tab" :tabs="headerTabs">
-				<XHome v-if="tab === 'home'" key="home" :user="user"/>
+				<XHome @mainContentLoaded="onMainContentLoaded" v-if="tab === 'home'" key="home" :user="user"/>
 				<MkSpacer v-else-if="tab === 'notes'" key="notes" :contentMax="800" style="padding-top: 0">
 					<XTimeline :user="user"/>
 				</MkSpacer>
@@ -59,7 +59,13 @@ const props = withDefaults(defineProps<{
 	page: 'home',
 });
 
+const emits = defineEmits<{
+	(e: 'mainContentLoaded'): void;
+	(e: 'contentLoadDelayed'): void;
+}>();
+
 const tab = ref(props.page);
+const mainContentLoaded = ref(false);
 
 const user = ref<null | Misskey.entities.UserDetailed>(null);
 const error = ref<any>(null);
@@ -140,4 +146,11 @@ definePageMetadata(() => ({
 		},
 	} : {},
 }));
+
+const onMainContentLoaded = () => {
+	mainContentLoaded.value = true;
+	emits('mainContentLoaded');
+};
+
+emits('contentLoadDelayed');
 </script>

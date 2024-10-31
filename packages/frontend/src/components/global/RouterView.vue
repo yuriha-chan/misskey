@@ -8,8 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:max="defaultStore.state.numberOfPageCache"
 	:exclude="pageCacheController"
 >
-	<Suspense :timeout="0">
-		<component :is="currentPageComponent" :key="key" v-bind="Object.fromEntries(currentPageProps)"/>
+	<Suspense :timeout="0" @resolve="() => onMainContentLoaded(false)">
+		<component :is="currentPageComponent" :key="key" v-bind="Object.fromEntries(currentPageProps)" @mainContentLoaded="() => onMainContentLoaded(true)" @contentLoadDelayed="onContentLoadDelayed" />
 
 		<template #fallback>
 			<MkLoading/>
@@ -28,6 +28,10 @@ import MkLoadingPage from '@/pages/_loading_.vue';
 const props = defineProps<{
 	router?: IRouter;
 	nested?: boolean;
+}>();
+
+const emits = defineEmits<{
+	(e: 'mainContentLoaded'): void
 }>();
 
 const router = props.router ?? inject('router');
@@ -98,4 +102,16 @@ globalEvents.on('requestClearPageCache', () => {
 onBeforeUnmount(() => {
 	router.removeListener('change', onChange);
 });
+
+let contentLoadWillDelay = false;
+
+const onContentLoadDelayed = () => {
+	contentLoadWillDelay = true;
+}
+
+const onMainContentLoaded = (delayed) => {
+	if (!contentLoadWillDelay || delayed) {
+		emits('mainContentLoaded');
+	}
+};
 </script>
