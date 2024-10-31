@@ -5,8 +5,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<div :class="$style.sidebarPlaceHolder">
-	<XSidebar v-if="!isMobile" :class="$style.sidebar" :showContent="routerViewLoaded"/>
+	<div v-if="!isMobile" :class="$style.sidebarPlaceHolder">
+	<XSidebar :class="$style.sidebar" :showContent="routerViewLoaded"/>
 	</div>
 
 	<MkStickyContainer ref="contents" :class="$style.contents" style="container-type: inline-size;" @contextmenu.stop="onContextmenu">
