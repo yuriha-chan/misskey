@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div ref="rootEl">
+<div ref="rootEl" :style="{ aspectRatio: aspectRatio }">
 	<MkLoading v-if="fetching"/>
 	<div v-else>
 		<canvas ref="chartEl"></canvas>
@@ -40,6 +40,7 @@ const chartEl = shallowRef<HTMLCanvasElement | null>(null);
 const now = new Date();
 let chartInstance: Chart | null = null;
 const fetching = ref(true);
+const aspectRatio = ref(3.2);
 
 const { handler: externalTooltipHandler } = useChartTooltip({
 	position: 'middle',
@@ -53,6 +54,7 @@ async function renderChart() {
 
 	const wide = rootEl.value.offsetWidth > 700;
 	const narrow = rootEl.value.offsetWidth < 400;
+	aspectRatio.value = wide ? 6 : narrow ? 1.8 : 3.2;
 
 	const weeks = wide ? 50 : narrow ? 10 : 25;
 	const chartLimit = 7 * weeks;

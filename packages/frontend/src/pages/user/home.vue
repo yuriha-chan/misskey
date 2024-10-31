@@ -214,6 +214,10 @@ const props = withDefaults(defineProps<{
 	disableNotes: false,
 });
 
+const emits = defineEmits<{
+	(e: 'mainContentLoaded'): void
+}>();
+
 const router = useRouter();
 
 const user = ref(props.user);
@@ -334,6 +338,7 @@ onMounted(() => {
 	}
 	nextTick(() => {
 		adjustMemoTextarea();
+		emits('mainContentLoaded');
 	});
 });
 

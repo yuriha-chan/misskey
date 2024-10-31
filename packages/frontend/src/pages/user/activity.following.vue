@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div>
 	<MkLoading v-if="fetching"/>
 	<div v-show="!fetching" :class="$style.root" class="_panel">
-		<canvas ref="chartEl"></canvas>
+		<div :class="$style.canvasContainer"><canvas ref="chartEl"></canvas></div>
 		<MkChartLegend ref="legendEl" style="margin-top: 8px;"/>
 	</div>
 </div>
@@ -176,5 +176,10 @@ onMounted(async () => {
 <style lang="scss" module>
 .root {
 	padding: 20px;
+}
+.canvasContainer {
+	padding: 0;
+	margin: 0;
+	aspect-ratio: 3/1;
 }
 </style>

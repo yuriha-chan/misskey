@@ -5,7 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<XSidebar v-if="!isMobile" :class="$style.sidebar"/>
+	<div :class="$style.sidebarPlaceHolder">
+	<XSidebar v-if="!isMobile" :class="$style.sidebar" :showContent="routerViewLoaded"/>
+	</div>
 
 	<MkStickyContainer ref="contents" :class="$style.contents" style="container-type: inline-size;" @contextmenu.stop="onContextmenu">
 		<template #header>
@@ -14,12 +16,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XStatusBars :class="$style.statusbars"/>
 			</div>
 		</template>
-		<RouterView/>
+		<RouterView @mainContentLoaded="onRouterViewLoaded"/>
 		<div :class="$style.spacer"></div>
 	</MkStickyContainer>
 
 	<div v-if="isDesktop && !pageMetadata?.needWideArea" :class="$style.widgets">
-		<XWidgets/>
+		<XWidgets v-if="routerViewLoaded"/>
 	</div>
 
 	<button v-if="(!isDesktop || pageMetadata?.needWideArea) && !isMobile" :class="$style.widgetButton" class="_button" @click="widgetsShowing = true"><i class="ti ti-apps"></i></button>
@@ -158,10 +160,15 @@ const menuIndicated = computed(() => {
 });
 
 const drawerMenuShowing = ref(false);
+const routerViewLoaded = ref(false);
 
 mainRouter.on('change', () => {
 	drawerMenuShowing.value = false;
 });
+
+const onRouterViewLoaded = () => {
+	routerViewLoaded.value = true;
+};
 
 if (window.innerWidth > 1024) {
 	const tempUI = miLocalStorage.getItem('ui_temp');
@@ -319,6 +326,10 @@ $widgets-hide-threshold: 1090px;
 
 .sidebar {
 	border-right: solid 0.5px var(--MI_THEME-divider);
+}
+
+.sidebarPlaceHolder {
+	width: 250px;
 }
 
 .contents {
