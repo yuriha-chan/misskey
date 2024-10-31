@@ -5,8 +5,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<div v-if="!isMobile" :class="$style.sidebarPlaceHolder">
-	<XSidebar :class="$style.sidebar" :showContent="routerViewLoaded"/>
+	<div v-if="!isMobile" :class="[$style.sidebarPlaceholder, { [$style.iconOnly]: iconOnly }]">
+	<XSidebar :class="$style.sidebar" v-if="routerViewLoaded"/>
 	</div>
 
 	<MkStickyContainer ref="contents" :class="$style.contents" style="container-type: inline-size;" @contextmenu.stop="onContextmenu">
@@ -202,6 +202,18 @@ onMounted(() => {
 	}
 });
 
+const iconOnly = ref(false);
+
+const calcViewState = () => {
+	iconOnly.value = (window.innerWidth <= 1279) || (defaultStore.state.menuDisplay === 'sideIcon');
+};
+
+calcViewState();
+window.addEventListener('resize', calcViewState);
+watch(defaultStore.reactiveState.menuDisplay, () => {
+	calcViewState();
+});
+
 const onContextmenu = (ev) => {
 	if (isLink(ev.target)) return;
 	if (['INPUT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS'].includes(ev.target.tagName) || ev.target.attributes['contenteditable']) return;
@@ -328,8 +340,11 @@ $widgets-hide-threshold: 1090px;
 	border-right: solid 0.5px var(--MI_THEME-divider);
 }
 
-.sidebarPlaceHolder {
+.sidebarPlaceholder {
 	width: 250px;
+}
+.sidebarPlaceholder.iconOnly {
+	width: 80px;
 }
 
 .contents {
