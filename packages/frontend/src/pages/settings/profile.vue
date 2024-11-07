@@ -27,6 +27,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #caption>{{ i18n.ts._profile.youCanIncludeHashtags }}</template>
 	</MkTextarea>
 
+	<div>{{ i18n.ts.personalInfo }}</div>
+
 	<MkInput v-model="profile.location" manualSave>
 		<template #label>{{ i18n.ts.location }}</template>
 		<template #prefix><i class="ti ti-map-pin"></i></template>

@@ -325,6 +325,7 @@ remoteUserCaution: "As this user is from a remote instance, the shown informatio
 activity: "Activity"
 images: "Images"
 image: "Image"
+personalInfo: "We don't expect you to provide the precise personal information here. You may fill the blanks with fictional location and birthday, or simply leave them blank."
 birthday: "Birthday"
 yearsOld: "{age} years old"
 registeredDate: "Joined on"
