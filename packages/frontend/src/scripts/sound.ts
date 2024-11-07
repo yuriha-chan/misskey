@@ -69,6 +69,13 @@ export const soundsTypes = [
 	'noizenecio/kick_gaba5',
 	'noizenecio/kick_gaba6',
 	'noizenecio/kick_gaba7',
+	'yuriha/n-ebbd',
+	'yuriha/tottoto',
+	'yuriha/towatowa',
+	'yuriha/cold-fgbb',
+	'yuriha/cold-gge',
+	'yuriha/cold-up',
+	'yuriha/cold-pico',
 ] as const;
 
 export const operationTypes = [
