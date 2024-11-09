@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :displayMyAvatar="true"/></template>
-	<MkSpacer :contentMax="800">
+	<MkSpacer :contentMax="800" :marginMin="marginMin">
 		<MkHorizontalSwipe v-model:tab="src" :tabs="$i ? headerTabs : headerTabsWhenNotLogin">
 			<div :key="src" ref="rootEl">
 				<MkInfo v-if="isBasicTimeline(src) && !defaultStore.reactiveState.timelineTutorials.value[src]" style="margin-bottom: var(--MI-margin);" closable @close="closeTutorial()">
@@ -62,6 +62,16 @@ provide('shouldOmitHeaderTitle', true);
 
 const tlComponent = shallowRef<InstanceType<typeof MkTimeline>>();
 const rootEl = shallowRef<HTMLElement>();
+
+const DESKTOP_THRESHOLD = 1100;
+const MOBILE_THRESHOLD = 500;
+
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
+const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+
+window.addEventListener('resize', () => {
+	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
+});
 
 const router = useRouter();
 
@@ -350,6 +360,10 @@ const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(
 	icon: basicTimelineIconClass(tl),
 	iconOnly: true,
 }))] as Tab[]);
+
+const marginMin = computed(() =>
+	(defaultStore.state.reduceMargin && isMobile.value) ? 0 : 16
+);
 
 definePageMetadata(() => ({
 	title: i18n.ts.timeline,

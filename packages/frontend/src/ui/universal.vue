@@ -26,7 +26,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<button v-if="(!isDesktop || pageMetadata?.needWideArea) && !isMobile" :class="$style.widgetButton" class="_button" @click="widgetsShowing = true"><i class="ti ti-apps"></i></button>
 
-	<div v-if="isMobile" ref="navFooter" :class="$style.nav">
+	<Transition
+		:enterActiveClass="$style.transition_navFooter_enterActive"
+		:leaveActiveClass="$style.transition_navFooter_leaveActive"
+		:enterFromClass="$style.transition_navFooter_enterFrom"
+		:leaveToClass="$style.transition_navFooter_leaveTo"
+	>
+	<div v-if="isMobile && navFooterShowing" ref="navFooter" :class="$style.nav">
 		<button :class="$style.navButton" class="_button" @click="drawerMenuShowing = true"><i :class="$style.navButtonIcon" class="ti ti-menu-2"></i><span v-if="menuIndicated" :class="$style.navButtonIndicator" class="_blink"><i class="_indicatorCircle"></i></span></button>
 		<button :class="$style.navButton" class="_button" @click="isRoot ? top() : mainRouter.push('/')"><i :class="$style.navButtonIcon" class="ti ti-home"></i></button>
 		<button :class="$style.navButton" class="_button" @click="mainRouter.push('/my/notifications')">
@@ -38,6 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<button :class="$style.navButton" class="_button" @click="widgetsShowing = true"><i :class="$style.navButtonIcon" class="ti ti-apps"></i></button>
 		<button :class="$style.postButton" class="_button" @click="os.post()"><i :class="$style.navButtonIcon" class="ti ti-pencil"></i></button>
 	</div>
+	</Transition>
 
 	<Transition
 		:enterActiveClass="defaultStore.state.animation ? $style.transition_menuDrawerBg_enterActive : ''"
@@ -134,6 +141,7 @@ window.addEventListener('resize', () => {
 
 const pageMetadata = ref<null | PageMetadata>(null);
 const widgetsShowing = ref(false);
+const navFooterShowing = ref(true);
 const navFooter = shallowRef<HTMLElement>();
 const contents = shallowRef<InstanceType<typeof MkStickyContainer>>();
 
@@ -194,10 +202,33 @@ defaultStore.loaded.then(() => {
 	}
 });
 
+let scrollHistory = [];
 onMounted(() => {
 	if (!isDesktop.value) {
 		window.addEventListener('resize', () => {
 			if (window.innerWidth >= DESKTOP_THRESHOLD) isDesktop.value = true;
+		}, { passive: true });
+	}
+	if (defaultStore.state.hideNavFooter) {
+		contents.value.rootEl.addEventListener('scroll', () => {
+			const now = new Date();
+			scrollHistory = scrollHistory.filter(x => (now - x.time < 2000) && (now > x.time));
+			let scrollPosition = contents.value.rootEl.scrollTop;
+			scrollHistory.push({ time: now, position: scrollPosition });
+			if (scrollHistory.length === 1) {
+				return;
+			}
+			let diffPosition = scrollPosition - scrollHistory[0].position;
+			let diffTime = now - scrollHistory[0].time;
+			let scrollSpeed = diffPosition / diffTime;
+			if (scrollPosition === 0) {
+				navFooterShowing.value = true;
+				scrollHistory = [];
+			} else if (scrollSpeed > 0.2 && diffPosition > 300 || scrollSpeed < -0.5 && diffPosition < -600) {
+				navFooterShowing.value = false;
+			} else if (-0.2 < scrollSpeed && scrollSpeed < 0.02) {
+				navFooterShowing.value = true;
+			}
 		}, { passive: true });
 	}
 });
@@ -283,6 +314,20 @@ body {
 <style lang="scss" module>
 $ui-font-size: 1em; // TODO: どこかに集約したい
 $widgets-hide-threshold: 1090px;
+
+.transition_navFooter_enterActive {
+	opacity: 1;
+	transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.transition_navFooter_leaveActive {
+	opacity: 1;
+	transition: opacity 800ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.transition_navFooter_enterFrom,
+.transition_navFooter_leaveTo {
+	opacity: 0;
+}
 
 .transition_menuDrawerBg_enterActive,
 .transition_menuDrawerBg_leaveActive {

@@ -45,7 +45,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkAvatar :class="$style.collapsedRenoteTargetAvatar" :user="appearNote.user" link preview/>
 		<Mfm :text="getNoteSummary(appearNote)" :plain="true" :nowrap="true" :author="appearNote.user" :nyaize="'respect'" :class="$style.collapsedRenoteTargetText" @click="renoteCollapsed = false"/>
 	</div>
-	<article v-else :class="$style.article" @contextmenu.stop="onContextmenu">
+	<article v-else :class="[$style.article, defaultStore.state.reduceMargin ? $style.reduceMargin : null]" @contextmenu.stop="onContextmenu">
 		<div v-if="appearNote.channel" :class="$style.colorBar" :style="{ background: appearNote.channel.color }"></div>
 		<MkAvatar :class="$style.avatar" :user="appearNote.user" :link="!mock" :preview="!mock"/>
 		<div :class="$style.main">
@@ -64,7 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkCwButton v-model="showContent" :text="appearNote.text" :renote="appearNote.renote" :files="appearNote.files" :poll="appearNote.poll" style="margin: 4px 0;"/>
 				</p>
 				<div v-show="appearNote.cw == null || showContent" :class="[{ [$style.contentCollapsed]: collapsed }]">
-					<div :class="$style.text">
+					<div :class="[$style.text, defaultStore.state.largeNoteText ? $style.largeText : null]">
 						<span v-if="appearNote.isHidden" style="opacity: 0.5">({{ i18n.ts.private }})</span>
 						<MkA v-if="appearNote.replyId" :class="$style.replyIcon" :to="`/notes/${appearNote.replyId}`"><i class="ti ti-arrow-back-up"></i></MkA>
 						<Mfm
@@ -878,6 +878,11 @@ function emitUpdReaction(emoji: string, delta: number) {
 	overflow-wrap: break-word;
 }
 
+.text.largeText {
+	font-size: 1.1em;
+	line-height: 1.4;
+}
+
 .replyIcon {
 	color: var(--MI_THEME-accent);
 	margin-right: 0.5em;
@@ -951,6 +956,10 @@ function emitUpdReaction(emoji: string, delta: number) {
 		padding: 24px 26px;
 	}
 
+	.article.reduceMargin {
+		padding: 10px 14px 17px;
+	}
+
 	.avatar {
 		width: 50px;
 		height: 50px;
@@ -968,6 +977,10 @@ function emitUpdReaction(emoji: string, delta: number) {
 
 	.article {
 		padding: 20px 22px;
+	}
+
+	.article.reduceMargin {
+		padding: 9px 13px 16px;
 	}
 
 	.footer {
@@ -991,6 +1004,10 @@ function emitUpdReaction(emoji: string, delta: number) {
 
 	.article {
 		padding: 14px 16px;
+	}
+
+	.article.reduceMargin {
+		padding: 8px 11px 13px;
 	}
 }
 

@@ -117,6 +117,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div class="_gaps_m">
 			<div class="_gaps_s">
+				<MkSwitch v-model="reduceMargin">{{ i18n.ts.reduceUiMargin }}</MkSwitch>
+				<MkSwitch v-model="largeNoteText">{{ i18n.ts.largeNoteText }}</MkSwitch>
+				<MkSwitch v-model="hideNavFooter">{{ i18n.ts.hideNavFooter }}</MkSwitch>
 				<MkSwitch v-model="reduceAnimation">{{ i18n.ts.reduceUiAnimation }}</MkSwitch>
 				<MkSwitch v-model="useBlurEffect">{{ i18n.ts.useBlurEffect }}</MkSwitch>
 				<MkSwitch v-model="useBlurEffectForModal">{{ i18n.ts.useBlurEffectForModal }}</MkSwitch>
@@ -284,6 +287,9 @@ const showClipButtonInNoteFooter = computed(defaultStore.makeGetterSetter('showC
 const reactionsDisplaySize = computed(defaultStore.makeGetterSetter('reactionsDisplaySize'));
 const limitWidthOfReaction = computed(defaultStore.makeGetterSetter('limitWidthOfReaction'));
 const collapseRenotes = computed(defaultStore.makeGetterSetter('collapseRenotes'));
+const reduceMargin = computed(defaultStore.makeGetterSetter('reduceMargin'));
+const largeNoteText = computed(defaultStore.makeGetterSetter('largeNoteText'));
+const hideNavFooter = computed(defaultStore.makeGetterSetter('hideNavFooter'));
 const reduceAnimation = computed(defaultStore.makeGetterSetter('animation', v => !v, v => !v));
 const useBlurEffectForModal = computed(defaultStore.makeGetterSetter('useBlurEffectForModal'));
 const useBlurEffect = computed(defaultStore.makeGetterSetter('useBlurEffect'));
@@ -364,6 +370,9 @@ watch([
 	alwaysConfirmFollow,
 	confirmWhenRevealingSensitiveMedia,
 	contextMenu,
+	reduceMargin,
+	largeNoteText,
+	hideNavFooter,
 ], async () => {
 	await reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
