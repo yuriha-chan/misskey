@@ -60,6 +60,15 @@ export async function common(createVue: () => App<Element>) {
 			*/
 		});
 	}
+	//#region Fetch user
+	if ($i && $i.token) {
+		if (_DEV_) {
+			console.log('account cache found. refreshing...');
+		}
+
+		refreshAccount();
+	}
+	//#endregion
 
 	let isClientUpdated = false;
 
@@ -216,16 +225,6 @@ export async function common(createVue: () => App<Element>) {
 				);
 			});
 	}
-
-	//#region Fetch user
-	if ($i && $i.token) {
-		if (_DEV_) {
-			console.log('account cache found. refreshing...');
-		}
-
-		refreshAccount();
-	}
-	//#endregion
 
 	try {
 		await fetchCustomEmojis();
