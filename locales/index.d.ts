@@ -1155,6 +1155,10 @@ export interface Locale extends ILocale {
      */
     "attachFile": string;
     /**
+     * すべての添付ファイルをノートから取り外す
+     */
+    "removeAllFiles": string;
+    /**
      * もっと！
      */
     "more": string;
@@ -1314,6 +1318,10 @@ export interface Locale extends ILocale {
      * 画像
      */
     "image": string;
+    /**
+     * 以下に正確な個人情報を入力する必要はありません。架空の居住地や誕生日を入力してもよいですし、空欄のままでもかまいません。
+     */
+    "personalInfo": string;
     /**
      * 誕生日
      */
