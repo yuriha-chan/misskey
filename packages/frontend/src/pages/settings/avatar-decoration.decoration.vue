@@ -12,11 +12,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div :class="$style.description"><Mfm :text="decoration.description"/></div>
 	<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: decoration.url, bgUrl: decoration.bgUrl, animation: decoration.animation, imgAnimation: decoration.imgAnimation, bgAnimation: decoration.bgAnimation, mixBlendMode: decoration.mixBlendMode, bgMixBlendMode: decoration.bgMixBlendMode, angle, flipH, offsetX, offsetY }]" forceShowDecoration/>
 	<i v-if="decoration.roleIdsThatCanBeUsedThisDecoration.length > 0 && !$i.roles.some(r => decoration.roleIdsThatCanBeUsedThisDecoration.includes(r.id))" :class="$style.lock" class="ti ti-lock"></i>
+	<i v-if="locked" :class="$style.lock" class="ti ti-lock"></i>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { } from 'vue';
+import { computed } from 'vue';
 import { signinRequired } from '@/account.js';
 
 const $i = signinRequired();
@@ -44,6 +45,8 @@ const props = defineProps<{
 const emit = defineEmits<{
 	(ev: 'click'): void;
 }>();
+
+const locked = computed(() => props.decoration.roleIdsThatCanBeUsedThisDecoration.length > 0 && !$i.roles.some(r => props.decoration.roleIdsThatCanBeUsedThisDecoration.includes(r.id)));
 </script>
 
 <style lang="scss" module>
@@ -74,6 +77,7 @@ const emit = defineEmits<{
 	position: absolute;
 	bottom: 12px;
 	right: 12px;
+	color: var(--MI_THEME-warn);
 }
 
 .description {

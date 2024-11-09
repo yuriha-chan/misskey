@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.footer" class="_buttonsCenter">
 			<MkButton v-if="usingIndex != null" primary rounded @click="update"><i class="ti ti-check"></i> {{ i18n.ts.update }}</MkButton>
 			<MkButton v-if="usingIndex != null" rounded @click="detach"><i class="ti ti-x"></i> {{ i18n.ts.detach }}</MkButton>
-			<MkButton v-else :disabled="exceeded" primary rounded @click="attach"><i class="ti ti-check"></i> {{ i18n.ts.attach }}</MkButton>
+			<MkButton v-else :disabled="exceeded || locked" primary rounded @click="attach"><i class="ti ti-check"></i> {{ i18n.ts.attach }}</MkButton>
 		</div>
 	</div>
 </MkModalWindow>
@@ -67,6 +67,7 @@ const props = defineProps<{
 		mixBlendMode: string;
 		bgMixBlendMode: string;
 		name: string;
+		roleIdsThatCanBeUsedThisDecoration: string[];
 	};
 }>();
 
@@ -89,6 +90,7 @@ const emit = defineEmits<{
 
 const dialog = shallowRef<InstanceType<typeof MkModalWindow>>();
 const exceeded = computed(() => ($i.policies.avatarDecorationLimit - $i.avatarDecorations.length) <= 0);
+const locked = computed(() => props.decoration.roleIdsThatCanBeUsedThisDecoration.length > 0 && !$i.roles.some(r => props.decoration.roleIdsThatCanBeUsedThisDecoration.includes(r.id)));
 const angle = ref((props.usingIndex != null ? $i.avatarDecorations[props.usingIndex].angle : null) ?? 0);
 const flipH = ref((props.usingIndex != null ? $i.avatarDecorations[props.usingIndex].flipH : null) ?? false);
 const offsetX = ref((props.usingIndex != null ? $i.avatarDecorations[props.usingIndex].offsetX : null) ?? 0);
@@ -120,7 +122,7 @@ const decorationsForPreview = computed(() => {
 });
 
 function cancel() {
-	dialog.value.close();
+	dialog.value?.close();
 }
 
 async function update() {
@@ -130,7 +132,7 @@ async function update() {
 		offsetX: offsetX.value,
 		offsetY: offsetY.value,
 	});
-	dialog.value.close();
+	dialog.value?.close();
 }
 
 async function attach() {
@@ -140,12 +142,12 @@ async function attach() {
 		offsetX: offsetX.value,
 		offsetY: offsetY.value,
 	});
-	dialog.value.close();
+	dialog.value?.close();
 }
 
 async function detach() {
 	emit('detach');
-	dialog.value.close();
+	dialog.value?.close();
 }
 </script>
 
