@@ -48,15 +48,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #label>{{ i18n.ts.lockdown }}<span class="_beta">{{ i18n.ts.beta }}</span></template>
 
 		<div class="_gaps_m">
-			<MkSwitch :modelValue="requireSigninToViewContents" @update:modelValue="update_requireSigninToViewContents">
-				{{ i18n.ts._accountSettings.requireSigninToViewContents }}
-				<template #caption>
-					<div>{{ i18n.ts._accountSettings.requireSigninToViewContentsDescription1 }}</div>
-					<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._accountSettings.requireSigninToViewContentsDescription2 }}</div>
-					<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._accountSettings.requireSigninToViewContentsDescription3 }}</div>
-				</template>
-			</MkSwitch>
-
 			<FormSlot>
 				<template #label>{{ i18n.ts._accountSettings.makeNotesFollowersOnlyBefore }}</template>
 
