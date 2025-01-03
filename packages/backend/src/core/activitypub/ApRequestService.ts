@@ -17,12 +17,9 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import type Logger from '@/logger.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
-<<<<<<< HEAD
 import { assertActivityMatchesUrls } from '@/core/activitypub/misc/check-against-url.js';
 import type { IObject } from './type.js';
-=======
 import type { PrivateKeyWithPem, PrivateKey } from '@misskey-dev/node-http-message-signatures';
->>>>>>> tamaina-origin/re-ed25519
 
 export async function createSignedPost(args: { level: string; key: PrivateKey; url: string; body: string; digest?: string, additionalHeaders: Record<string, string> }) {
 	const u = new URL(args.url);
@@ -200,13 +197,8 @@ export class ApRequestService {
 				const alternate = document.querySelector('head > link[rel="alternate"][type="application/activity+json"]');
 				if (alternate) {
 					const href = alternate.getAttribute('href');
-<<<<<<< HEAD
 					if (href && this.utilityService.punyHost(url) === this.utilityService.punyHost(href)) {
-						return await this.signedGet(href, user, false);
-=======
-					if (href) {
 						return await this.signedGet(href, user, level, false);
->>>>>>> tamaina-origin/re-ed25519
 					}
 				}
 			} catch (e) {
