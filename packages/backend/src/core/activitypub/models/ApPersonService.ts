@@ -214,7 +214,7 @@ export class ApPersonService implements OnModuleInit {
 					throw new Error('invalid Actor: publicKey.id is not a string');
 				}
 
-				const publicKeyIdHost = this.punyHost(publicKey.id);
+				const publicKeyIdHost = this.utilityService.punyHost(publicKey.id);
 				if (publicKeyIdHost !== expectHost) {
 					throw new Error('invalid Actor: publicKey.id has different host');
 				}
@@ -240,7 +240,7 @@ export class ApPersonService implements OnModuleInit {
 					throw new Error('invalid Actor: additionalPublicKeys.id is not a string');
 				}
 
-				const keyIdHost = this.punyHost(key.id);
+				const keyIdHost = this.utilityService.punyHost(key.id);
 				if (keyIdHost !== expectHost) {
 					throw new Error('invalid Actor: additionalPublicKeys.id has different host');
 				}

@@ -16,7 +16,6 @@ import type { MiNote } from '@/models/Note.js';
 import { bindThis } from '@/decorators.js';
 import { MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import Logger from '@/logger.js';
-import { UtilityService } from '@/core/UtilityService.js';
 import { getApId } from './type.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import { ApLoggerService } from './ApLoggerService.js';
