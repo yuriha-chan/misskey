@@ -5,7 +5,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div>
-	<MkAnimBg style="position: fixed; top: 0;"/>
 	<div :class="$style.formContainer">
 		<div :class="$style.form">
 			<MkAuthConfirm
