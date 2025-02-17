@@ -257,7 +257,7 @@ function showMenu(ev: MouseEvent) {
 	if ($i && $i.id === page.value.userId) {
 		menuItems.push({
 			icon: 'ti ti-pencil',
-			text: i18n.ts.editThisPage,
+			text: i18n.ts.edit,
 			action: () => router.push(`/pages/edit/${page.value.id}`),
 		});
 
@@ -276,10 +276,6 @@ function showMenu(ev: MouseEvent) {
 		}
 	} else if ($i && $i.id !== page.value.userId) {
 		menuItems.push({
-				icon: 'ti ti-code',
-				text: i18n.ts._pages.viewSource,
-				action: () => router.push(`/@${props.username}/pages/${props.pageName}/view-source`),
-		}, {
 			icon: 'ti ti-exclamation-circle',
 			text: i18n.ts.reportAbuse,
 			action: reportAbuse,
