@@ -45,6 +45,10 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 					value: 'oneDay', text: i18n.ts.oneDay,
 				}, {
 					value: 'oneWeek', text: i18n.ts.oneWeek,
+				}, {
+					value: 'twoWeeks', text: i18n.ts.twoWeeks,
+				}, {
+					value: 'oneMonth', text: i18n.ts.oneMonth,
 				}],
 				default: 'indefinitely',
 			});
@@ -55,6 +59,8 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 				: period === 'oneHour' ? Date.now() + (1000 * 60 * 60)
 				: period === 'oneDay' ? Date.now() + (1000 * 60 * 60 * 24)
 				: period === 'oneWeek' ? Date.now() + (1000 * 60 * 60 * 24 * 7)
+				: period === 'twoWeeks' ? Date.now() + (1000 * 60 * 60 * 24 * 14)
+				: period === 'oneMonth' ? Date.now() + (1000 * 60 * 60 * 24 * 30)
 				: null;
 
 			os.apiWithDialog('mute/create', {
@@ -315,9 +321,19 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 								}, {
 									value: 'oneDay', text: i18n.ts.oneDay,
 								}, {
+									value: 'threeDays', text: i18n.ts.threeDays,
+								}, {
 									value: 'oneWeek', text: i18n.ts.oneWeek,
 								}, {
+									value: 'twoWeeks', text: i18n.ts.twoWeeks,
+								}, {
 									value: 'oneMonth', text: i18n.ts.oneMonth,
+								}, {
+									value: 'threeMonths', text: i18n.ts.threeMonths,
+								}, {
+									value: 'oneYear', text: i18n.ts.oneYear,
+								}, {
+									value: 'threeYears', text: i18n.ts.threeYears,
 								}],
 								default: 'indefinitely',
 							});
@@ -326,8 +342,13 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 							const expiresAt = period === 'indefinitely' ? null
 								: period === 'oneHour' ? Date.now() + (1000 * 60 * 60)
 								: period === 'oneDay' ? Date.now() + (1000 * 60 * 60 * 24)
+								: period === 'threeDays' ? Date.now() + (1000 * 60 * 60 * 24 * 3)
 								: period === 'oneWeek' ? Date.now() + (1000 * 60 * 60 * 24 * 7)
+								: period === 'twoWeeks' ? Date.now() + (1000 * 60 * 60 * 24 * 14)
 								: period === 'oneMonth' ? Date.now() + (1000 * 60 * 60 * 24 * 30)
+								: period === 'threeMonths' ? Date.now() + (1000 * 60 * 60 * 24 * 90)
+								: period === 'oneYear' ? Date.now() + (1000 * 60 * 60 * 24 * 365)
+								: period === 'threeYears' ? Date.now() + (1000 * 60 * 60 * 24 * 1095)
 								: null;
 
 							os.apiWithDialog('admin/roles/assign', { roleId: r.id, userId: user.id, expiresAt });
