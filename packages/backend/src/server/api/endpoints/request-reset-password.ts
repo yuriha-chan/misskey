@@ -22,7 +22,7 @@ export const meta = {
 	description: 'Request a users password to be reset.',
 
 	limit: {
-		duration: ms('1hour'),
+		duration: ms('30min'),
 		max: 3,
 	},
 

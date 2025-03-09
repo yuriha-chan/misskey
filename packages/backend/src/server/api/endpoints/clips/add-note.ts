@@ -19,8 +19,8 @@ export const meta = {
 	kind: 'write:account',
 
 	limit: {
-		duration: ms('1hour'),
-		max: 20,
+		duration: ms('30min'),
+		max: 400,
 	},
 
 	errors: {
