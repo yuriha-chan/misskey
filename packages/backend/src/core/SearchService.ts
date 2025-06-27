@@ -207,8 +207,12 @@ export class SearchService {
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
 		if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
-		  const filtered = this.notesRepository.createQueryBuilder('note').select('note.id').where('note.text &@~ :q', { q });
-		  query.innerJoin(`(${filtered.getQuery()})`, 'filtered', 'note.id = filtered.id').setParameters(filtered.getParameters());
+			const isCommon = await this.notesRepository.query( "SELECT EXISTS ( SELECT 1 FROM note WHERE note.text &@~ $1 LIMIT 1 OFFSET 2000) AS exists", [q]);
+			// use pgroonga index first for rare query
+			if (!isCommon[0].exists) {
+				const filtered = this.notesRepository.createQueryBuilder('note').select('note.id').where('note.text &@~ :q_filtered', { q_filtered: q });
+				query.innerJoin(`(${filtered.getQuery()})`, 'filtered', 'note.id = filtered.id').setParameters(filtered.getParameters());
+			}
 		}
 
 		if (opts.userId) {
