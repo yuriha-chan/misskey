@@ -206,6 +206,11 @@ export class SearchService {
 	): Promise<MiNote[]> {
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
+		if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
+		  const filtered = this.notesRepository.createQueryBuilder('note').select('note.id').where('note.text &@~ :q', { q });
+		  query.innerJoin(`(${filtered.getQuery()})`, 'filtered', 'note.id = filtered.id').setParameters(filtered.getParameters());
+		}
+
 		if (opts.userId) {
 			query.andWhere('note.userId = :userId', { userId: opts.userId });
 		} else if (opts.channelId) {
@@ -220,6 +225,7 @@ export class SearchService {
 			.leftJoinAndSelect('renote.user', 'renoteUser');
 
 		if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
+			// Strangely, duplicated criteria is required to enable index scan
 			query.andWhere('note.text &@~ :q', { q });
 		} else {
 			query.andWhere('LOWER(note.text) LIKE :q', { q: `%${ sqlLikeEscape(q.toLowerCase()) }%` });
