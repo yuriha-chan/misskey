@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template v-else #header>New decoration</template>
 
 	<div style="display: flex; flex-direction: column; min-height: 100%;">
-		<MkSpacer :marginMin="20" :marginMax="28" style="flex-grow: 1;">
+		<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px; flex-grow: 1;">
 			<div class="_gaps_m">
 				<div :class="$style.preview">
 					<div :class="[$style.previewItem, $style.light]">
@@ -71,7 +71,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 				<MkButton v-if="avatarDecoration" danger @click="del()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
-		</MkSpacer>
+		</div>
 		<div :class="$style.footer">
 			<MkButton primary rounded style="margin: 0 auto;" @click="done"><i class="ti ti-check"></i> {{ props.avatarDecoration ? i18n.ts.update : i18n.ts.create }}</MkButton>
 		</div>
@@ -80,7 +80,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, watch, ref } from 'vue';
+import { computed, watch, ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -89,14 +89,14 @@ import MkSelect from '@/components/MkSelect.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkRolePreview from '@/components/MkRolePreview.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
-import { signinRequired } from '@/account.js';
+import { ensureSignin } from '@/i.js';
 
-const $i = signinRequired();
+const $i = ensureSignin();
 
 const props = defineProps<{
 	avatarDecoration?: any,
@@ -109,7 +109,7 @@ const emit = defineEmits<{
 
 const mixBlendModeOptions = ["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]
 
-const windowEl = ref<InstanceType<typeof MkWindow> | null>(null);
+const windowEl = useTemplateRef('windowEl');
 const name = ref<string>(props.avatarDecoration ? props.avatarDecoration.name : '');
 const description = ref<string>(props.avatarDecoration ? props.avatarDecoration.description : '');
 const url = ref<string>(props.avatarDecoration ? props.avatarDecoration.url : '');
@@ -248,7 +248,7 @@ async function del() {
 	left: 0;
 	padding: 12px;
 	border-top: solid 0.5px var(--MI_THEME-divider);
-	background: var(--MI_THEME-acrylicBg);
+	background: color(from var(--MI_THEME-bg) srgb r g b / 0.5);
 	-webkit-backdrop-filter: var(--MI-blur, blur(15px));
 	backdrop-filter: var(--MI-blur, blur(15px));
 }

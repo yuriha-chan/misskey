@@ -4,11 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkStickyContainer>
-	<template #header>
-		<XHeader :actions="headerActions" :tabs="headerTabs"/>
-	</template>
-	<MkSpacer :contentMax="900">
+<PageWithHeader :actions="headerActions" :tabs="headerTabs">
+	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<MkSelect v-model="filterType" :class="$style.input" @update:modelValue="filterItems">
 			<template #label>{{ i18n.ts.state }}</template>
 			<option value="all">{{ i18n.ts.all }}</option>
@@ -80,14 +77,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<i class="ti ti-reload"></i>{{ i18n.ts.more }}
 			</MkButton>
 		</div>
-	</MkSpacer>
-</MkStickyContainer>
+	</div>
+</PageWithHeader>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import * as Misskey from 'misskey-js';
-import XHeader from './_header_.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
@@ -96,9 +92,9 @@ import MkFolder from '@/components/MkFolder.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import FormSplit from '@/components/form/split.vue';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePage } from '@/page.js';
 
 const ads = ref<Misskey.entities.Ad[]>([]);
 
@@ -144,15 +140,15 @@ function toggleDayOfWeek(ad, index) {
 
 function add() {
 	ads.value.unshift({
-		id: null,
+		id: '',
 		memo: '',
 		place: 'square',
 		priority: 'middle',
 		ratio: 1,
 		url: '',
-		imageUrl: null,
-		expiresAt: null,
-		startsAt: null,
+		imageUrl: '',
+		expiresAt: new Date().toISOString(),
+		startsAt: new Date().toISOString(),
 		dayOfWeek: 0,
 	});
 }
@@ -164,7 +160,7 @@ function remove(ad) {
 	}).then(({ canceled }) => {
 		if (canceled) return;
 		ads.value = ads.value.filter(x => x !== ad);
-		if (ad.id == null) return;
+		if (ad.id === '') return;
 		os.apiWithDialog('admin/ad/delete', {
 			id: ad.id,
 		}).then(() => {
@@ -174,7 +170,7 @@ function remove(ad) {
 }
 
 function save(ad) {
-	if (ad.id == null) {
+	if (ad.id === '') {
 		misskeyApi('admin/ad/create', {
 			...ad,
 			expiresAt: new Date(ad.expiresAt).getTime(),
@@ -211,7 +207,7 @@ function save(ad) {
 }
 
 function more() {
-	misskeyApi('admin/ad/list', { untilId: ads.value.reduce((acc, ad) => ad.id != null ? ad : acc).id, publishing: publishing }).then(adsResponse => {
+	misskeyApi('admin/ad/list', { untilId: ads.value.reduce((acc, ad) => ad.id !== '' ? ad : acc).id, publishing: publishing }).then(adsResponse => {
 		if (adsResponse == null) return;
 		ads.value = ads.value.concat(adsResponse.map(r => {
 			const exdate = new Date(r.expiresAt);
@@ -255,7 +251,7 @@ const headerActions = computed(() => [{
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts.ads,
 	icon: 'ti ti-ad',
 }));

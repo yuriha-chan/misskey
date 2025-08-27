@@ -9,6 +9,7 @@ import { MetaService } from '@/core/MetaService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
+import { SystemAccountService } from '@/core/SystemAccountService.js';
 
 export const meta = {
 	tags: ['meta'],
@@ -72,6 +73,10 @@ export const meta = {
 			enableTestcaptcha: {
 				type: 'boolean',
 				optional: false, nullable: false,
+			},
+			googleAnalyticsMeasurementId: {
+				type: 'string',
+				optional: false, nullable: true,
 			},
 			swPublickey: {
 				type: 'string',
@@ -243,7 +248,7 @@ export const meta = {
 			},
 			proxyAccountId: {
 				type: 'string',
-				optional: false, nullable: true,
+				optional: false, nullable: false,
 				format: 'id',
 			},
 			email: {
@@ -430,6 +435,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			clientOptions: {
+				type: 'object',
+				optional: false, nullable: false,
+			},
 			description: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -474,6 +483,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			feedbackUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			summalyProxy: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -497,6 +510,10 @@ export const meta = {
 				optional: false, nullable: false,
 			},
 			urlPreviewEnabled: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			urlPreviewAllowRedirect: {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
@@ -533,6 +550,57 @@ export const meta = {
 					optional: false, nullable: false,
 				},
 			},
+			deliverSuspendedSoftware: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'object',
+					optional: false, nullable: false,
+					properties: {
+						software: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+						versionRange: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+					},
+				},
+			},
+			singleUserMode: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			ugcVisibilityForVisitor: {
+				type: 'string',
+				enum: ['all', 'local', 'none'],
+				optional: false, nullable: false,
+			},
+			proxyRemoteFiles: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			signToActivityPubGet: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			allowExternalApRedirect: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			enableRemoteNotesCleaning: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			remoteNotesCleaningExpiryDaysForEachNotes: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			remoteNotesCleaningMaxProcessingDurationInMinutes: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
 		},
 	},
 } as const;
@@ -551,9 +619,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private config: Config,
 
 		private metaService: MetaService,
+		private systemAccountService: SystemAccountService,
 	) {
 		super(meta, paramDef, async () => {
 			const instance = await this.metaService.fetch(true);
+
+			const proxy = await this.systemAccountService.fetch('proxy');
 
 			return {
 				maintainerName: instance.maintainerName,
@@ -582,6 +653,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				enableTurnstile: instance.enableTurnstile,
 				turnstileSiteKey: instance.turnstileSiteKey,
 				enableTestcaptcha: instance.enableTestcaptcha,
+				googleAnalyticsMeasurementId: instance.googleAnalyticsMeasurementId,
 				swPublickey: instance.swPublicKey,
 				themeColor: instance.themeColor,
 				mascotImageUrl: instance.mascotImageUrl,
@@ -596,6 +668,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				logoImageUrl: instance.logoImageUrl,
 				defaultLightTheme: instance.defaultLightTheme,
 				defaultDarkTheme: instance.defaultDarkTheme,
+				clientOptions: instance.clientOptions,
 				enableEmail: instance.enableEmail,
 				enableServiceWorker: instance.enableServiceWorker,
 				translatorAvailable: instance.deeplAuthKey != null,
@@ -619,7 +692,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				sensitiveMediaDetectionSensitivity: instance.sensitiveMediaDetectionSensitivity,
 				setSensitiveFlagAutomatically: instance.setSensitiveFlagAutomatically,
 				enableSensitiveMediaDetectionForVideos: instance.enableSensitiveMediaDetectionForVideos,
-				proxyAccountId: instance.proxyAccountId,
+				proxyAccountId: proxy.id,
 				email: instance.email,
 				smtpSecure: instance.smtpSecure,
 				smtpHost: instance.smtpHost,
@@ -667,6 +740,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				notesPerOneAd: instance.notesPerOneAd,
 				summalyProxy: instance.urlPreviewSummaryProxyUrl,
 				urlPreviewEnabled: instance.urlPreviewEnabled,
+				urlPreviewAllowRedirect: instance.urlPreviewAllowRedirect,
 				urlPreviewTimeout: instance.urlPreviewTimeout,
 				urlPreviewMaximumContentLength: instance.urlPreviewMaximumContentLength,
 				urlPreviewRequireContentLength: instance.urlPreviewRequireContentLength,
@@ -674,6 +748,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				urlPreviewSummaryProxyUrl: instance.urlPreviewSummaryProxyUrl,
 				federation: instance.federation,
 				federationHosts: instance.federationHosts,
+				deliverSuspendedSoftware: instance.deliverSuspendedSoftware,
+				singleUserMode: instance.singleUserMode,
+				ugcVisibilityForVisitor: instance.ugcVisibilityForVisitor,
+				proxyRemoteFiles: instance.proxyRemoteFiles,
+				signToActivityPubGet: instance.signToActivityPubGet,
+				allowExternalApRedirect: instance.allowExternalApRedirect,
+				enableRemoteNotesCleaning: instance.enableRemoteNotesCleaning,
+				remoteNotesCleaningExpiryDaysForEachNotes: instance.remoteNotesCleaningExpiryDaysForEachNotes,
+				remoteNotesCleaningMaxProcessingDurationInMinutes: instance.remoteNotesCleaningMaxProcessingDurationInMinutes,
 			};
 		});
 	}

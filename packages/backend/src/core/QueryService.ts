@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Brackets, ObjectLiteral } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MiUser } from '@/models/User.js';
-import type { UserProfilesRepository, FollowingsRepository, ChannelFollowingsRepository, BlockingsRepository, NoteThreadMutingsRepository, MutingsRepository, RenoteMutingsRepository } from '@/models/_.js';
+import type { UserProfilesRepository, FollowingsRepository, ChannelFollowingsRepository, BlockingsRepository, NoteThreadMutingsRepository, MutingsRepository, RenoteMutingsRepository, MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
 import type { SelectQueryBuilder } from 'typeorm';
@@ -36,40 +36,96 @@ export class QueryService {
 		@Inject(DI.renoteMutingsRepository)
 		private renoteMutingsRepository: RenoteMutingsRepository,
 
+		@Inject(DI.meta)
+		private meta: MiMeta,
+
 		private idService: IdService,
 	) {
 	}
 
-	public makePaginationQuery<T extends ObjectLiteral>(q: SelectQueryBuilder<T>, sinceId?: string | null, untilId?: string | null, sinceDate?: number | null, untilDate?: number | null): SelectQueryBuilder<T> {
+	public makePaginationQuery<T extends ObjectLiteral>(
+		q: SelectQueryBuilder<T>,
+		sinceId?: string | null,
+		untilId?: string | null,
+		sinceDate?: number | null,
+		untilDate?: number | null,
+		targetColumn = 'id',
+	): SelectQueryBuilder<T> {
 		if (sinceId && untilId) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: sinceId });
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: untilId });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: sinceId });
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: untilId });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else if (sinceId) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: sinceId });
-			q.orderBy(`${q.alias}.id`, 'ASC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: sinceId });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'ASC');
 		} else if (untilId) {
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: untilId });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: untilId });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else if (sinceDate && untilDate) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: this.idService.gen(untilDate) });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: this.idService.gen(untilDate) });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else if (sinceDate) {
-			q.andWhere(`${q.alias}.id > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
-			q.orderBy(`${q.alias}.id`, 'ASC');
+			q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'ASC');
 		} else if (untilDate) {
-			q.andWhere(`${q.alias}.id < :untilId`, { untilId: this.idService.gen(untilDate) });
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId: this.idService.gen(untilDate) });
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		} else {
-			q.orderBy(`${q.alias}.id`, 'DESC');
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
 		}
 		return q;
 	}
 
+	/**
+	 * ミュートやブロックのようにすべてのタイムラインで共通に使用するフィルターを定義します。
+	 *
+	 * 特別な事情がない限り、各タイムラインはこの関数を呼び出してフィルターを適用してください。
+	 *
+	 * Notes for future maintainers:
+	 * 1) この関数で生成するクエリと同等の処理が FanoutTimelineEndpointService にあります。
+	 *    この関数を変更した場合、FanoutTimelineEndpointService の方も変更する必要があります。
+	 * 2) 以下のエンドポイントでは特別な事情があるため queryService のそれぞれの関数を呼び出しています。
+	 *    この関数を変更した場合、以下のエンドポイントの方も変更する必要があることがあります。
+	 *    - packages/backend/src/server/api/endpoints/clips/notes.ts
+	 */
+	@bindThis
+	public generateBaseNoteFilteringQuery(
+		query: SelectQueryBuilder<any>,
+		me: { id: MiUser['id'] } | null,
+		{
+			excludeUserFromMute,
+			excludeAuthor,
+			gtl,
+			serverGtlMutedHosts
+		}: {
+			excludeUserFromMute?: MiUser['id'],
+			excludeAuthor?: boolean,
+			gtl?: boolean,
+			serverGtlMutedHosts?: string,
+		} = {},
+	): void {
+		this.generateBlockedHostQueryForNote(query, excludeAuthor);
+		this.generateSuspendedUserQueryForNote(query, excludeAuthor);
+		if (me) {
+			this.generateMutedUserQueryForNotes(query, me, { excludeUserFromMute, gtl, serverGtlMutedHosts });
+			this.generateBlockedUserQueryForNotes(query, me);
+			this.generateMutedUserQueryForNotes(query, me, { noteColumn: 'renote', excludeUserFromMute, gtl, serverGtlMutedHosts });
+			this.generateBlockedUserQueryForNotes(query, me, { noteColumn: 'renote' });
+		}
+	}
+
 	// ここでいうBlockedは被Blockedの意
 	@bindThis
-	public generateBlockedUserQuery(q: SelectQueryBuilder<any>, me: { id: MiUser['id'] }): void {
+	public generateBlockedUserQueryForNotes(
+		q: SelectQueryBuilder<any>,
+		me: { id: MiUser['id'] },
+		{
+			noteColumn = 'note',
+		}: {
+			noteColumn?: string,
+		} = {},
+	): void {
 		const blockingQuery = this.blockingsRepository.createQueryBuilder('blocking')
 			.select('blocking.blockerId')
 			.where('blocking.blockeeId = :blockeeId', { blockeeId: me.id });
@@ -78,16 +134,20 @@ export class QueryService {
 		// 投稿の返信先の作者にブロックされていない かつ
 		// 投稿の引用元の作者にブロックされていない
 		q
-			.andWhere(`note.userId NOT IN (${ blockingQuery.getQuery() })`)
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.replyUserId IS NULL')
-					.orWhere(`note.replyUserId NOT IN (${ blockingQuery.getQuery() })`);
+					.where(`${noteColumn}.userId IS NULL`)
+					.orWhere(`${noteColumn}.userId NOT IN (${ blockingQuery.getQuery() })`);
 			}))
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.renoteUserId IS NULL')
-					.orWhere(`note.renoteUserId NOT IN (${ blockingQuery.getQuery() })`);
+					.where(`${noteColumn}.replyUserId IS NULL`)
+					.orWhere(`${noteColumn}.replyUserId NOT IN (${ blockingQuery.getQuery() })`);
+			}))
+			.andWhere(new Brackets(qb => {
+				qb
+					.where(`${noteColumn}.renoteUserId IS NULL`)
+					.orWhere(`${noteColumn}.renoteUserId NOT IN (${ blockingQuery.getQuery() })`);
 			}));
 
 		q.setParameters(blockingQuery.getParameters());
@@ -127,13 +187,27 @@ export class QueryService {
 	}
 
 	@bindThis
-	public generateMutedUserQuery(q: SelectQueryBuilder<any>, me: { id: MiUser['id'] }, exclude?: { id: MiUser['id'] }, gtl?: boolean, serverGtlMutedHosts?: string): void {
+	public generateMutedUserQueryForNotes(
+		q: SelectQueryBuilder<any>,
+		me: { id: MiUser['id'] },
+		{
+			excludeUserFromMute,
+			gtl,
+			serverGtlMutedHosts,
+			noteColumn = 'note',
+		}: {
+			excludeUserFromMute?: MiUser['id'],
+			gtl?: boolean,
+			serverGtlMutedHosts?: string,
+			noteColumn?: string,
+		} = {},
+	): void {
 		const mutingQuery = this.mutingsRepository.createQueryBuilder('muting')
 			.select('muting.muteeId')
 			.where('muting.muterId = :muterId', { muterId: me.id });
 
-		if (exclude) {
-			mutingQuery.andWhere('muting.muteeId != :excludeId', { excludeId: exclude.id });
+		if (excludeUserFromMute) {
+			mutingQuery.andWhere('muting.muteeId != :excludeId', { excludeId: excludeUserFromMute });
 		}
 
 		const mutingInstanceQuery = this.userProfilesRepository.createQueryBuilder('user_profile')
@@ -151,56 +225,70 @@ export class QueryService {
 		// 投稿の返信先の作者をミュートしていない かつ
 		// 投稿の引用元の作者をミュートしていない
 		q
-			.andWhere(`note.userId NOT IN (${ mutingQuery.getQuery() })`)
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.replyUserId IS NULL')
-					.orWhere(`note.replyUserId NOT IN (${ mutingQuery.getQuery() })`);
+					.where(`${noteColumn}.userId IS NULL`)
+					.orWhere(`${noteColumn}.userId NOT IN (${ mutingQuery.getQuery() })`);
 			}))
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.renoteUserId IS NULL')
-					.orWhere(`note.renoteUserId NOT IN (${ mutingQuery.getQuery() })`);
+					.where(`${noteColumn}.replyUserId IS NULL`)
+					.orWhere(`${noteColumn}.replyUserId NOT IN (${ mutingQuery.getQuery() })`);
+			}))
+			.andWhere(new Brackets(qb => {
+				qb
+					.where(`${noteColumn}.renoteUserId IS NULL`)
+					.orWhere(`${noteColumn}.renoteUserId NOT IN (${ mutingQuery.getQuery() })`);
 			}))
 			// mute instances
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.userHost IS NULL')
+					.where(`${noteColumn}.userHost IS NULL`)
 					.orWhere(new Brackets(qbb => {
-						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.userHost)`);
+						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.userHost)`);
 						if (gtl) {
-							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? note.userHost)`);
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.userHost)`);
 							if (serverGtlMutedHosts.length > 0) {
-								qbb.andWhere(`NOT (note.userHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
+								qbb.andWhere(`NOT (${noteColumn}.userHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
 							}
 						}
 					}));
 			}))
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.replyUserHost IS NULL')
+					.where(`${noteColumn}.replyUserHost IS NULL`)
 					.orWhere(new Brackets(qbb => {
-						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.replyUserHost)`);
+						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.replyUserHost)`);
 						if (gtl) {
-							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? note.replyUserHost)`);
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.replyUserHost)`);
 							if (serverGtlMutedHosts.length > 0) {
-								qbb.andWhere(`NOT (note.replyUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
+								qbb.andWhere(`NOT (${noteColumn}.replyUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
 							}
 						}
 					}));
 			}))
 			.andWhere(new Brackets(qb => {
 				qb
-					.where('note.renoteUserHost IS NULL')
+					.where(`${noteColumn}.renoteUserHost IS NULL`)
 					.orWhere(new Brackets(qbb => {
-						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? note.renoteUserHost)`);
+						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.renoteUserHost)`);
 						if (gtl) {
-							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? note.renoteUserHost)`);
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.renoteUserHost)`);
 							if (serverGtlMutedHosts.length > 0) {
-								qbb.andWhere(`NOT (note.renoteUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
+								qbb.andWhere(`NOT (${noteColumn}.renoteUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
 							}
 						}
 					}));
+			}))
+			.andWhere(new Brackets(qb => {
+				qb
+					.where(`${noteColumn}.replyUserHost IS NULL`)
+					.orWhere(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.replyUserHost)`);
+			}))
+			.andWhere(new Brackets(qb => {
+				qb
+					.where(`${noteColumn}.renoteUserHost IS NULL`)
+					.orWhere(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.renoteUserHost)`);
 			}));
 
 		q.setParameters(mutingQuery.getParameters());
@@ -284,5 +372,60 @@ export class QueryService {
 		}));
 
 		q.setParameters(mutingQuery.getParameters());
+	}
+
+	@bindThis
+	public generateBlockedHostQueryForNote(q: SelectQueryBuilder<any>, excludeAuthor?: boolean): void {
+		let nonBlockedHostQuery: (part: string) => string;
+		if (this.meta.blockedHosts.length === 0) {
+			nonBlockedHostQuery = () => '1=1';
+		} else {
+			nonBlockedHostQuery = (match: string) => `${match} NOT ILIKE ALL(ARRAY[:...blocked])`;
+			q.setParameters({ blocked: this.meta.blockedHosts.flatMap(x => [x, `%.${x}`]) });
+		}
+
+		if (excludeAuthor) {
+			const instanceSuspension = (user: string) => new Brackets(qb => qb
+				.where(`note.${user}Id IS NULL`) // no corresponding user
+				.orWhere(`note.userId = note.${user}Id`)
+				.orWhere(`note.${user}Host IS NULL`) // local
+				.orWhere(nonBlockedHostQuery(`note.${user}Host`)));
+
+			q
+				.andWhere(instanceSuspension('replyUser'))
+				.andWhere(instanceSuspension('renoteUser'));
+		} else {
+			const instanceSuspension = (user: string) => new Brackets(qb => qb
+				.where(`note.${user}Id IS NULL`) // no corresponding user
+				.orWhere(`note.${user}Host IS NULL`) // local
+				.orWhere(nonBlockedHostQuery(`note.${user}Host`)));
+
+			q
+				.andWhere(instanceSuspension('user'))
+				.andWhere(instanceSuspension('replyUser'))
+				.andWhere(instanceSuspension('renoteUser'));
+		}
+	}
+
+	// Requirements: user replyUser renoteUser must be joined
+	@bindThis
+	public generateSuspendedUserQueryForNote(q: SelectQueryBuilder<any>, excludeAuthor?: boolean): void {
+		if (excludeAuthor) {
+			const brakets = (user: string) => new Brackets(qb => qb
+				.where(`${user}.id IS NULL`) // そもそもreplyやrenoteではない、もしくはleftjoinなどでuserが存在しなかった場合を考慮
+				.orWhere(`user.id = ${user}.id`)
+				.orWhere(`${user}.isSuspended = FALSE`));
+			q
+				.andWhere(brakets('replyUser'))
+				.andWhere(brakets('renoteUser'));
+		} else {
+			const brakets = (user: string) => new Brackets(qb => qb
+				.where(`${user}.id IS NULL`) // そもそもreplyやrenoteではない、もしくはleftjoinなどでuserが存在しなかった場合を考慮
+				.orWhere(`${user}.isSuspended = FALSE`));
+			q
+				.andWhere('user.isSuspended = FALSE')
+				.andWhere(brakets('replyUser'))
+				.andWhere(brakets('renoteUser'));
+		}
 	}
 }

@@ -17,7 +17,7 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import type Logger from '@/logger.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
-import { assertActivityMatchesUrls } from '@/core/activitypub/misc/check-against-url.js';
+import { assertActivityMatchesUrl, FetchAllowSoftFailMask as FetchAllowSoftFailMask } from '@/core/activitypub/misc/check-against-url.js';
 import type { IObject } from './type.js';
 import type { PrivateKeyWithPem, PrivateKey } from '@misskey-dev/node-http-message-signatures';
 
@@ -131,7 +131,7 @@ export class ApRequestService {
 	 * @param url URL to fetch
 	 */
 	@bindThis
-	public async signedGet(url: string, user: { id: MiUser['id'] }, level: string, followAlternate?: boolean): Promise<unknown> {
+	public async signedGet(url: string, user: { id: MiUser['id'] }, level: string, allowSoftfail: FetchAllowSoftFailMask = FetchAllowSoftFailMask.Strict, followAlternate?: boolean): Promise<unknown> {
 		const _followAlternate = followAlternate ?? true;
 
 		const key = await this.userKeypairService.getLocalUserPrivateKey(user.id, level);
@@ -198,7 +198,7 @@ export class ApRequestService {
 				if (alternate) {
 					const href = alternate.getAttribute('href');
 					if (href && this.utilityService.punyHost(url) === this.utilityService.punyHost(href)) {
-						return await this.signedGet(href, user, level, false);
+						return await this.signedGet(href, user, level, allowSoftfail, false);
 					}
 				}
 			} catch (e) {
@@ -213,7 +213,7 @@ export class ApRequestService {
 		const finalUrl = res.url; // redirects may have been involved
 		const activity = await res.json() as IObject;
 
-		assertActivityMatchesUrls(activity, [finalUrl]);
+		assertActivityMatchesUrl(url, activity, finalUrl, allowSoftfail);
 
 		return activity;
 	}

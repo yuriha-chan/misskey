@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</MkFoldableSection>
 
-	<MkFoldableSection v-for="category in customEmojiCategories" v-once :key="category">
+	<MkFoldableSection v-for="category in customEmojiCategories" v-once :key="category ?? '___root___'">
 		<template #header>{{ category || i18n.ts.other }}</template>
 		<div :class="$style.emojis">
 			<XEmoji v-for="emoji in customEmojis.filter(e => e.category === category)" :key="emoji.name" :emoji="emoji"/>
@@ -44,7 +44,7 @@ import MkInput from '@/components/MkInput.vue';
 import MkFoldableSection from '@/components/MkFoldableSection.vue';
 import { customEmojis, customEmojiCategories, getCustomEmojiTags } from '@/custom-emojis.js';
 import { i18n } from '@/i18n.js';
-import { $i } from '@/account.js';
+import { $i } from '@/i.js';
 
 const customEmojiTags = getCustomEmojiTags();
 const q = ref('');

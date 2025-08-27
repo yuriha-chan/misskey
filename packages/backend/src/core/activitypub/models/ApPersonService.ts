@@ -623,7 +623,7 @@ export class ApPersonService implements OnModuleInit {
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox ?? null,
 			followersUri: person.followers ? getApId(person.followers) : undefined,
-			featured: person.featured,
+			featured: person.featured ? getApId(person.featured) : undefined,
 			emojis: emojiNames,
 			name: truncate(person.name, nameLength),
 			tags,
@@ -657,7 +657,9 @@ export class ApPersonService implements OnModuleInit {
 		if (moving) updates.movedAt = new Date();
 
 		// Update user
-		await this.usersRepository.update(exist.id, updates);
+		if (!(await this.usersRepository.update({ id: exist.id, isDeleted: false }, updates)).affected) {
+			return 'skip';
+		}
 
 		try {
 			// Deleteアクティビティ受信時にもここが走ってsaveがuserforeign key制約エラーを吐くことがある
@@ -780,7 +782,7 @@ export class ApPersonService implements OnModuleInit {
 
 	@bindThis
 	public async updateFeatured(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
-		const user = await this.usersRepository.findOneByOrFail({ id: userId });
+		const user = await this.usersRepository.findOneByOrFail({ id: userId, isDeleted: false });
 		if (!this.userEntityService.isRemoteUser(user)) return;
 		if (!user.featured) return;
 

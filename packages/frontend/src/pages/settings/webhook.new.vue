@@ -46,7 +46,7 @@ import MkSwitch from '@/components/MkSwitch.vue';
 import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePage } from '@/page.js';
 
 const name = ref('');
 const url = ref('');
@@ -61,7 +61,7 @@ const event_reaction = ref(true);
 const event_mention = ref(true);
 
 async function create(): Promise<void> {
-	const events = [];
+	const events: string[] = [];
 	if (event_follow.value) events.push('follow');
 	if (event_followed.value) events.push('followed');
 	if (event_note.value) events.push('note');
@@ -82,7 +82,7 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: 'Create new webhook',
 	icon: 'ti ti-webhook',
 }));

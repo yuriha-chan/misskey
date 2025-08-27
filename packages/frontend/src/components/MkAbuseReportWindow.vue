@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i class="ti ti-exclamation-circle" style="margin-right: 0.5em;"></i>
 		<span>{{ i18n.ts.contactAdmin }}</span>
 	</template>
-	<MkSpacer :marginMin="20" :marginMax="28">
+	<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
 		<div class="_gaps_m" :class="$style.root">
 	                <MkSelect v-model="reason" large>
 				<template #label>{{ i18n.ts.contactAdminReason }}</template>
@@ -41,12 +41,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkButton primary full :disabled="comment.length === 0" @click="send">{{ i18n.ts.send }}</MkButton>
 			</div>
 		</div>
-	</MkSpacer>
+	</div>
 </MkWindow>
 </template>
 
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkSelect from '@/components/MkSelect.vue';
 import MkWindow from '@/components/MkWindow.vue';
@@ -65,7 +65,7 @@ const emit = defineEmits<{
 	(ev: 'closed'): void;
 }>();
 
-const uiWindow = shallowRef<InstanceType<typeof MkWindow>>();
+const uiWindow = useTemplateRef('uiWindow');
 const comment = ref(props.initialComment ?? '');
 const reason = ref();
 

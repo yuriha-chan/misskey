@@ -71,6 +71,15 @@ export class DeliverProcessorService {
 			return 'skip (suspended)';
 		}
 
+		const i = await (this.meta.enableStatsForFederatedInstances
+			? this.federatedInstanceService.fetchOrRegister(host)
+			: this.federatedInstanceService.fetch(host));
+
+		// suspend server by software
+		if (i != null && this.utilityService.isDeliverSuspendedSoftware(i)) {
+			return 'skip (software suspended)';
+		}
+
 		try {
 			const server = await (this.meta.enableStatsForFederatedInstances
 				? this.federatedInstanceService.fetchOrRegister(host)
