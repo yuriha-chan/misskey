@@ -7,7 +7,7 @@
 import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import { EventEmitter } from 'eventemitter3';
 import { Options } from 'reconnecting-websocket';
-import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
+import type { PublicKeyCredentialRequestOptionsJSON as PublicKeyCredentialRequestOptionsJSON_2 } from '@simplewebauthn/types';
 import _ReconnectingWebSocket from 'reconnecting-websocket';
 
 // Warning: (ae-forgotten-export) The symbol "components" needs to be exported by the entry point index.d.ts
@@ -1987,6 +1987,8 @@ declare namespace entities {
         NotesFavoritesDeleteRequest,
         NotesFeaturedRequest,
         NotesFeaturedResponse,
+        NotesFollowingsUpdatesRequest,
+        NotesFollowingsUpdatesResponse,
         NotesGlobalTimelineRequest,
         NotesGlobalTimelineResponse,
         NotesHybridTimelineRequest,
@@ -2151,6 +2153,7 @@ declare namespace entities {
         Note,
         NoteDraft,
         NoteReaction,
+        NoteReactionWithNote,
         NoteFavorite,
         Notification_2 as Notification,
         DriveFile,
@@ -2192,6 +2195,7 @@ declare namespace entities {
         MetaLite,
         MetaDetailedOnly,
         MetaDetailed,
+        UserWebhook,
         SystemWebhook,
         AbuseReportNotificationRecipient,
         ChatMessage,
@@ -2961,10 +2965,13 @@ type ModerationLog = {
 } | {
     type: 'deleteChatRoom';
     info: ModerationLogPayloads['deleteChatRoom'];
+} | {
+    type: 'updateProxyAccountDescription';
+    info: ModerationLogPayloads['updateProxyAccountDescription'];
 });
 
 // @public (undocumented)
-export const moderationLogTypes: readonly ["updateServerSettings", "suspend", "unsuspend", "updateUserNote", "addCustomEmoji", "updateCustomEmoji", "deleteCustomEmoji", "assignRole", "unassignRole", "createRole", "updateRole", "deleteRole", "clearQueue", "promoteQueue", "deleteDriveFile", "deleteNote", "createGlobalAnnouncement", "createUserAnnouncement", "updateGlobalAnnouncement", "updateUserAnnouncement", "deleteGlobalAnnouncement", "deleteUserAnnouncement", "resetPassword", "suspendRemoteInstance", "unsuspendRemoteInstance", "updateRemoteInstanceNote", "markSensitiveDriveFile", "unmarkSensitiveDriveFile", "resolveAbuseReport", "forwardAbuseReport", "updateAbuseReportNote", "createInvitation", "createAd", "updateAd", "deleteAd", "createAvatarDecoration", "updateAvatarDecoration", "deleteAvatarDecoration", "unsetUserAvatar", "unsetUserBanner", "createSystemWebhook", "updateSystemWebhook", "deleteSystemWebhook", "createAbuseReportNotificationRecipient", "updateAbuseReportNotificationRecipient", "deleteAbuseReportNotificationRecipient", "deleteAccount", "deletePage", "deleteFlash", "deleteGalleryPost", "deleteChatRoom"];
+export const moderationLogTypes: readonly ["updateServerSettings", "suspend", "unsuspend", "updateUserNote", "addCustomEmoji", "updateCustomEmoji", "deleteCustomEmoji", "assignRole", "unassignRole", "createRole", "updateRole", "deleteRole", "clearQueue", "promoteQueue", "deleteDriveFile", "deleteNote", "createGlobalAnnouncement", "createUserAnnouncement", "updateGlobalAnnouncement", "updateUserAnnouncement", "deleteGlobalAnnouncement", "deleteUserAnnouncement", "resetPassword", "suspendRemoteInstance", "unsuspendRemoteInstance", "updateRemoteInstanceNote", "markSensitiveDriveFile", "unmarkSensitiveDriveFile", "resolveAbuseReport", "forwardAbuseReport", "updateAbuseReportNote", "createInvitation", "createAd", "updateAd", "deleteAd", "createAvatarDecoration", "updateAvatarDecoration", "deleteAvatarDecoration", "unsetUserAvatar", "unsetUserBanner", "createSystemWebhook", "updateSystemWebhook", "deleteSystemWebhook", "createAbuseReportNotificationRecipient", "updateAbuseReportNotificationRecipient", "deleteAbuseReportNotificationRecipient", "deleteAccount", "deletePage", "deleteFlash", "deleteGalleryPost", "deleteChatRoom", "updateProxyAccountDescription"];
 
 // @public (undocumented)
 type MuteCreateRequest = operations['mute___create']['requestBody']['content']['application/json'];
@@ -3008,6 +3015,9 @@ type NoteFavorite = components['schemas']['NoteFavorite'];
 
 // @public (undocumented)
 type NoteReaction = components['schemas']['NoteReaction'];
+
+// @public (undocumented)
+type NoteReactionWithNote = components['schemas']['NoteReactionWithNote'];
 
 // @public (undocumented)
 type NotesChildrenRequest = operations['notes___children']['requestBody']['content']['application/json'];
@@ -3071,6 +3081,12 @@ type NotesFeaturedRequest = operations['notes___featured']['requestBody']['conte
 
 // @public (undocumented)
 type NotesFeaturedResponse = operations['notes___featured']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesFollowingsUpdatesRequest = operations['notes___followings-updates']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesFollowingsUpdatesResponse = operations['notes___followings-updates']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesGlobalTimelineRequest = operations['notes___global-timeline']['requestBody']['content']['application/json'];
@@ -3486,12 +3502,12 @@ type SigninFlowResponse = {
 } | {
     finished: false;
     next: 'passkey';
-    authRequest: PublicKeyCredentialRequestOptionsJSON;
+    authRequest: PublicKeyCredentialRequestOptionsJSON_2;
 };
 
 // @public (undocumented)
 type SigninWithPasskeyInitResponse = {
-    option: PublicKeyCredentialRequestOptionsJSON;
+    option: PublicKeyCredentialRequestOptionsJSON_2;
     context: string;
 };
 
@@ -3805,6 +3821,9 @@ type UsersShowResponse = operations['users___show']['responses']['200']['content
 
 // @public (undocumented)
 type UsersUpdateMemoRequest = operations['users___update-memo']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type UserWebhook = components['schemas']['UserWebhook'];
 
 // @public (undocumented)
 type V2AdminEmojiListRequest = operations['v2___admin___emoji___list']['requestBody']['content']['application/json'];
