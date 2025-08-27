@@ -58,6 +58,7 @@ export const paramDef = {
 		withReplies: { type: 'boolean', default: false },
 		withRenotes: { type: 'boolean', default: true },
 		withSpecified: { type: 'boolean', default: true },
+		withHashtags: { type: 'boolean', default: true },
 		withChannelNotes: { type: 'boolean', default: false },
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		sinceId: { type: 'string', format: 'misskey:id' },
@@ -109,6 +110,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withChannelNotes: ps.withChannelNotes,
 					withFiles: ps.withFiles,
 					withRenotes: ps.withRenotes,
+					withHashtags: ps.withHashtags,
 					withSpecified: ps.withSpecified
 				}, me);
 
@@ -136,6 +138,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				excludeReplies: ps.withChannelNotes && !ps.withReplies, // userTimelineWithChannel may include replies
 				excludeNoFiles: ps.withChannelNotes && ps.withFiles, // userTimelineWithChannel may include notes without files
 				excludePureRenotes: !ps.withRenotes,
+				excludeHashtags: !ps.withHashtags,
 				noteFilter: note => {
 					if (note.channel?.isSensitive && !isSelf) return false;
 					if (note.visibility === 'specified' && (!ps.withSpecified || !me || (me.id !== note.userId && !note.visibleUserIds.some(v => v === me.id)))) return false;
@@ -152,7 +155,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withFiles: ps.withFiles,
 					withSpecified: ps.withSpecified,
 					withRenotes: ps.withRenotes,
-					withSpecified: ps.withSpecified,
+					withHashtags: ps.withHashtags
 				}, me),
 			});
 
@@ -168,6 +171,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		withChannelNotes: boolean,
 		withFiles: boolean,
 		withRenotes: boolean,
+		withHashtags: boolean,
 		withSpecified: boolean,
 	}, me: MiLocalUser | null) {
 		const isSelf = me && (me.id === ps.userId);
@@ -202,6 +206,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		if (!ps.withSpecified) {
 			query.andWhere('note.visibility != \'specified\'');
+		}
+
+		if (!ps.withHashtags) {
+			query.andWhere('note.tags = \'{}\'');
 		}
 
 		if (ps.withRenotes === false) {

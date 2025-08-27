@@ -223,11 +223,6 @@ export class ApPersonService implements OnModuleInit {
 					throw new Error('invalid Actor: publicKey.id has different host');
 				}
 			}
-
-			const publicKeyIdHost = this.utilityService.punyHost(x.publicKey.id);
-			if (publicKeyIdHost !== expectHost) {
-				throw new Error('invalid Actor: publicKey.id has different host');
-			}
 		}
 
 		if (x.additionalPublicKeys) {

@@ -85,18 +85,18 @@ export class UtilityService {
 	@bindThis
 	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string | '', files: string[] | []): boolean {
 		if (keyWords.length === 0) return false;
-		if (text === '' && cw === '' && files === []) {
+		if (text === '' && cw === '' && files.length === 0) {
 			return false;
 		}
 
 		const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
 		
-		const coerceFloat = v =>
+		const coerceFloat = (v: any) =>
 		  (typeof v === 'number') ? v :
 		  (typeof v === 'string') ? parseFloat(v) :
 		  v ? 1 : 0;
 
-		const apply = function(node, testText) {
+		const apply = function(node: any[], testText: string): any {
 			try {
 				switch (node[0]) {
 					case "keyword": return testText.includes && testText.includes(node[1]);
@@ -105,16 +105,16 @@ export class UtilityService {
 					case "and": return node.slice(1).every(n => apply(n, testText));
 					case "or": return node.slice(1).some(n => apply(n, testText));
 					case "not": return !apply(node[1], testText);
-					case "poll": return (node[2].reduce((acc, v) => acc + apply(v, testText) === true ? 1 : 0) >= coerceFloat(node[1]));
+					case "poll": return (node[2].reduce((acc: number, v: any) => acc + apply(v, testText) === true ? 1 : 0) >= coerceFloat(node[1]));
 					case "weighted": return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]);
-					case "average": return node[1].reduce((acc, v) => acc + coerceFloat(apply(v, testText)));
+					case "average": return node[1].reduce((acc: number, v: any) => acc + coerceFloat(apply(v, testText)));
 					case "shorterThan": return testText.length < coerceFloat(node[1]);
-					case "longerThan": return  testText.length > coerceFloat(node[1]);
+					case "longerThan": return testText.length > coerceFloat(node[1]);
 					case "hasFile": return files.length > 0;
-					case "cw": return node.slice(1).every(n => apply(n, cw));
-					case "text": return node.slice(1).every(n => apply(n, text));
-					case "pollChoices": return node.slice(1).every(n => apply(n, pollChoices));
-					case "textAndChoices": return node.slice(1).every(n => apply(n, textAndChoices));
+					case "cw": return node.slice(1).every((n: any) => apply(n, cw));
+					case "text": return node.slice(1).every((n: any) => apply(n, text));
+					case "pollChoices": return node.slice(1).every((n: any) => apply(n, pollChoices));
+					case "textAndChoices": return node.slice(1).every((n: any) => apply(n, textAndChoices));
 					default: return false;
 				}
 			} catch (err) {
@@ -123,7 +123,7 @@ export class UtilityService {
 		}
 		const nodes = keyWords.map(filter => {
 			try {
-				return parseFilter(filter);
+				return parseFilter(filter, {});
 			} catch (err) {
 				// empty filter
 				return ["or"];

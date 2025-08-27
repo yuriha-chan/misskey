@@ -45,8 +45,8 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		noteId: { type: 'string', format: 'misskey:id' },
-		visibility: { type: 'string', nullable: true, enum: [null, 'public', 'home', 'followers', 'specified'] },
-		localOnly: { type: 'boolean', nullable: true },
+		visibility: { type: 'string', enum: ['public', 'home', 'followers', 'specified'] },
+		localOnly: { type: 'boolean' },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
 	},
 	required: ['noteId'],

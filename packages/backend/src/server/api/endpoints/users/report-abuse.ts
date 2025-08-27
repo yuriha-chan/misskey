@@ -33,6 +33,7 @@ export const paramDef = {
 	properties: {
 		userId: { type: 'string', format: 'misskey:id' },
 		comment: { type: 'string', minLength: 1, maxLength: 2048 },
+		reason: { type: 'string', minLength: 1, maxLength: 2048 },
 	},
 	required: ['userId', 'comment'],
 } as const;
@@ -57,7 +58,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				reporterId: me.id,
 				reporterHost: null,
 				comment: ps.comment,
-				reason: ps.reason,
+				reason: ps.reason || "",
 			}]);
 		});
 	}

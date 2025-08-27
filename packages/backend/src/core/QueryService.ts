@@ -102,7 +102,7 @@ export class QueryService {
 			excludeUserFromMute?: MiUser['id'],
 			excludeAuthor?: boolean,
 			gtl?: boolean,
-			serverGtlMutedHosts?: string,
+			serverGtlMutedHosts?: string[],
 		} = {},
 	): void {
 		this.generateBlockedHostQueryForNote(query, excludeAuthor);
@@ -198,7 +198,7 @@ export class QueryService {
 		}: {
 			excludeUserFromMute?: MiUser['id'],
 			gtl?: boolean,
-			serverGtlMutedHosts?: string,
+			serverGtlMutedHosts?: string[],
 			noteColumn?: string,
 		} = {},
 	): void {
@@ -247,8 +247,8 @@ export class QueryService {
 					.orWhere(new Brackets(qbb => {
 						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.userHost)`);
 						if (gtl) {
-							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.userHost)`);
-							if (serverGtlMutedHosts.length > 0) {
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery!.getQuery() })::jsonb ? ${noteColumn}.userHost)`);
+							if (serverGtlMutedHosts && serverGtlMutedHosts.length > 0) {
 								qbb.andWhere(`NOT (${noteColumn}.userHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
 							}
 						}
@@ -260,8 +260,8 @@ export class QueryService {
 					.orWhere(new Brackets(qbb => {
 						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.replyUserHost)`);
 						if (gtl) {
-							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.replyUserHost)`);
-							if (serverGtlMutedHosts.length > 0) {
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery!.getQuery() })::jsonb ? ${noteColumn}.replyUserHost)`);
+							if (serverGtlMutedHosts && serverGtlMutedHosts.length > 0) {
 								qbb.andWhere(`NOT (${noteColumn}.replyUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
 							}
 						}
@@ -273,8 +273,8 @@ export class QueryService {
 					.orWhere(new Brackets(qbb => {
 						qbb.where(`NOT ((${ mutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.renoteUserHost)`);
 						if (gtl) {
-							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery.getQuery() })::jsonb ? ${noteColumn}.renoteUserHost)`);
-							if (serverGtlMutedHosts.length > 0) {
+							qbb.andWhere(`NOT ((${ gtlMutingInstanceQuery!.getQuery() })::jsonb ? ${noteColumn}.renoteUserHost)`);
+							if (serverGtlMutedHosts && serverGtlMutedHosts.length > 0) {
 								qbb.andWhere(`NOT (${noteColumn}.renoteUserHost IN (:...serverGtlMutedHosts))`, { serverGtlMutedHosts });
 							}
 						}
@@ -294,7 +294,7 @@ export class QueryService {
 		q.setParameters(mutingQuery.getParameters());
 		q.setParameters(mutingInstanceQuery.getParameters());
 		if (gtl) {
-			q.setParameters(gtlMutingInstanceQuery.getParameters());
+			q.setParameters(gtlMutingInstanceQuery!.getParameters());
 		}
 	}
 

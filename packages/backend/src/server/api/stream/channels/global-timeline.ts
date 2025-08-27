@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Packed } from '@/misc/json-schema.js';
-import type { Meta } from '@/models/Meta.js';
-import { MetaService } from '@/core/MetaService.js';
+import type { MiMeta } from '@/models/_.js';
+import { DI } from '@/di-symbols.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -22,13 +22,11 @@ class GlobalTimelineChannel extends Channel {
 	private withRenotes: boolean;
 	private withHashtags: boolean;
 	private withFiles: boolean;
-	private meta: Meta;
 
 	constructor(
-		private metaService: MetaService,
+		private meta: MiMeta,
 		private roleService: RoleService,
 		private noteEntityService: NoteEntityService,
-
 		id: string,
 		connection: Channel['connection'],
 	) {
@@ -44,7 +42,6 @@ class GlobalTimelineChannel extends Channel {
 		this.withRenotes = !!(params.withRenotes ?? true);
 		this.withFiles = !!(params.withFiles ?? false);
 		this.withHashtags = !!(params.withHashtags ?? true);
-		this.meta = await this.metaService.fetch();
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
@@ -96,7 +93,8 @@ export class GlobalTimelineChannelService implements MiChannelService<false> {
 	public readonly kind = GlobalTimelineChannel.kind;
 
 	constructor(
-		private metaService: MetaService,
+		@Inject(DI.meta)
+		private meta: MiMeta,
 		private roleService: RoleService,
 		private noteEntityService: NoteEntityService,
 	) {
@@ -105,7 +103,7 @@ export class GlobalTimelineChannelService implements MiChannelService<false> {
 	@bindThis
 	public create(id: string, connection: Channel['connection']): GlobalTimelineChannel {
 		return new GlobalTimelineChannel(
-			this.metaService,
+			this.meta,
 			this.roleService,
 			this.noteEntityService,
 			id,

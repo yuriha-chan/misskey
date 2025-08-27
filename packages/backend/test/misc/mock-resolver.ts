@@ -22,7 +22,6 @@ import type {
 	UsersRepository,
 } from '@/models/_.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
-import { bindThis } from '@/decorators.js';
 import { Resolver } from '@/core/activitypub/ApResolverService.js';
 
 type MockResponse = {

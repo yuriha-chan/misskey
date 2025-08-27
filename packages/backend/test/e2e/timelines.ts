@@ -17,6 +17,10 @@ function genHost() {
 	return randomString() + '.example.com';
 }
 
+function waitForPushToTl() {
+	return setTimeout(250);
+};
+
 let redisForTimelines: Redis;
 let root: SignupResponse;
 
@@ -30,9 +34,6 @@ describe('Timelines', () => {
 		{ enableFanoutTimeline: true },
 		{ enableFanoutTimeline: false },
 	])('Timelines (enableFanoutTimeline: $enableFanoutTimeline)', ({ enableFanoutTimeline }) => {
-		function waitForPushToTl() {
-			return setTimeout(250);
-		}
 
 		beforeAll(async () => {
 			await api('admin/update-meta', { enableFanoutTimeline }, root);

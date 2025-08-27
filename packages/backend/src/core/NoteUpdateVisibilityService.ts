@@ -48,7 +48,7 @@ export class NoteUpdateVisibilityService {
 	 * @param user 投稿者
 	 * @param note 投稿
 	 */
-	async updateVisibility(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, visibility?: string, localOnly?: boolean, reactionAcceptance?: MiNote['reactionAcceptance'], quiet = false, updater?: MiUser) {
+	async updateVisibility(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, visibility?: MiNote["visibility"], localOnly?: boolean, reactionAcceptance?: MiNote['reactionAcceptance'], quiet = false, updater?: MiUser) {
 		if (note.visibility === 'home' && visibility === 'public') {
 			throw new Error('cannot change home visibility to public');
 		} else if (note.visibility === 'followers' && (visibility === 'home' || visibility === 'public')) {

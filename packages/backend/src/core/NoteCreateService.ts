@@ -47,7 +47,6 @@ import { bindThis } from '@/decorators.js';
 import { DB_MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { RoleService } from '@/core/RoleService.js';
 import { SearchService } from '@/core/SearchService.js';
-import { ImageSearchService } from '@/core/ImageSearchService.js';
 import { FeaturedService } from '@/core/FeaturedService.js';
 import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
 import { UtilityService } from '@/core/UtilityService.js';
@@ -211,7 +210,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		private apRendererService: ApRendererService,
 		private roleService: RoleService,
 		private searchService: SearchService,
-		private imageSearchService: ImageSearchService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
 		private activeUsersChart: ActiveUsersChart,
@@ -256,14 +254,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && data.channel == null) {
 			const sensitiveWords = this.meta.sensitiveWords;
-			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map(file => file.id) : [])) {
+			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map((file: MiDriveFile) => file.id) : [])) {
 				data.visibility = 'home';
 			} else if ((await this.roleService.getUserPolicies(user.id)).canPublicNote === false) {
 				data.visibility = 'home';
 			}
 		}
 
-		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map(file => file.id) : [])) {
+		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map((file: MiDriveFile) => file.id) : [])) {
 			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
 		}
 
@@ -785,7 +783,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 	@bindThis
 	private index(note: MiNote) {
-		this.imageSearchService.indexNote(note);
 		if (note.text == null && note.cw == null) return;
 
 		this.searchService.indexNote(note);
@@ -990,7 +987,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			prohibitedWords = this.meta.prohibitedWords;
 		}
 
-		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map(file => file.id) : [])) {
+		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map((file: MiDriveFile) => file.id) : [])) {
 			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
 		}
 		return false;

@@ -126,8 +126,10 @@ export class ActivityPubServerService {
 		}
 
 		let signature: ReturnType<typeof parseRequestSignature>;
+		// cast Buffer<ArrayBufferLike> into Buffer<ArrayBuffer>, because it's not likely a Buffer<SharedArrayBuffer>
+		const rawBody = (request.rawBody || '') as (string | Buffer<ArrayBuffer>);
 
-		const verifyDigest = await verifyDigestHeader(request.raw, request.rawBody || '', true);
+		const verifyDigest = await verifyDigestHeader(request.raw, rawBody, true);
 		if (verifyDigest !== true) {
 			this.inboxLogger.warn('digest verification failed');
 			reply.code(401);
