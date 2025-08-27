@@ -4,39 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<<<<<<< HEAD
-<MkStickyContainer>
-	<template #header><MkPageHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :displayMyAvatar="true"/></template>
-	<MkSpacer :contentMax="800" :marginMin="marginMin">
-		<MkHorizontalSwipe v-model:tab="src" :tabs="$i ? headerTabs : headerTabsWhenNotLogin">
-			<div :key="src" ref="rootEl">
-				<MkInfo v-if="isBasicTimeline(src) && !defaultStore.reactiveState.timelineTutorials.value[src]" style="margin-bottom: var(--MI-margin);" closable @close="closeTutorial()">
-					{{ i18n.ts._timelineDescription[src] }}
-				</MkInfo>
-				<MkPostForm v-if="defaultStore.reactiveState.showFixedPostForm.value" :class="$style.postForm" class="post-form _panel" fixed style="margin-bottom: var(--MI-margin);"/>
-				<div v-if="queue > 0" :class="$style.new"><button class="_buttonPrimary" :class="$style.newButton" @click="top()">{{ i18n.ts.newNoteRecived }}</button></div>
-				<div :class="$style.tl">
-					<MkTimeline
-						ref="tlComponent"
-						:key="src + withRenotes + withReplies + onlyFiles + withHashtags + withSensitive"
-						:src="src.split(':')[0]"
-						:list="src.split(':')[1]"
-						:withRenotes="withRenotes"
-						:withReplies="withReplies"
-						:withHashtags="withHashtags"
-						:withSensitive="withSensitive"
-						:onlyFiles="onlyFiles"
-						:sound="true"
-						@queue="queueUpdated"
-					/>
-				</div>
-			</div>
-		</MkHorizontalSwipe>
-	</MkSpacer>
-</MkStickyContainer>
-=======
 <PageWithHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :swipable="true" :displayMyAvatar="true" :canOmitTitle="true">
-	<div class="_spacer" style="--MI_SPACER-w: 800px;">
+	<div class="_spacer" style="--MI_SPACER-w: 800px;" :marginMin="marginMin">
 		<MkTip v-if="isBasicTimeline(src)" :k="`tl.${src}`" style="margin-bottom: var(--MI-margin);">
 			{{ i18n.ts._timelineDescription[src] }}
 		</MkTip>
@@ -49,13 +18,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:list="src.split(':')[1]"
 			:withRenotes="withRenotes"
 			:withReplies="withReplies"
+			:withHashtags="withHashtags"
 			:withSensitive="withSensitive"
 			:onlyFiles="onlyFiles"
 			:sound="true"
 		/>
 	</div>
 </PageWithHeader>
->>>>>>> develop
 </template>
 
 <script lang="ts" setup>
@@ -75,12 +44,8 @@ import { deviceKind } from '@/utility/device-kind.js';
 import { deepMerge } from '@/utility/merge.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { availableBasicTimelines, hasWithReplies, isAvailableBasicTimeline, isBasicTimeline, basicTimelineIconClass } from '@/timelines.js';
-<<<<<<< HEAD
-import type { BasicTimelineType } from '@/timelines.js';
-import { useRouter } from '@/router/supplier.js';
-=======
+import { useRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
->>>>>>> develop
 
 const tlComponent = useTemplateRef('tlComponent');
 
@@ -273,7 +238,6 @@ const headerActions = computed(() => {
 			if (isBasicTimeline(src.value) && hasWithReplies(src.value)) {
 				menuItems.push({
 					type: 'switch',
-<<<<<<< HEAD
 					text: i18n.ts.showRenotes,
 					ref: withRenotes,
 				},
@@ -281,12 +245,12 @@ const headerActions = computed(() => {
 					type: 'switch',
 					text: i18n.ts.withHashtags,
 					ref: withHashtags,
-=======
+				},
+				{
 					icon: 'ti ti-messages',
 					text: i18n.ts.showRepliesToOthersInTimeline,
 					ref: withReplies,
 					disabled: onlyFiles,
->>>>>>> develop
 				});
 			}
 
@@ -309,24 +273,7 @@ const headerActions = computed(() => {
 				ref: showFixedPostForm,
 			});
 
-<<<<<<< HEAD
-				menuItems.push({
-					type: 'switch',
-					text: i18n.ts.withSensitive,
-					ref: withSensitive,
-				},
-				{
-					type: 'switch',
-					text: i18n.ts.fileAttachedOnly,
-					ref: onlyFiles,
-					disabled: isBasicTimeline(src.value) && hasWithReplies(src.value) ? withReplies : false,
-				});
-
-				os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
-			},
-=======
 			os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
->>>>>>> develop
 		},
 	}];
 
@@ -382,15 +329,11 @@ const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(
 	iconOnly: true,
 }))] as Tab[]);
 
-<<<<<<< HEAD
 const marginMin = computed(() =>
 	(defaultStore.state.reduceMargin && isMobile.value) ? 0 : 16
 );
 
-definePageMetadata(() => ({
-=======
 definePage(() => ({
->>>>>>> develop
 	title: i18n.ts.timeline,
 	icon: isBasicTimeline(src.value) ? basicTimelineIconClass(src.value) : 'ti ti-home',
 }));

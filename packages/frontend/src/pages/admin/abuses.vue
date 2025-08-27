@@ -94,7 +94,7 @@ const headerTabs = computed(() => []);
 definePage(() => ({
 	title: i18n.ts.reviewReports,
 	icon: 'ti ti-exclamation-circle',
-});
+}));
 </script>
 
 <style module lang="scss">

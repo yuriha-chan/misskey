@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<div :class="$style.nonTitlebarArea">
 		<div v-if="!isMobile" :class="[$style.sidebarPlaceholder, { [$style.iconOnly]: iconOnly }]">
-		<XSidebar v-if="!isMobile" :class="$style.sidebar" :showWidgetButton="!isDesktop" @widgetButtonClick="widgetsShowing = true" v-if="routerViewLoaded"/>
+		<XSidebar v-if="!isMobile && routerViewLoaded" :class="$style.sidebar" :showWidgetButton="!isDesktop" @widgetButtonClick="widgetsShowing = true"/>
 		</div>
 
 		<div :class="[$style.contents, !isMobile && prefer.r.showTitlebar.value ? $style.withSidebarAndTitlebar : null]" @contextmenu.stop="onContextmenu" :ref="contents">

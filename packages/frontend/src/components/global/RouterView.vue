@@ -30,15 +30,11 @@ const props = defineProps<{
 	router?: Router;
 }>();
 
-<<<<<<< HEAD
 const emits = defineEmits<{
 	(e: 'mainContentLoaded'): void
 }>();
 
-const router = props.router ?? inject('router');
-=======
 const _router = props.router ?? inject(DI.router);
->>>>>>> develop
 
 if (_router == null) {
 	throw new Error('no router provided');

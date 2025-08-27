@@ -161,7 +161,6 @@ import { defineAsyncComponent, computed, onMounted, onUnmounted, nextTick, watch
 import * as Misskey from 'misskey-js';
 import { getScrollPosition } from '@@/js/scroll.js';
 import MkNote from '@/components/MkNote.vue';
-import MkNotes from '@/components/MkNotes.vue';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import MkAccountMoved from '@/components/MkAccountMoved.vue';
 import MkFukidashi from '@/components/MkFukidashi.vue';
