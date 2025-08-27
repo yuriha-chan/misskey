@@ -137,15 +137,6 @@ function showMenu(ev: MouseEvent) {
 		},
 	});
 
-	if (props.image.url.endsWith(".png") || props.image.url.endsWith(".webp")) {
-		menuItems.push({
-			text: i18n.ts.searchSimilarImage,
-			icon: 'ti ti-search',
-			type: "link",
-			to: `/image-search/${props.image.id}`
-		});
-	}
-
 	if (iAmModerator) {
 		menuItems.push({
 			text: props.image.isSensitive ? i18n.ts.unmarkAsSensitive : i18n.ts.markAsSensitive,
