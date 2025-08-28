@@ -259,6 +259,7 @@ const emit = defineEmits<{
 	(ev: 'removeReaction', emoji: string): void;
 }>();
 
+const MOBILE_THRESHOLD = 500;
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
 window.addEventListener('resize', () => {
 	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
