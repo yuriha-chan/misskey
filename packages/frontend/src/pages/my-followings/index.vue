@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, ref } from 'vue';
 import XFollowingsUpdatesList from './followings-updates-list.vue';
 import MkRadios from '@/components/MkRadios.vue';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePage } from '@/page.js';
 import { i18n } from '@/i18n.js';
 
 const recent = ref(8.64e+7);
@@ -38,7 +38,8 @@ const anchorDate = computed((previous) => {
   return new Date() - recent.value;
 });
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts.followingsUpdates,
+	path: `/my/followings-updates`,
 }));
 </script>
