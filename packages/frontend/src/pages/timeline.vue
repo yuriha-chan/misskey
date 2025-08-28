@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkStreamingNotesTimeline
 			ref="tlComponent"
 			:key="src + withRenotes + withReplies + withHashtags + onlyFiles + withSensitive"
-			:class="$style.tl"
+			:class="[$style.tl, reduceMargin ? $style.reduceMargin : null]"
 			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
 			:list="src.split(':')[1]"
 			:withRenotes="withRenotes"
@@ -367,5 +367,9 @@ definePage(() => ({
 	background: var(--MI_THEME-bg);
 	border-radius: var(--MI-radius);
 	overflow: clip;
+}
+
+.tl.reduceMargin {
+	border-radius: 0;
 }
 </style>
