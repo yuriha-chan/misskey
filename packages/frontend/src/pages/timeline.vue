@@ -5,14 +5,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <PageWithHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :swipable="true" :displayMyAvatar="true" :canOmitTitle="true">
-	<div class="_spacer" style="--MI_SPACER-w: 800px;" :marginMin="marginMin">
+	<div :class="reduceMargin ? '_spacer' : []" style="--MI_SPACER-w: 800px;">
 		<MkTip v-if="isBasicTimeline(src)" :k="`tl.${src}`" style="margin-bottom: var(--MI-margin);">
 			{{ i18n.ts._timelineDescription[src] }}
 		</MkTip>
 		<MkPostForm v-if="prefer.r.showFixedPostForm.value" :class="$style.postForm" class="_panel" fixed style="margin-bottom: var(--MI-margin);"/>
 		<MkStreamingNotesTimeline
 			ref="tlComponent"
-			:key="src + withRenotes + withReplies + onlyFiles + withSensitive"
+			:key="src + withRenotes + withReplies + withHashtags + onlyFiles + withSensitive"
 			:class="$style.tl"
 			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
 			:list="src.split(':')[1]"
@@ -91,10 +91,12 @@ const withReplies = computed<boolean>({
 	},
 	set: (x) => saveTlFilter('withReplies', x),
 });
+
 const withHashtags = computed<boolean>({
-	get: () => defaultStore.reactiveState.tl.value.filter.withHashtags,
+	get: () => store.r.tl.value.filter.withHashtags,
 	set: (x) => saveTlFilter('withHashtags', x),
 });
+
 const onlyFiles = computed<boolean>({
 	get: () => {
 		if (['local', 'social'].includes(src.value) && localSocialTLFilterSwitchStore.value === 'withReplies') {
@@ -235,18 +237,16 @@ const headerActions = computed(() => {
 				ref: withRenotes,
 			});
 
-			if (isBasicTimeline(src.value) && hasWithReplies(src.value)) {
+			if (isBasicTimeline(src.value)) {
 				menuItems.push({
-					type: 'switch',
-					text: i18n.ts.showRenotes,
-					ref: withRenotes,
-				},
-				{
 					type: 'switch',
 					text: i18n.ts.withHashtags,
 					ref: withHashtags,
-				},
-				{
+				})
+      }
+
+			if (isBasicTimeline(src.value) && hasWithReplies(src.value)) {
+				menuItems.push({
 					icon: 'ti ti-messages',
 					text: i18n.ts.showRepliesToOthersInTimeline,
 					ref: withReplies,
@@ -329,8 +329,8 @@ const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(
 	iconOnly: true,
 }))] as Tab[]);
 
-const marginMin = computed(() =>
-	(defaultStore.state.reduceMargin && isMobile.value) ? 0 : 16
+const reduceMargin = computed(() =>
+	prefer.s.reduceMargin && isMobile.value
 );
 
 definePage(() => ({

@@ -42,7 +42,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkAvatar :class="$style.collapsedRenoteTargetAvatar" :user="appearNote.user" link preview/>
 		<Mfm :text="getNoteSummary(appearNote)" :plain="true" :nowrap="true" :author="appearNote.user" :nyaize="'respect'" :class="$style.collapsedRenoteTargetText" @click="renoteCollapsed = false"/>
 	</div>
-	<article v-else :class="[$style.article, prefer.s.reduceMargin ? $style.reduceMargin : null]" @contextmenu.stop="onContextmenu">
+	<article v-else :class="[$style.article, reduceMargin ? $style.reduceMargin : null]" @contextmenu.stop="onContextmenu">
 		<div v-if="appearNote.channel" :class="$style.colorBar" :style="{ background: appearNote.channel.color }"></div>
 		<MkAvatar :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="appearNote.user" :link="!mock" :preview="!mock"/>
 		<div :class="$style.main">
@@ -123,7 +123,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkA :to="`/notes/${appearNote.id}/reactions`" :class="[$style.reactionOmitted]">{{ i18n.ts.more }}</MkA>
 				</template>
 			</MkReactionsViewer>
-			<footer :class="$style.footer">
+			<footer :class="[$style.footer, reduceMargin ? $style.reduceMargin : null]">
 				<button :class="$style.footerButton" class="_button" @click="reply()">
 					<i class="ti ti-arrow-back-up"></i>
 					<p v-if="appearNote.repliesCount > 0" :class="$style.footerButtonCount">{{ number(appearNote.repliesCount) }}</p>
@@ -257,6 +257,14 @@ const emit = defineEmits<{
 	(ev: 'reaction', emoji: string): void;
 	(ev: 'removeReaction', emoji: string): void;
 }>();
+
+const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+window.addEventListener('resize', () => {
+	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
+});
+const reduceMargin = computed(() =>
+	prefer.s.reduceMargin && isMobile.value
+);
 
 const inTimeline = inject<boolean>('inTimeline', false);
 const tl_withSensitive = inject<Ref<boolean>>('tl_withSensitive', ref(true));
@@ -1014,6 +1022,10 @@ function emitUpdReaction(emoji: string, delta: number) {
 	&:hover {
 		color: var(--MI_THEME-fgHighlighted);
 	}
+}
+
+.reduceMargin > .footerButton {
+	padding: 7px;
 }
 
 .footerButtonCount {

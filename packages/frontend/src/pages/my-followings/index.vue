@@ -4,8 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkStickyContainer>
-	<template #header><MkPageHeader v-model:tab="recent" :actions="headerActions" :tabs="headerTabs"/></template>
+<PageWithHeader v-model:tab="recent" :actions="headerActions" :tabs="headerTabs" :swipable="true">
 	<div>
 	<MkSpacer :contentMax="1000">
 		<Transition name="fade" mode="out-in">
@@ -13,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</Transition>
 	</MkSpacer>
 	</div>
-</MkStickyContainer>
+</PageWithHeader>
 </template>
 
 <script lang="ts" setup>

@@ -200,6 +200,15 @@ export const PREF_DEF = definePreferences({
 	highlightSensitiveMedia: {
 		default: false,
 	},
+  reduceMargin: {
+    default: true,
+  },
+  largeNoteText: {
+    default: true,
+  },
+  hideNavFooter: {
+    default: false,
+  },
 	animation: {
 		default: !window.matchMedia('(prefers-reduced-motion)').matches,
 	},

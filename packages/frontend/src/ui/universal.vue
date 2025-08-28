@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<div :class="$style.nonTitlebarArea">
 		<div v-if="!isMobile" :class="[$style.sidebarPlaceholder, { [$style.iconOnly]: iconOnly }]">
-		<XSidebar v-if="!isMobile && routerViewLoaded" :class="$style.sidebar" :showWidgetButton="!isDesktop" @widgetButtonClick="widgetsShowing = true"/>
+		<XSidebar v-if="!isMobile" :showContent="routerViewLoaded" :class="$style.sidebar" :showWidgetButton="!isDesktop" @widgetButtonClick="widgetsShowing = true"/>
 		</div>
 
 		<div :class="[$style.contents, !isMobile && prefer.r.showTitlebar.value ? $style.withSidebarAndTitlebar : null]" @contextmenu.stop="onContextmenu" :ref="contents">
@@ -43,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, provide, onMounted, computed, ref, shallowRef } from 'vue';
+import { defineAsyncComponent, provide, onMounted, computed, ref, shallowRef, watch } from 'vue';
 import { instanceName } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
 import XCommon from './_common_/common.vue';

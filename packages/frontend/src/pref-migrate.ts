@@ -77,6 +77,9 @@ export function migrateOldSettings() {
 		prefer.commit('serverDisconnectedBehavior', store.s.serverDisconnectedBehavior);
 		prefer.commit('nsfw', store.s.nsfw);
 		prefer.commit('highlightSensitiveMedia', store.s.highlightSensitiveMedia);
+		prefer.commit('reduceMargin', store.s.reduceMargin);
+		prefer.commit('largerNoteText', store.s.largerNoteText);
+		prefer.commit('hideNavFooter', store.s.hideNavFooter);
 		prefer.commit('animation', store.s.animation);
 		prefer.commit('animatedMfm', store.s.animatedMfm);
 		prefer.commit('advancedMfm', store.s.advancedMfm);

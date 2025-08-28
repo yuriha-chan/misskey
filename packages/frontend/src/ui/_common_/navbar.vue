@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="[$style.root, { [$style.iconOnly]: iconOnly }]">
-	<div :class="$style.body" v-if="pros.showContent">
+	<div :class="$style.body"><!--  v-if="props.showContent" -->
 		<div :class="$style.top">
 			<button v-tooltip.noDelay.right="instance.name ?? i18n.ts.instance" class="_button" :class="$style.instance" @click="openInstanceMenu">
 				<img :src="instance.iconUrl || '/favicon.ico'" alt="" :class="$style.instanceIcon" style="viewTransitionName: navbar-serverIcon;"/>
