@@ -43,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, provide, onMounted, computed, ref } from 'vue';
+import { defineAsyncComponent, provide, onMounted, computed, ref, shallowRef } from 'vue';
 import { instanceName } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
 import XCommon from './_common_/common.vue';
@@ -85,7 +85,7 @@ const pageMetadata = ref<null | PageMetadata>(null);
 const widgetsShowing = ref(false);
 const navFooterShowing = ref(true);
 const navFooter = shallowRef<HTMLElement>();
-const contents = shallowRef<InstanceType<typeof MkStickyContainer>>();
+const contents = shallowRef<HTMLElement>();
 
 provide(DI.router, mainRouter);
 provideMetadataReceiver((metadataGetter) => {
