@@ -35723,6 +35723,8 @@ export interface operations {
                     withRenotes?: boolean;
                     /** @default true */
                     withSpecified?: boolean;
+                    /** @default true */
+                    withHashtags?: boolean;
                     /** @default false */
                     withChannelNotes?: boolean;
                     /** @default 10 */
@@ -36107,6 +36109,7 @@ export interface operations {
                     /** Format: misskey:id */
                     userId: string;
                     comment: string;
+                    reason?: string;
                 };
             };
         };
