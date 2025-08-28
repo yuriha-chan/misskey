@@ -1,9 +1,10 @@
 import { DataSource } from 'typeorm';
-import { loadConfig } from './built/config.js';
+import { path, loadConfig } from './built/config.js';
 import { entities } from './built/postgres.js';
 import { isConcurrentIndexMigrationEnabled } from "./migration/js/migration-config.js";
 
 const config = loadConfig();
+console.debug(path)
 
 export default new DataSource({
 	type: 'postgres',
