@@ -23,7 +23,7 @@ on:
       - .github/workflows/test-frontend.yml
       - .github/misskey/test.yml
   workflow_dispatch:
-    inputs: []
+    inputs: {}
 jobs:
   vitest:
     name: Unit tests (frontend)
