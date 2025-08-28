@@ -194,7 +194,6 @@ function menuEdit() {
 
 <style lang="scss" module>
 .root {
-	--nav-width: 250px;
 	--nav-icon-only-width: 80px;
 	--nav-bg-transparent: color(from var(--MI_THEME-navBg) srgb r g b / 0.5);
 
@@ -214,7 +213,6 @@ function menuEdit() {
 	overflow-x: clip;
 	overscroll-behavior: contain;
 	background: var(--MI_THEME-navBg);
-	contain: strict;
 
 	/* 画面が縦に長い、設置している項目数が少ないなどの環境においても確実にbottomを最下部に表示するため */
 	display: flex;
