@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: misskey-web-dev
+    ports:
+      - "3000:3000"
+      - "5173:5173"
+    hostname: misskey-web
+    volumes:
+      - .:/misskey:cached
+      - /misskey/node_modules
+    networks:
+      - internal_network
+      - external_network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./files:/misskey/files
+      - ./.config.dev:/misskey/.config:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: misskey-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - internal_network
+    volumes:
+      - redis-data:/data
+    hostname: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
+  db:
+    image: postgres:15-alpine
+    container_name: misskey-db-dev
+    env_file:
+      - ./.config/dev.env
+    ports:
+      - "5432:5432"
+    networks:
+      - internal_network
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    hostname: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  db-data:
+  redis-data:
+
+networks:
+  internal_network:
+    internal: true
+  external_network:

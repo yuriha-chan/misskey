@@ -32,6 +32,7 @@ coverage
 
 # config
 /.config/*
+/.config.dev/*
 !/.config/example.yml
 !/.config/docker_example.yml
 !/.config/docker_example.env
