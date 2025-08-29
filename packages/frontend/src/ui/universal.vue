@@ -8,11 +8,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<XTitlebar v-if="prefer.r.showTitlebar.value" style="flex-shrink: 0;"/>
 
 	<div :class="$style.nonTitlebarArea">
-		<div v-if="!isMobile" :class="[$style.sidebarPlaceholder, { [$style.iconOnly]: iconOnly }]">
 		<XSidebar v-if="!isMobile" :showContent="routerViewLoaded" :class="$style.sidebar" :showWidgetButton="!isDesktop" @widgetButtonClick="widgetsShowing = true"/>
-		</div>
 
-		<div :class="[$style.contents, !isMobile && prefer.r.showTitlebar.value ? $style.withSidebarAndTitlebar : null]" @contextmenu.stop="onContextmenu" :ref="contents">
+		<div :class="[$style.contents, !isMobile && prefer.r.showTitlebar.value ? $style.withSidebarAndTitlebar : null]" @contextmenu.stop="onContextmenu">
 			<div>
 				<XReloadSuggestion v-if="shouldSuggestReload"/>
 				<XPreferenceRestore v-if="shouldSuggestRestoreBackup"/>
@@ -21,16 +19,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content"/>
 			<RouterView v-else :class="$style.content" @mainContentLoaded="onRouterViewLoaded"/>
-			<div v-if="isMobile && navFooterShowing" ref="navFooter" :class="$style.nav">
 			<Transition
 				:enterActiveClass="$style.transition_navFooter_enterActive"
 				:leaveActiveClass="$style.transition_navFooter_leaveActive"
 				:enterFromClass="$style.transition_navFooter_enterFrom"
 				:leaveToClass="$style.transition_navFooter_leaveTo"
 			>
-				<XMobileFooterMenu v-if="isMobile && navFooterShowing" ref="navFooter" v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing"/>
+				<XMobileFooterMenu v-if="isMobile && navFooterShowing" v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing" ref="navFooter"/>
 			</Transition>
-			</div>
 		</div>
 
 		<div v-if="isDesktop && !pageMetadata?.needWideArea" :class="$style.widgets">
@@ -84,8 +80,6 @@ window.addEventListener('resize', () => {
 const pageMetadata = ref<null | PageMetadata>(null);
 const widgetsShowing = ref(false);
 const navFooterShowing = ref(true);
-const navFooter = shallowRef<HTMLElement>();
-const contents = shallowRef<HTMLElement>();
 
 provide(DI.router, mainRouter);
 provideMetadataReceiver((metadataGetter) => {
@@ -121,7 +115,31 @@ if (window.innerWidth > 1024) {
 	}
 }
 
-let scrollHistory = [];
+let scrollHistory: {time: Date, position: number} [] = [];
+
+if (prefer.s.hideNavFooter) {
+	provide('onContentScroll', (e) => {
+    const elem = e.target;
+		const now = new Date();
+		scrollHistory = scrollHistory.filter(x => (now - x.time < 2000) && (now > x.time));
+		let scrollPosition = elem.scrollTop;
+		scrollHistory.push({ time: now, position: scrollPosition });
+		if (scrollHistory.length === 1) {
+			return;
+		}
+		let diffPosition = scrollPosition - scrollHistory[0].position;
+		let diffTime = now - scrollHistory[0].time;
+		let scrollSpeed = diffPosition / diffTime;
+		if (scrollPosition === 0) {
+			navFooterShowing.value = true;
+			scrollHistory = [];
+		} else if (scrollSpeed > 0.2 && diffPosition > 300 || scrollSpeed < -0.5 && diffPosition < -600) {
+			navFooterShowing.value = false;
+		} else if (-0.2 < scrollSpeed && scrollSpeed < 0.02) {
+			navFooterShowing.value = true;
+		}
+	}, { passive: true });
+}
 
 onMounted(() => {
 	if (!isDesktop.value) {
@@ -129,40 +147,24 @@ onMounted(() => {
 			if (window.innerWidth >= DESKTOP_THRESHOLD) isDesktop.value = true;
 		}, { passive: true });
 	}
-	if (prefer.s.hideNavFooter) {
-		contents.value.rootEl.addEventListener('scroll', () => {
-			const now = new Date();
-			scrollHistory = scrollHistory.filter(x => (now - x.time < 2000) && (now > x.time));
-			let scrollPosition = contents.value.rootEl.scrollTop;
-			scrollHistory.push({ time: now, position: scrollPosition });
-			if (scrollHistory.length === 1) {
-				return;
-			}
-			let diffPosition = scrollPosition - scrollHistory[0].position;
-			let diffTime = now - scrollHistory[0].time;
-			let scrollSpeed = diffPosition / diffTime;
-			if (scrollPosition === 0) {
-				navFooterShowing.value = true;
-				scrollHistory = [];
-			} else if (scrollSpeed > 0.2 && diffPosition > 300 || scrollSpeed < -0.5 && diffPosition < -600) {
-				navFooterShowing.value = false;
-			} else if (-0.2 < scrollSpeed && scrollSpeed < 0.02) {
-				navFooterShowing.value = true;
-			}
-		}, { passive: true });
-	}
 });
 
-const iconOnly = ref(false);
 
-const calcViewState = () => {
-	iconOnly.value = (window.innerWidth <= 1279) || (prefer.s.menuDisplay === 'sideIcon');
-};
+const navFooterHeight = ref(0);
+const navFooter = shallowRef<HTMLElement>();
 
-calcViewState();
-window.addEventListener('resize', calcViewState);
-watch(prefer.r.menuDisplay, () => {
-	calcViewState();
+watch(navFooter, () => {
+	if (navFooter.value) {
+		navFooterHeight.value = navFooter.value?.offsetHeight ?? 0;
+		document.body.style.setProperty('--MI-stickyBottom', `${navFooterHeight.value}px`);
+		document.body.style.setProperty('--MI-minBottomSpacing', 'var(--MI-minBottomSpacingMobile)');
+	} else {
+		navFooterHeight.value = 0;
+		document.body.style.setProperty('--MI-stickyBottom', '0px');
+		document.body.style.setProperty('--MI-minBottomSpacing', '0px');
+	}
+}, {
+	immediate: true,
 });
 
 const onContextmenu = (ev) => {
@@ -266,6 +268,7 @@ $widgets-hide-threshold: 1090px;
 .sidebarPlaceholder {
 	width: 250px;
 }
+
 .sidebarPlaceholder.iconOnly {
 	width: 80px;
 }
@@ -308,4 +311,5 @@ $widgets-hide-threshold: 1090px;
 		display: none;
 	}
 }
+
 </style>

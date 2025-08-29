@@ -194,6 +194,7 @@ function menuEdit() {
 
 <style lang="scss" module>
 .root {
+  --nav-width: 250px;
 	--nav-icon-only-width: 80px;
 	--nav-bg-transparent: color(from var(--MI_THEME-navBg) srgb r g b / 0.5);
 

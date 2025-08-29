@@ -202,11 +202,11 @@ const sensitiveWords = ref(meta.sensitiveWords.join('\n'));
 const prohibitedWords = ref(meta.prohibitedWords.join('\n'));
 const prohibitedWordsForNameOfUser = ref(meta.prohibitedWordsForNameOfUser.join('\n'));
 const hiddenTags = ref(meta.hiddenTags.join('\n'));
-const preservedUsernames = ref(meta.preservedUsernames.join('\n'));
-const blockedHosts = ref(meta.blockedHosts.join('\n'));
+const preservedUsernames = ref(meta.preservedUsernames?.join('\n') ?? '');
+const blockedHosts = ref(meta.blockedHosts?.join('\n') ?? '');
 const gtlMutedHosts = ref(meta.gtlMutedHosts?.join('\n') ?? '');
 const silencedHosts = ref(meta.silencedHosts?.join('\n') ?? '');
-const mediaSilencedHosts = ref(meta.mediaSilencedHosts.join('\n'));
+const mediaSilencedHosts = ref(meta.mediaSilencedHosts?.join('\n') ?? '');
 
 async function onChange_enableRegistration(value: boolean) {
 	if (value) {
