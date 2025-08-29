@@ -13,6 +13,8 @@ services:
     volumes:
       - .:/misskey:cached
       - /misskey/node_modules
+      - ./files:/misskey/files
+      - ./.config.dev:/misskey/.config:ro
     networks:
       - internal_network
       - external_network
@@ -21,9 +23,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./files:/misskey/files
-      - ./.config.dev:/misskey/.config:ro
 
   redis:
     image: redis:7-alpine
