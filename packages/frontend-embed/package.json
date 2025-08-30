@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"watch": "vite",
-		"build": "tsx build.ts",
+		"build": "vite build",
 		"typecheck": "vue-tsc --noEmit",
 		"eslint": "eslint --quiet \"src/**/*.{ts,vue}\"",
 		"lint": "pnpm typecheck && pnpm eslint"
@@ -20,8 +20,8 @@
 		"astring": "1.9.0",
 		"buraha": "0.0.1",
 		"estree-walker": "3.0.3",
-		"frontend-shared": "workspace:*",
 		"icons-subsetter": "workspace:*",
+		"frontend-shared": "workspace:*",
 		"json5": "2.2.3",
 		"mfm-js": "0.25.0",
 		"misskey-js": "workspace:*",

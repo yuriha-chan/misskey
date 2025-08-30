@@ -13,6 +13,8 @@ export async function clearCache() {
 	os.waiting();
 	miLocalStorage.removeItem('instance');
 	miLocalStorage.removeItem('instanceCachedAt');
+	miLocalStorage.removeItem('locale');
+	miLocalStorage.removeItem('localeVersion');
 	miLocalStorage.removeItem('theme');
 	miLocalStorage.removeItem('emojis');
 	miLocalStorage.removeItem('lastEmojisFetchedAt');
