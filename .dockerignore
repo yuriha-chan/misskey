@@ -4,6 +4,7 @@
 .vscode
 .config
 Dockerfile
+Dockerfile.dev
 build/
 built/
 db/

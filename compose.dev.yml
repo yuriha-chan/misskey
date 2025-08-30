@@ -11,8 +11,6 @@ services:
       - "5173:5173"
     hostname: misskey-web
     volumes:
-      - .:/misskey:cached
-      - /misskey/node_modules
       - ./files:/misskey/files
       - ./.config.dev:/misskey/.config:ro
     networks:
@@ -43,7 +41,7 @@ services:
     image: postgres:15-alpine
     container_name: misskey-db-dev
     env_file:
-      - ./.config/dev.env
+      - ./.config.dev/docker.env
     ports:
       - "5432:5432"
     networks:
