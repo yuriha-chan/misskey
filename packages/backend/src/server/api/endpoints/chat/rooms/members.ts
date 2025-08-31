@@ -41,11 +41,6 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		roomId: { type: 'string', format: 'misskey:id' },
-		limit: { type: 'integer', minimum: 1, maximum: 100, default: 30 },
-		sinceId: { type: 'string', format: 'misskey:id' },
-		untilId: { type: 'string', format: 'misskey:id' },
-		sinceDate: { type: 'integer' },
-		untilDate: { type: 'integer' },
 	},
 	required: ['roomId'],
 } as const;
@@ -72,7 +67,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.noSuchRoom);
 			}
 
-			const memberships = await this.chatService.getRoomMembershipsWithPagination(room.id, ps.limit, sinceId, untilId);
+			const memberships = await this.chatService.getRoomMemberships(room.id);
 
 			return this.chatEntityService.packRoomMemberships(memberships, me, {
 				populateUser: true,

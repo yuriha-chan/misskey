@@ -11,12 +11,13 @@ import type { Config } from '@/config.js';
 import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { ChatPollService } from '@/core/ChatPollService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ChatEntityService } from '@/core/entities/ChatEntityService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { PushNotificationService } from '@/core/PushNotificationService.js';
 import { bindThis } from '@/decorators.js';
-import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, MiChatMessage, MiChatRoom, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
+import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, ChatSecretsRepository, ChatPollsRepository, MiChatMessage, MiChatRoom, MiChatPoll, MiChatSecret, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -28,8 +29,8 @@ import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { emojiRegex } from '@/misc/emoji-regex.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { shuffle } from '@/misc/shuffle.js';
 
-const MAX_ROOM_MEMBERS = 50;
 const MAX_REACTIONS_PER_MESSAGE = 100;
 const isCustomEmojiRegexp = /^:([\w+-]+)(?:@\.)?:$/;
 
@@ -68,6 +69,12 @@ export class ChatService {
 		@Inject(DI.chatRoomsRepository)
 		private chatRoomsRepository: ChatRoomsRepository,
 
+		@Inject(DI.chatSecretsRepository)
+		private chatSecretsRepository: ChatSecretsRepository,
+
+		@Inject(DI.chatPollsRepository)
+		private chatPollsRepository: ChatPollsRepository,
+
 		@Inject(DI.chatRoomInvitationsRepository)
 		private chatRoomInvitationsRepository: ChatRoomInvitationsRepository,
 
@@ -79,6 +86,7 @@ export class ChatService {
 
 		private userEntityService: UserEntityService,
 		private chatEntityService: ChatEntityService,
+		private chatPollService: ChatPollService,
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
 		private apRendererService: ApRendererService,
@@ -240,18 +248,58 @@ export class ChatService {
 	}
 
 	@bindThis
+	public async revealSecret(id: MiChatSecret['id'], user?: MiUser) {
+		const secret = await this.chatSecretRepository.findOneByOrFail({ id });
+		if (user) {
+			if (secret.userId !== user.id) {
+				throw new Error("not permitted to disclose secret");
+			}
+		}
+		this.globalEventService.publishChatRoomStream(id.roomId, 'revealSecret', { id, plaintext: secret.plaintext });
+	}
+
+	@bindThis
+	public async closePoll(pollId: MiChatPoll['id'], user?: MiUser) {
+		const poll = await this.chatPollRepository.findOneByOrFail({ id: pollId });
+		if (user) {
+			if (poll.owner !== user.id) {
+				throw new Error("not permitted to close poll");
+			}
+		}
+		const votes = poll.anonymous ? poll.votes.map((v) = > v.length) : poll.votes.map((v) => v.map((u) => u.id));
+		this.globalEventService.publishChatRoomStream(poll.room.id, 'endPoll', votes);
+	}
+
+	@bindThis
 	public async createMessageToRoom(fromUser: { id: MiUser['id']; host: MiUser['host']; }, toRoom: MiChatRoom, params: {
 		text?: string | null;
 		file?: MiDriveFile | null;
 		uri?: string | null;
+		poll?: {
+			choice: string[];
+			expiresAt?: Date | null;
+			anonymous: boolean;
+			multiple: number;
+		};
+		commitSecret: {
+			plaintext: string;
+			revealAt?: Date;
+		}
+		deliverCards?: {
+			cards: string[];
+			deliver: number | { MiUser['id']: number }[];
+			revealAt?: Date | null;
+		};
+		pickRandom?: {
+			choices?: string[];
+			range?: { start: number; stop: number; step?: number;};
+		};
+		visibleUserIds?: MiUser['id'];
 	}): Promise<Packed<'ChatMessageLiteForRoom'>> {
-		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: toRoom.id })).map(m => ({
+		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: toRoom.id, hasLeft: false })).map(m => ({
 			userId: m.userId,
 			isMuted: m.isMuted,
-		})).concat({ // ownerはmembershipレコードを作らないため
-			userId: toRoom.ownerId,
-			isMuted: false,
-		});
+		}))
 
 		if (!memberships.some(member => member.userId === fromUser.id)) {
 			throw new Error('you are not a member of the room');
@@ -267,13 +315,130 @@ export class ChatService {
 			fileId: params.file ? params.file.id : null,
 			reads: [],
 			uri: params.uri ?? null,
+			poll: poll;
+			commitSecret: commitSecret !== null;
+			deliverCards: params.deliverCards;
+			pickRandom: params.pickRandom;
+			visibleUserIds: params.visibleUserIds ?? null;
 		} satisfies Partial<MiChatMessage>;
 
 		const inserted = await this.chatMessagesRepository.insertOne(message);
 
 		const packedMessage = await this.chatEntityService.packMessageLiteForRoom(inserted);
 
-		this.globalEventService.publishChatRoomStream(toRoom.id, 'message', packedMessage);
+		if (!params.visibleUserIds) {
+		  this.globalEventService.publishChatRoomStream(toRoom.id, 'message', packedMessage);
+		} else {
+			for (userId of message.visibleUserIds) {
+				this.globalEventService.publishChatRoomUserStream(toRoom.id, userId, 'message', packedMessage);
+			}
+		}
+
+		if (params.commitSecret) {
+			const now = new Date();
+			const secret = {
+				id: message.id,
+				plaintext: params.commitSecret.plaintext,
+				roomId: toRoom.id,
+				userId: fromUser.id,
+				revealAt: params.commitSecret.revealAt,
+			}
+			await this.chatSecretRepository.insertOne(secret);
+			if (params.commitSecret.revealAt) {
+				const delay = params.commitSecret.revealAt.getTime() - now.getTime();
+				if (delay <= 0) {
+					throw new Error("invalid expiration");
+				}
+				this.queueService.revealChatSecret.add('reveal', {
+					id: message.id,
+				}, {
+					delay,
+					removeOnComplete: true,
+				});
+			}
+		}
+
+		if (params.poll) {
+			const poll = {
+				id: message.id,
+				choices: params.poll.choices,
+				multiple: params.poll.multiple,
+				anonymous: params.poll.anonymous,
+				expireAt: params.poll.expireAt,
+				owner: fromUser.id,
+				roomId: toRoomId
+			}
+			await this.chatPollsRepository.insertOne(poll);
+			this.globalEventService.publishChatRoomStream(toRoom.id, 'startPoll', poll);
+			if (poll.expiresAt) {
+				const delay = poll.expiresAt.getTime() - new Date().getTime();
+				if (delay <= 0) {
+					throw new Error("invalid expiration");
+				}
+				this.queueService.endChatPoll.add('end', {
+					pollId: poll.id,
+				}, {
+					delay,
+					removeOnComplete: true,
+				});
+			}
+		}
+
+		if (params.deliverCards) {
+			const cards = params.deliverCards.cards;
+			let deliver = params.deliverCards.deliver;
+
+			if (typeof(deliver) === 'number') {
+				const res = {}
+				memberships.forEach((member) => { res[member.id] = deliver; });
+				deliver = res;
+			}
+
+			const destinations = memberships.filter((member) => deliver[member] != null && deliver[member] > 0);
+
+			const cardsToDeliver = destinations.reduce((sum, key) => deliver[key] + sum, 0);
+			if (params.deliverCards.cards.length < cardsToDeliver) {
+				throw new Error('not enough cards');
+			}
+
+			const cardsPerUser = {};
+			const shuffledCards = shuffle(cards);
+			destinations.forEach(dest => {
+            const count = deliver[dest];
+            cardsPerUser[userId] = shuffledCards.splice(0, count);
+			});
+			for (userId of destinations) {
+				this.globalEventService.publishChatRoomUserStream(toRoom.id, userId, 'cardsDelivered', cardsPerUser[userId]);
+			}
+		}
+
+		if (params.pickRandom) {
+		    let result: string | number;
+		    if (params.pickRandom.choices) {
+		        const choices = params.pickRandom.choices;
+		        if (choices.length === 0) {
+		            throw new Error('choices cannot be empty');
+		        }
+		        result = choices[Math.floor(Math.random() * choices.length)];
+		    } else if (params.pickRandom.range) {
+		        const { start, stop, step = 1 } = params.pickRandom.range;
+		        if (start > stop || step <= 0) {
+		            throw new Error('invalid range');
+		        }
+		        const values = [];
+		        for (let i = start; i <= stop; i += step) {
+		            values.push(i);
+		        }
+		        if (values.length === 0) {
+		            throw new Error('no valid numbers in range');
+		        }
+		        result = values[Math.floor(Math.random() * values.length)];
+		    } else {
+		        throw new Error('either choices or range must be provided');
+		    }
+		
+		    this.globalEventService.publishChatRoomStream(toRoom.id, 'choice', result);
+		}
 
 		const redisPipeline = this.redisClient.pipeline();
 		for (const membership of membershipsOtherThanMe) {
@@ -466,19 +631,9 @@ export class ChatService {
 
 	@bindThis
 	public async roomHistory(meId: MiUser['id'], limit: number): Promise<MiChatMessage[]> {
-		// TODO: 一回のクエリにまとめられるかも
-		const [memberRoomIds, ownedRoomIds] = await Promise.all([
-			this.chatRoomMembershipsRepository.findBy({
-				userId: meId,
-			}).then(xs => xs.map(x => x.roomId)),
-			this.chatRoomsRepository.findBy({
-				ownerId: meId,
-			}).then(xs => xs.map(x => x.id)),
-		]);
+		const roomIds = await this.chatRoomMembershipsRepository.findBy({ userId: meId }).then(xs => xs.map(x => x.roomId))
 
-		const roomIds = memberRoomIds.concat(ownedRoomIds);
-
-		if (memberRoomIds.length === 0 && ownedRoomIds.length === 0) {
+		if (roomIds.length === 0) {
 			return [];
 		}
 
@@ -559,15 +714,39 @@ export class ChatService {
 	public async createRoom(owner: MiUser, params: Partial<{
 		name: string;
 		description: string;
+		capacity: number;
+		expiration: number | null;
+		isPublic: boolean;
+		theme: string | null;
 	}>) {
 		const room = {
 			id: this.idService.gen(),
 			name: params.name,
 			description: params.description,
 			ownerId: owner.id,
+			capacity: params.capacity,
+			expiration: params.expiration,
+			isPublic: params.isPublic,
+			theme: params.theme,
 		} satisfies Partial<MiChatRoom>;
 
 		const created = await this.chatRoomsRepository.insertOne(room);
+		if (room.expiration) {
+			this.queueService.closeExpiredChatRoom.add(room.id, {
+				id: room.id,
+			}, {
+				room.expiration,
+				removeOnComplete: {
+					age: 3600 * 24 * 7, // keep up to 7 days
+					count: 30,
+				},
+				removeOnFail: {
+					age: 3600 * 24 * 7, // keep up to 7 days
+					count: 100,
+				},
+			});
+		}
+		await this.joinToRoom(owner.id, room.id);
 
 		return created;
 	}
@@ -587,12 +766,18 @@ export class ChatService {
 	}
 
 	@bindThis
+	public async hasPermissionToKick(meId: MiUser['id'], room: MiChatRoom) {
+		if (room.ownerId === meId) {
+			return true;
+		}
+		return false;
+	}
+
+	@bindThis
 	public async deleteRoom(room: MiChatRoom, deleter?: MiUser) {
 		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: room.id })).map(m => ({
 			userId: m.userId,
-		})).concat({ // ownerはmembershipレコードを作らないため
-			userId: room.ownerId,
-		});
+		}))
 
 		// 未読フラグ削除
 		const redisPipeline = this.redisClient.pipeline();
@@ -617,19 +802,19 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async findMyRoomById(ownerId: MiUser['id'], roomId: MiChatRoom['id']) {
-		return this.chatRoomsRepository.findOneBy({ id: roomId, ownerId: ownerId });
+	public async findMyRoomById(ownerId: MiUser['id'], roomId: MiChatRoom['id'], includeArchived: boolean | true) {
+		return this.chatRoomsRepository.findOneBy({ id: roomId, ownerId: ownerId, isArchived: includeArchived ? undefined : false });
 	}
 
 	@bindThis
-	public async findRoomById(roomId: MiChatRoom['id']) {
-		return this.chatRoomsRepository.findOne({ where: { id: roomId }, relations: ['owner'] });
+	public async findRoomById(roomId: MiChatRoom['id'], includeArchived: boolean | true) {
+		return this.chatRoomsRepository.findOne({ where: { id: roomId }, relations: ['owner'], isArchived: includeArchived ? undefined : false });
 	}
 
 	@bindThis
 	public async isRoomMember(room: MiChatRoom, userId: MiUser['id']) {
 		if (room.ownerId === userId) return true;
-		const membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId });
+		const membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId, hasLeft: false });
 		return membership != null;
 	}
 
@@ -639,7 +824,7 @@ export class ChatService {
 			throw new Error('yourself');
 		}
 
-		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, ownerId: inviterId });
+		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, ownerId: inviterId, isArchived: false });
 
 		if (await this.isRoomMember(room, inviteeId)) {
 			throw new Error('already member');
@@ -650,8 +835,8 @@ export class ChatService {
 			throw new Error('already invited');
 		}
 
-		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId });
-		if (membershipsCount >= MAX_ROOM_MEMBERS) {
+		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId, hasLeft: false });
+		if (membershipsCount >= room.capacity) {
 			throw new Error('room is full');
 		}
 
@@ -683,9 +868,12 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async getOwnedRoomsWithPagination(ownerId: MiUser['id'], limit: number, sinceId?: MiChatRoom['id'] | null, untilId?: MiChatRoom['id'] | null) {
+	public async getOwnedRoomsWithPagination(ownerId: MiUser['id'], limit: number, includeArchived?: boolean | true, sinceId?: MiChatRoom['id'] | null, untilId?: MiChatRoom['id'] | null) {
 		const query = this.queryService.makePaginationQuery(this.chatRoomsRepository.createQueryBuilder('room'), sinceId, untilId)
 			.andWhere('room.ownerId = :ownerId', { ownerId });
+		if (!includeArchived) {
+			query.andWhere('room.isArchived = FALSE');
+		}
 
 		const rooms = await query.take(limit).getMany();
 
@@ -704,11 +892,25 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async joinToRoom(userId: MiUser['id'], roomId: MiChatRoom['id']) {
-		const invitation = await this.chatRoomInvitationsRepository.findOneByOrFail({ roomId, userId });
+	public async getPublicRoomsWithPagination(limit: number, sinceId?: MiChatRoom['id'] | null, untilId?: MiChatRoom['id'] | null) {
+		const query = this.queryService.makePaginationQuery(this.chatRoomsRepository.createQueryBuilder('room'), sinceId, untilId)
+			.andWhere('room.isPublic = TRUE')
+			.andWhere('room.isArchived = FALSE');
 
-		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId });
-		if (membershipsCount >= MAX_ROOM_MEMBERS) {
+		const rooms = await query.take(limit).getMany();
+		return rooms;
+	}
+
+	@bindThis
+	public async joinToRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], params?: { bubbleColor?: string, bubbleShape?: string }) {
+		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, isArchived: false });
+		const invitation = await this.chatRoomInvitationsRepository.findOneBy({ roomId, userId });
+		if (!room.isPublic && !invitation && room.ownerId != userId) {
+			throw new Error('cannot join to private room without invitation');
+		}
+
+		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId, hasLeft: false });
+		if (membershipsCount >= room.capacity) {
 			throw new Error('room is full');
 		}
 
@@ -716,11 +918,17 @@ export class ChatService {
 			id: this.idService.gen(),
 			roomId: roomId,
 			userId: userId,
+			bubbleColor: params?.bubbleColor,
+			bubbleShape: params?.bubbleShape,
 		} satisfies Partial<MiChatRoomMembership>;
 
 		// TODO: transaction
 		await this.chatRoomMembershipsRepository.insertOne(membership);
-		await this.chatRoomInvitationsRepository.delete(invitation.id);
+		if (invitation) {
+		  await this.chatRoomInvitationsRepository.delete(invitation.id);
+		}
+
+		this.globalEventService.publishChatRoomStream(roomId, 'join', { userId } );
 	}
 
 	@bindThis
@@ -730,9 +938,15 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async leaveRoom(userId: MiUser['id'], roomId: MiChatRoom['id']) {
-		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId });
-		await this.chatRoomMembershipsRepository.delete(membership.id);
+	public async leaveRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], kicked: boolean) {
+		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, isArchived: false });
+		if (room.ownerId === userId) {
+			throw new Error("room owner cannot leave the room");
+		}
+
+		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
+		await this.chatRoomMembershipsRepository.update(membership.id, { hasLeft: true });
+		this.globalEventService.publishChatRoomStream(roomId, 'leave', { userId, kicked } );
 
 		// 未読フラグを消す (「既読にする」というわけでもないのでreadメソッドは使わないでおく)
 		const redisPipeline = this.redisClient.pipeline();
@@ -743,7 +957,7 @@ export class ChatService {
 
 	@bindThis
 	public async muteRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], mute: boolean) {
-		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId });
+		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
 		await this.chatRoomMembershipsRepository.update(membership.id, { isMuted: mute });
 	}
 
@@ -751,10 +965,12 @@ export class ChatService {
 	public async updateRoom(room: MiChatRoom, params: {
 		name?: string;
 		description?: string;
+		capacity?: number;
 	}): Promise<MiChatRoom> {
 		return this.chatRoomsRepository.createQueryBuilder().update()
 			.set(params)
 			.where('id = :id', { id: room.id })
+			.andWhere('isArchived = :isArchived', { isArchived: false })
 			.returning('*')
 			.execute()
 			.then((response) => {
@@ -763,9 +979,29 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async getRoomMembershipsWithPagination(roomId: MiChatRoom['id'], limit: number, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
+	public async closeRoom(roomId: MiChatRoom['id']): Promise<void> {
+		const ok = await this.chatRoomsRepository.createQueryBuilder().update()
+			.set({ isArchived: true })
+			.where('id = :id', { id: room.id })
+			.andWhere('isArchived = :isArchived', { isArchived: false })
+			.returning('*')
+			.execute()
+			.then((response) => {
+				return response.raw[0];
+			});
+		if (ok) {
+		  this.globalEventService.publishChatRoomStream(roomId, 'close', { roomId });
+		}
+	}
+
+	@bindThis
+	public async getRoomMembershipsWithPagination(roomId: MiChatRoom['id'], limit: number, includeArchived?: true, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
 		const query = this.queryService.makePaginationQuery(this.chatRoomMembershipsRepository.createQueryBuilder('membership'), sinceId, untilId)
 			.andWhere('membership.roomId = :roomId', { roomId });
+		if (!includeArchived) {
+			query.andWhere('room.isArchived = FALSE');
+			query.andWhere('membership.hasLeft = FALSE');
+		}
 
 		const memberships = await query.take(limit).getMany();
 
@@ -944,9 +1180,12 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async getMyMemberships(userId: MiUser['id'], limit: number, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
+	public async getMyMemberships(userId: MiUser['id'], limit: number, includeLeft?: boolean, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
 		const query = this.queryService.makePaginationQuery(this.chatRoomMembershipsRepository.createQueryBuilder('membership'), sinceId, untilId)
 			.andWhere('membership.userId = :userId', { userId });
+		if (!includeLeft) {
+			query.andWhere('membership.hasLeft = FALSE');
+		}
 
 		const memberships = await query.take(limit).getMany();
 

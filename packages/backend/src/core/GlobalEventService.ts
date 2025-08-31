@@ -175,6 +175,12 @@ export interface ChatEventTypes {
 		user?: Packed<'UserLite'>;
 		messageId: MiChatMessage['id'];
 	};
+	pollStarted: {
+		id: MiChatPoll['id'];
+	};
+	pollEnded: { choice: string; count: number; voter?: Packed<'UserLite'> } [];
+	cardDelivered: string[];
+	randomPicked: string | number | MiUser['id'];
 }
 
 export interface ReversiEventTypes {
@@ -318,6 +324,10 @@ export type GlobalEvents = {
 		name: `chatRoomStream:${MiChatRoom['id']}`;
 		payload: EventTypesToEventPayload<ChatEventTypes>;
 	};
+	chatRoomUser: {
+		name: `chatRoomUserStream:${MiChatRoom['id']}-${MiUser['id']}`;
+		payload: EventTypesToEventPayload<ChatEventTypes>;
+	};
 	reversi: {
 		name: `reversiStream:${MiUser['id']}`;
 		payload: EventTypesToEventPayload<ReversiEventTypes>;
@@ -424,6 +434,11 @@ export class GlobalEventService {
 	@bindThis
 	public publishChatRoomStream<K extends keyof ChatEventTypes>(toRoomId: MiChatRoom['id'], type: K, value?: ChatEventTypes[K]): void {
 		this.publish(`chatRoomStream:${toRoomId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishChatRoomUserStream<K extends keyof ChatEventTypes>(toRoomId: MiChatRoom['id'], toUserId: MiUser['id'], type: K, value?: ChatEventTypes[K]): void {
+		this.publish(`chatRoomUserStream:${toRoomId}-${toUserId}`, type, typeof value === 'undefined' ? null : value);
 	}
 
 	@bindThis

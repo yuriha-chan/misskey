@@ -248,7 +248,7 @@ export class ChatEntityService {
 	): Promise<Packed<'ChatRoom'>> {
 		const room = typeof src === 'object' ? src : await this.chatRoomsRepository.findOneByOrFail({ id: src });
 
-		const membership = me && me.id !== room.ownerId ? (options?._hint_?.myMemberships?.get(room.id) ?? await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId: me.id })) : null;
+		const membership = me && (options?._hint_?.myMemberships?.get(room.id) ?? await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId: me.id }));
 		const invitation = me && me.id !== room.ownerId ? (options?._hint_?.myInvitations?.get(room.id) ?? await this.chatRoomInvitationsRepository.findOneBy({ roomId: room.id, userId: me.id })) : null;
 
 		return {
@@ -359,6 +359,8 @@ export class ChatEntityService {
 			user: options?.populateUser ? (options._hint_?.packedUsers.get(membership.userId) ?? await this.userEntityService.pack(membership.user ?? membership.userId, me)) : undefined,
 			roomId: membership.roomId,
 			room: options?.populateRoom ? (options._hint_?.packedRooms.get(membership.roomId) ?? await this.packRoom(membership.room ?? membership.roomId, me)) : undefined,
+			bubbleColor: membership.bubbleColor,
+			bubbleStyle: membership.bubbleStyle,
 		};
 	}
 

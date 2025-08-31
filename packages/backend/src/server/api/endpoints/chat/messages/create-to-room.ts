@@ -79,6 +79,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (room == null) {
 				throw new ApiError(meta.errors.noSuchRoom);
 			}
+			if (room.isArchived) {
+				throw new ApiError(meta.errors.roomIsArchived);
+			}
 
 			let file = null;
 			if (ps.fileId != null) {

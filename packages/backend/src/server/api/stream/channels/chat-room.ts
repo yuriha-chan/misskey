@@ -32,6 +32,7 @@ class ChatRoomChannel extends Channel {
 		this.roomId = params.roomId;
 
 		this.subscriber.on(`chatRoomStream:${this.roomId}`, this.onEvent);
+		this.subscriber.on(`chatRoomUserStream:${this.roomId}-${this.user!.id}`, this.onEvent);
 	}
 
 	@bindThis
@@ -53,6 +54,7 @@ class ChatRoomChannel extends Channel {
 	@bindThis
 	public dispose() {
 		this.subscriber.off(`chatRoomStream:${this.roomId}`, this.onEvent);
+		this.subscriber.off(`chatRoomUserStream:${this.roomId}-${this.user!.id}`, this.onEvent);
 	}
 }
 

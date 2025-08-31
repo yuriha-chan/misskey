@@ -48,6 +48,9 @@ import {
 	MiPasswordResetRequest,
 	MiPoll,
 	MiPollVote,
+	MiChatPoll,
+	MiChatPollVote,
+	MiChatSecret,
 	MiPromoNote,
 	MiPromoRead,
 	MiRegistrationTicket,
@@ -156,6 +159,24 @@ const $pollsRepository: Provider = {
 const $pollVotesRepository: Provider = {
 	provide: DI.pollVotesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiPollVote).extend(miRepository as MiRepository<MiPollVote>),
+	inject: [DI.db],
+};
+
+const $chatPollsRepository: Provider = {
+	provide: DI.chatPollsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiChatPoll).extend(miRepository as MiRepository<MiChatPoll>),
+	inject: [DI.db],
+};
+
+const $chatPollVotesRepository: Provider = {
+	provide: DI.chatPollVotesRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiChatPollVote).extend(miRepository as MiRepository<MiChatPollVote>),
+	inject: [DI.db],
+};
+
+const $chatSecretsRepository: Provider = {
+	provide: DI.chatSecretsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiChatSecret).extend(miRepository as MiRepository<MiChatSecret>),
 	inject: [DI.db],
 };
 
@@ -552,6 +573,8 @@ const $reversiGamesRepository: Provider = {
 		$noteDraftsRepository,
 		$pollsRepository,
 		$pollVotesRepository,
+		$chatPollsRepository,
+		$chatPollVotesRepository,
 		$userProfilesRepository,
 		$userKeypairsRepository,
 		$userPendingsRepository,
@@ -629,6 +652,8 @@ const $reversiGamesRepository: Provider = {
 		$noteDraftsRepository,
 		$pollsRepository,
 		$pollVotesRepository,
+		$chatPollsRepository,
+		$chatPollVotesRepository,
 		$userProfilesRepository,
 		$userKeypairsRepository,
 		$userPendingsRepository,
