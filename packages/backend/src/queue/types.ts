@@ -8,6 +8,9 @@ import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiNote } from '@/models/Note.js';
 import type { SystemWebhookEventType } from '@/models/SystemWebhook.js';
 import type { MiUser } from '@/models/User.js';
+import type { MiChatRoom } from '@/models/ChatRoom.js';
+import type { MiChatSecret } from '@/models/ChatSecret.js';
+import type { MiChatPoll } from '@/models/ChatPoll.js';
 import type { MiWebhook, WebhookEventTypes } from '@/models/Webhook.js';
 import type { IActivity } from '@/core/activitypub/type.js';
 import type { SystemWebhookPayload } from '@/core/SystemWebhookService.js';
@@ -133,3 +136,15 @@ export type UserWebhookDeliverJobData<T extends WebhookEventTypes = WebhookEvent
 export type ThinUser = {
 	id: MiUser['id'];
 };
+
+export type CloseExpiredChatRoomJobData = {
+	id: MiChatRoom['id'];
+}
+
+export type RevealChatSecretJobData = {
+	id: MiChatSecret['id'];
+}
+
+export type EndChatPollJobData = {
+	pollId: MiChatPoll['id'];
+}

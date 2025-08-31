@@ -20,7 +20,12 @@ export const meta = {
 		noSuchRoom: {
 			message: 'No such room.',
 			code: 'NO_SUCH_ROOM',
-			id: '84416476-5ce8-4a2c-b568-9569f1b10733',
+			id: 'cb7f3179-50e8-4389-8c30-dbe2650a67c9',
+		},
+		noPermission: {
+			message: 'Not permitted to kick.',
+			code: 'NOT_PERMITTED_TO_KICK',
+			id: '1edf3b22-8829-423c-8ec0-9308585f2cee',
 		},
 	},
 } as const;
@@ -29,10 +34,9 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		roomId: { type: 'string', format: 'misskey:id' },
-		bubbleColor: { type: 'string', nullable: true },
-		bubbleStyle: { type: 'string', nullable: true }
+    userId: { type: 'string', format: 'misskey:id' }
 	},
-	required: ['roomId'],
+	required: ['roomId', 'userId'],
 } as const;
 
 @Injectable()
@@ -43,7 +47,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
 
-			await this.chatService.joinToRoom(me.id, ps.roomId, { bubbleColor: ps.bubbleColor, bubbleStyle: ps.bubbleStyle } );
+			const room = await this.chatService.findRoomById(ps.roomId);
+			if (room == null) {
+				throw new ApiError(meta.errors.noSuchRoom);
+			}
+      if (!await this.chatService.hasPermissionToKick(me.id, room)) {
+				throw new ApiError(meta.errors.noPermission);
+      }
+			await this.chatService.leaveRoom(ps.userId, ps.roomId, true);
 		});
 	}
 }

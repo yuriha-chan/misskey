@@ -44,6 +44,9 @@ import { BakeBufferedReactionsProcessorService } from './processors/BakeBuffered
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
+import { CloseExpiredChatRoomProcessorService }  from './processors/CloseExpiredChatRoomProcessorService.js';
+import { RevealChatSecretProcessorService } from './processors/RevealChatSecretProcessorService.js';
+import { EndChatPollProcessorService } from './processors/EndChatPollProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
 
@@ -85,6 +88,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 	private relationshipQueueWorker: Bull.Worker;
 	private objectStorageQueueWorker: Bull.Worker;
 	private endedPollNotificationQueueWorker: Bull.Worker;
+	private closeExpiredChatRoomQueueWorker: Bull.Worker;
+	private revealChatSecretQueueWorker: Bull.Worker;
+	private endChatPollQueueWorker: Bull.Worker;
 
 	constructor(
 		@Inject(DI.config)
@@ -94,6 +100,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private userWebhookDeliverProcessorService: UserWebhookDeliverProcessorService,
 		private systemWebhookDeliverProcessorService: SystemWebhookDeliverProcessorService,
 		private endedPollNotificationProcessorService: EndedPollNotificationProcessorService,
+		private closeExpiredChatRoomQueueWorker: CloseExpiredChatProcessorService,
+		private revealChatSecretProcessorService: RevealChatSecretProcessorService,
+		private endChatPollProcessorService: EndChatPollProcessorService,
 		private deliverProcessorService: DeliverProcessorService,
 		private inboxProcessorService: InboxProcessorService,
 		private deleteDriveFilesProcessorService: DeleteDriveFilesProcessorService,
@@ -124,6 +133,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private bakeBufferedReactionsProcessorService: BakeBufferedReactionsProcessorService,
 		private checkModeratorsActivityProcessorService: CheckModeratorsActivityProcessorService,
 		private cleanProcessorService: CleanProcessorService,
+		private closeExpiredChatRoomProcessorService: CloseExpiredChatRoomProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
@@ -520,6 +530,50 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			});
 		}
 		//#endregion
+
+		//#region close expired chat rooms
+		{
+			this.closeExpiredChatRoomQueueWorker = new Bull.Worker(QUEUE.CLOSE_EXPIRED_CHAT_ROOM, (job) => {
+				if (this.config.sentryForBackend) {
+					return Sentry.startSpan({ name: 'Queue: ' }, () => this.closeExpiredChatRoomProcessorService.process(job));
+				} else {
+					return this.closeExpiredChatRoomProcessorService.process(job);
+				}
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.CLOSE_EXPIRED_CHAT_ROOM),
+				autorun: false,
+			});
+		}
+		//#endregion
+		//
+		//#region reveal chat secret
+		{
+			this.revealChatSecretQueueWorker = new Bull.Worker(QUEUE.REVEAL_CHAT_SECRET, (job) => {
+				if (this.config.sentryForBackend) {
+					return Sentry.startSpan({ name: 'Queue: revealChatSecret' }, () => this.revealChatSecretProcessorService.process(job));
+				} else {
+					return this.revealChatSecretProcessorService.process(job);
+				}
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.REVEAL_CHAT_SECRET),
+				autorun: false,
+			});
+		}
+		//#endregion
+
+		//#region end chat poll
+		{
+			this.endChatPollQueueWorker = new Bull.Worker(QUEUE.END_CHAT_POLL, (job) => {
+				if (this.config.sentryForBackend) {
+					return Sentry.startSpan({ name: 'Queue: endChatPoll' }, () => this.endChatPollProcessorService.process(job));
+				} else {
+					return this.endChatPollProcessorService.process(job);
+				}
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.END_CHAT_POLL),
+				autorun: false,
+			});
+		}
 	}
 
 	@bindThis
@@ -534,6 +588,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			this.relationshipQueueWorker.run(),
 			this.objectStorageQueueWorker.run(),
 			this.endedPollNotificationQueueWorker.run(),
+			this.closeExpiredChatRoomQueueWorker.run(),
+			this.revealChatSecretQueueWorker.run(),
+			this.endChatPollQueueWorker.run(),
 		]);
 	}
 
@@ -549,6 +606,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			this.relationshipQueueWorker.close(),
 			this.objectStorageQueueWorker.close(),
 			this.endedPollNotificationQueueWorker.close(),
+			this.closeExpiredChatRoomQueueWorker.close(),
+			this.revealChatSecretQueueWorker.close(),
+			this.endChatPollQueueWorker.close(),
 		]);
 	}
 

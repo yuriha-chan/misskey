@@ -38,4 +38,24 @@ export class MiChatRoom {
 		default: false,
 	})
 	public isArchived: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public isPublic: boolean;
+
+	@Column('varchar(512)', {
+		default: null,
+	})
+	public theme: string | null;
+
+	@Column('integer', {
+		default: 20,
+	})
+	public capacity: number;
+	
+	@Column('integer', {
+		default: 10800,
+	})
+	public expiration: number | null;
 }

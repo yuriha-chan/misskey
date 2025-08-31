@@ -38,6 +38,7 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 30 },
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
+		includeLeft: { type: 'boolean' },
 		sinceDate: { type: 'integer' },
 		untilDate: { type: 'integer' },
 	},
@@ -56,7 +57,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			await this.chatService.checkChatAvailability(me.id, 'read');
 
-			const memberships = await this.chatService.getMyMemberships(me.id, ps.limit, sinceId, untilId);
+			const memberships = await this.chatService.getMyMemberships(me.id, ps.limit, includeLeft, sinceId, untilId);
 
 			return this.chatEntityService.packRoomMemberships(memberships, me, {
 				populateUser: false,
