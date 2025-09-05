@@ -9,21 +9,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@dragover.stop="onDragover"
 	@drop.stop="onDrop"
 >
-	<textarea
-		ref="textareaEl"
-		v-model="text"
-		:class="$style.textarea"
-		class="_acrylic"
-		:placeholder="i18n.ts.inputMessageHere"
-		:readonly="textareaReadOnly"
-		@keydown="onKeydown"
-		@paste="onPaste"
-	></textarea>
 	<footer :class="$style.footer">
 		<div v-if="file" :class="$style.file" @click="file = null">{{ file.name }}</div>
-		<div :class="$style.buttons">
+		<div :class="$style.input">
 			<button class="_button" :class="$style.button" @click="chooseFile"><i class="ti ti-photo-plus"></i></button>
 			<button class="_button" :class="$style.button" @click="insertEmoji"><i class="ti ti-mood-happy"></i></button>
+			<textarea
+				ref="textareaEl"
+				v-model="text"
+				:class="$style.textarea"
+				class="_acrylic"
+				:placeholder="i18n.ts.inputMessageHere"
+				:readonly="textareaReadOnly"
+				@keydown="onKeydown"
+				@paste="onPaste"
+			></textarea>
 			<button class="_button" :class="[$style.button, $style.send]" :disabled="!canSend || sending" :title="i18n.ts.send" @click="send">
 				<template v-if="!sending"><i class="ti ti-send"></i></template><template v-if="sending"><MkLoading :em="true"/></template>
 			</button>
@@ -309,11 +309,9 @@ onBeforeUnmount(() => {
 	cursor: auto;
 	display: block;
 	width: 100%;
-	min-width: 100%;
-	max-width: 100%;
-	min-height: 80px;
+	min-height: 40px;
 	margin: 0;
-	padding: 16px 16px 0 16px;
+	padding: 4px 8px 0;
 	resize: none;
 	font-size: 1em;
 	font-family: inherit;
@@ -323,6 +321,8 @@ onBeforeUnmount(() => {
 	box-shadow: none;
 	box-sizing: border-box;
 	color: var(--MI_THEME-fg);
+	background: transparent;
+  flex-grow: 3;
 	field-sizing: content;
 }
 
@@ -337,12 +337,14 @@ onBeforeUnmount(() => {
 	cursor: pointer;
 }
 
-.buttons {
+.input {
 	display: flex;
+	align-items: center;
+	padding: 8px;
 }
 
 .button {
-	height: 50px;
+	height: 40px;
 	aspect-ratio: 1;
 
 	&:hover {
