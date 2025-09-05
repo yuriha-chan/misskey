@@ -75,12 +75,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
 
-			const room = await this.chatService.findRoomById(ps.toRoomId);
+			const room = await this.chatService.findRoomById(ps.toRoomId, false);
 			if (room == null) {
 				throw new ApiError(meta.errors.noSuchRoom);
-			}
-			if (room.isArchived) {
-				throw new ApiError(meta.errors.roomIsArchived);
 			}
 
 			let file = null;
@@ -103,6 +100,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			return await this.chatService.createMessageToRoom(me, room, {
 				text: ps.text,
 				file: file,
+
 			});
 		});
 	}

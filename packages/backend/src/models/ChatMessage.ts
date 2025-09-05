@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
+import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne, OneToOne } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiDriveFile } from './DriveFile.js';
 import { MiChatRoom } from './ChatRoom.js';
+import { MiChatPoll } from './ChatPoll.js';
+import { MiChatSecret } from './ChatSecret.js';
 
 @Entity('chat_message')
 export class MiChatMessage {
@@ -82,4 +84,32 @@ export class MiChatMessage {
 		length: 1024, array: true, default: '{}',
 	})
 	public reactions: string[];
+
+	@OneToOne(() => MiChatPoll, { nullable: true })
+	@JoinColumn({ name: 'id' })
+	public poll: MiChatPoll | null;
+
+	@OneToOne(() => MiChatSecret, { nullable: true })
+	@JoinColumn({ name: 'id' })
+	public secret: MiChatSecret | null;
+
+	@Column({
+		...id(),
+		array: true,
+		nullable: true,
+	})
+	public visibleUserIds: MiUser['id'][] | null;
+
+	@Column('jsonb', { nullable: true })
+	public deliverCards: {
+		cards: string[];
+		deliver: number | { [userId: string]: number };
+		revealAt?: Date | null;
+	} | null;
+
+	@Column('jsonb', { nullable: true })
+	public pickRandom: {
+		choices?: string[];
+		range?: { start: number; stop: number; step?: number; };
+	} | null;
 }

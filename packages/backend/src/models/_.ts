@@ -34,6 +34,9 @@ import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiChatMessage } from '@/models/ChatMessage.js';
+import { MiChatSecret } from '@/models/ChatSecret.js';
+import { MiChatPoll } from '@/models/ChatPoll.js';
+import { MiChatPollVote } from '@/models/ChatPollVote.js';
 import { MiChatRoom } from '@/models/ChatRoom.js';
 import { MiChatRoomInvitation } from '@/models/ChatRoomInvitation.js';
 import { MiChatRoomMembership } from '@/models/ChatRoomMembership.js';
@@ -228,6 +231,9 @@ export {
 	MiFlashLike,
 	MiUserMemo,
 	MiChatMessage,
+	MiChatPoll,
+	MiChatPollVote,
+	MiChatSecret,
 	MiChatRoom,
 	MiChatRoomMembership,
 	MiChatRoomInvitation,
@@ -277,6 +283,7 @@ export type PageLikesRepository = Repository<MiPageLike> & MiRepository<MiPageLi
 export type PasswordResetRequestsRepository = Repository<MiPasswordResetRequest> & MiRepository<MiPasswordResetRequest>;
 export type PollsRepository = Repository<MiPoll> & MiRepository<MiPoll>;
 export type PollVotesRepository = Repository<MiPollVote> & MiRepository<MiPollVote>;
+export type ChatPollVotesRepository = Repository<MiChatPollVote> & MiRepository<MiChatPollVote>;
 export type PromoNotesRepository = Repository<MiPromoNote> & MiRepository<MiPromoNote>;
 export type PromoReadsRepository = Repository<MiPromoRead> & MiRepository<MiPromoRead>;
 export type RegistrationTicketsRepository = Repository<MiRegistrationTicket> & MiRepository<MiRegistrationTicket>;
@@ -307,6 +314,8 @@ export type FlashsRepository = Repository<MiFlash> & MiRepository<MiFlash>;
 export type FlashLikesRepository = Repository<MiFlashLike> & MiRepository<MiFlashLike>;
 export type UserMemoRepository = Repository<MiUserMemo> & MiRepository<MiUserMemo>;
 export type ChatMessagesRepository = Repository<MiChatMessage> & MiRepository<MiChatMessage>;
+export type ChatPollsRepository = Repository<MiChatPoll> & MiRepository<MiChatPoll>;
+export type ChatSecretsRepository = Repository<MiChatSecret> & MiRepository<MiChatSecret>;
 export type ChatRoomsRepository = Repository<MiChatRoom> & MiRepository<MiChatRoom>;
 export type ChatRoomMembershipsRepository = Repository<MiChatRoomMembership> & MiRepository<MiChatRoomMembership>;
 export type ChatRoomInvitationsRepository = Repository<MiChatRoomInvitation> & MiRepository<MiChatRoomInvitation>;

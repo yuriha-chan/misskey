@@ -20,7 +20,7 @@ import type { MiPage } from '@/models/Page.js';
 import type { MiWebhook } from '@/models/Webhook.js';
 import type { MiSystemWebhook } from '@/models/SystemWebhook.js';
 import type { MiMeta } from '@/models/Meta.js';
-import { MiAvatarDecoration, MiChatMessage, MiChatRoom, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
+import { MiAvatarDecoration, MiChatMessage, MiChatPoll, MiChatSecret, MiChatRoom, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -175,9 +175,19 @@ export interface ChatEventTypes {
 	pollStarted: {
 		id: MiChatPoll['id'];
 	};
-	pollEnded: { choice: string; count: number; voter?: Packed<'UserLite'> } [];
-	cardDelivered: string[];
+	leave: {
+		userId: MiUser['id'];
+		kicked: boolean;
+	};
+	join: {
+		userId: MiUser['id'];
+	};
+	close: {};
+	pollEnded: { id: MiChatPoll['id'], choices: string[], votes: number[]; voter?: MiUser['id'][][] };
+	cardsDelivered: string[];
 	randomPicked: string | number | MiUser['id'];
+	secretPlaced: { id: MiChatSecret['id'], userId: MiUser['id'] };
+	secretRevealed: { id: MiChatSecret['id'], plaintext: string }; 
 }
 
 export interface ReversiEventTypes {

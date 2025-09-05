@@ -41,6 +41,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		roomId: { type: 'string', format: 'misskey:id' },
+		includeArchived: { type: 'boolean' },
 	},
 	required: ['roomId'],
 } as const;
@@ -53,12 +54,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const untilId = ps.untilId ?? (ps.untilDate ? this.idService.gen(ps.untilDate!) : null);
-			const sinceId = ps.sinceId ?? (ps.sinceDate ? this.idService.gen(ps.sinceDate!) : null);
-
 			await this.chatService.checkChatAvailability(me.id, 'read');
 
-			const room = await this.chatService.findRoomById(ps.roomId);
+			const room = await this.chatService.findRoomById(ps.roomId, ps.includeArchived);
 			if (room == null) {
 				throw new ApiError(meta.errors.noSuchRoom);
 			}
