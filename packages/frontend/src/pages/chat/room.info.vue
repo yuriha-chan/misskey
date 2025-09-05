@@ -13,6 +13,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #label>{{ i18n.ts.description }}</template>
 	</MkTextarea>
 
+	<MkInput v-model="expire_" :disabled="!isOwner">
+		<template #label>{{ i18n.ts.expire }}</template>
+	</MkInput>
+
+	<MkInput v-model="expire_" :disabled="!isOwner">
+		<template #label>{{ i18n.ts.expire }}</template>
+	</MkInput>
+
 	<MkButton v-if="isOwner" primary @click="save">{{ i18n.ts.save }}</MkButton>
 
 	<hr>
@@ -49,6 +57,11 @@ const isOwner = computed(() => {
 });
 
 const name_ = ref(props.room.name);
+const createdOn = ref(props.room.createdOn);
+const expireAfter_ = ref(props.room.expireAfter);
+const capacity_ = ref(props.room.capacity);
+const background_ = ref(props.room.background);
+const isPublic = ref(props.room.isPublic);
 const description_ = ref(props.room.description);
 
 function save() {
