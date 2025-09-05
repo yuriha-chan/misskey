@@ -7,7 +7,6 @@ export class AddChatFeaturesTables1756522990544 {
     name = 'AddChatFeaturesTables1756522990544'
 
     async up(queryRunner) {
-        // chat_secret テーブルの作成
         await queryRunner.query(`
             CREATE TABLE "chat_secret" (
                 "id" character varying NOT NULL,
@@ -19,7 +18,6 @@ export class AddChatFeaturesTables1756522990544 {
             )
         `);
 
-        // chat_poll テーブルの作成
         await queryRunner.query(`
             CREATE TABLE "chat_poll" (
                 "id" character varying NOT NULL,
@@ -31,7 +29,6 @@ export class AddChatFeaturesTables1756522990544 {
             )
         `);
 
-        // chat_poll_vote テーブルの作成
         await queryRunner.query(`
             CREATE TABLE "chat_poll_vote" (
                 "id" character varying NOT NULL,
