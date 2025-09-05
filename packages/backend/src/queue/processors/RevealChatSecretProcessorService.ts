@@ -31,7 +31,7 @@ export class RevealChatSecretProcessorService {
 			await this.chatService.revealSecret(id);
 			this.logger.info(`Successfully revealed secret for message: ${id}`);
 		} catch (error) {
-			this.logger.error(`Failed to process job for message: ${id}`, error);
+			this.logger.error(`Failed to process job for message: ${id}`);
 			throw error;
 		}
 	}

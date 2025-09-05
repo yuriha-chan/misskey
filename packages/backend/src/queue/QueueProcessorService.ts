@@ -100,7 +100,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private userWebhookDeliverProcessorService: UserWebhookDeliverProcessorService,
 		private systemWebhookDeliverProcessorService: SystemWebhookDeliverProcessorService,
 		private endedPollNotificationProcessorService: EndedPollNotificationProcessorService,
-		private closeExpiredChatRoomQueueWorker: CloseExpiredChatProcessorService,
+		private closeExpiredChatRoomProcessorService: CloseExpiredChatRoomProcessorService,
 		private revealChatSecretProcessorService: RevealChatSecretProcessorService,
 		private endChatPollProcessorService: EndChatPollProcessorService,
 		private deliverProcessorService: DeliverProcessorService,
@@ -133,7 +133,6 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private bakeBufferedReactionsProcessorService: BakeBufferedReactionsProcessorService,
 		private checkModeratorsActivityProcessorService: CheckModeratorsActivityProcessorService,
 		private cleanProcessorService: CleanProcessorService,
-		private closeExpiredChatRoomProcessorService: CloseExpiredChatRoomProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;

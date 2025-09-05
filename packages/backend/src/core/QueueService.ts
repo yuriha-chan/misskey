@@ -97,9 +97,9 @@ export class QueueService {
 
 		@Inject('queue:system') public systemQueue: SystemQueue,
 		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
-		@Inject('queue:closeExpiredChatRoom') public closeExpiredChatRoom: CloseExpiredChatRoomQueue,
-		@Inject('queue:revealChatSecret') public revealChatSecret: RevealChatSecretQueue,
-		@Inject('queue:endChatPoll') public endChatPoll: EndChatPollQueue,
+		@Inject('queue:closeExpiredChatRoom') public closeExpiredChatRoomQueue: CloseExpiredChatRoomQueue,
+		@Inject('queue:revealChatSecret') public revealChatSecretQueue: RevealChatSecretQueue,
+		@Inject('queue:endChatPoll') public endChatPollQueue: EndChatPollQueue,
 		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
 		@Inject('queue:inbox') public inboxQueue: InboxQueue,
 		@Inject('queue:db') public dbQueue: DbQueue,

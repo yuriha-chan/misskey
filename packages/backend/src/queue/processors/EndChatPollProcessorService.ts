@@ -31,7 +31,7 @@ export class EndChatPollProcessorService {
 			await this.chatService.closePoll(pollId);
 			this.logger.info(`Successfully ended poll: ${pollId}`);
 		} catch (error) {
-			this.logger.error(`Failed to process job for poll: ${pollId}`, error);
+			this.logger.error(`Failed to process job for poll: ${pollId}`);
 			throw error;
 		}
 	}

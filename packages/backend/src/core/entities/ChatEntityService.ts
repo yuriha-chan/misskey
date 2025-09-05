@@ -359,8 +359,6 @@ export class ChatEntityService {
 			user: options?.populateUser ? (options._hint_?.packedUsers.get(membership.userId) ?? await this.userEntityService.pack(membership.user ?? membership.userId, me)) : undefined,
 			roomId: membership.roomId,
 			room: options?.populateRoom ? (options._hint_?.packedRooms.get(membership.roomId) ?? await this.packRoom(membership.room ?? membership.roomId, me)) : undefined,
-			bubbleColor: membership.bubbleColor,
-			bubbleStyle: membership.bubbleStyle,
 		};
 	}
 

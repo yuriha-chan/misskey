@@ -44,7 +44,8 @@ export class MiChatRoom {
 	})
 	public isPublic: boolean;
 
-	@Column('varchar(512)', {
+	@Column('varchar', {
+		length: 512,
 		default: null,
 	})
 	public theme: string | null;

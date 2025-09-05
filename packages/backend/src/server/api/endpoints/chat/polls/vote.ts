@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { ChatPollService } from '@/core/ChatPollService.js';
 import { ChatService } from '@/core/ChatService.js';
 import { ApiError } from '@/server/api/error.js';
-import { ChatMessagesRepository } from '@/models/_.js';
+import type { ChatPollsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
@@ -43,20 +43,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		private chatPollService: ChatPollService,
 		private chatService: ChatService,
-		@Inject(DI.chatMessagesRepository) private chatMessagesRepository: ChatMessagesRepository,
+		@Inject(DI.chatPollsRepository) private chatPollsRepository: ChatPollsRepository,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
 
-			const message = await this.chatMessagesRepository.findOneBy({
+			const poll = await this.chatPollsRepository.findOneBy({
 				id: ps.pollId,
 			});
 
-			if (message == null) {
+			if (poll == null) {
 				throw new ApiError(meta.errors.noSuchPoll);
 			}
 
-			const room = await this.chatService.findRoomById(message.roomId, false);
+			const room = await this.chatService.findRoomById(poll.roomId, false);
 			if (room == null || !await this.chatService.isRoomMember(room, me.id)) {
 				throw new ApiError(meta.errors.notMember);
 			}

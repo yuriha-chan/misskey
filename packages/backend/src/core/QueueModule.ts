@@ -31,7 +31,6 @@ export type RelationshipQueue = Bull.Queue<RelationshipJobData>;
 export type ObjectStorageQueue = Bull.Queue;
 export type UserWebhookDeliverQueue = Bull.Queue<UserWebhookDeliverJobData>;
 export type SystemWebhookDeliverQueue = Bull.Queue<SystemWebhookDeliverJobData>;
-export type UserWebhookDeliverQueue = Bull.Queue<UserWebhookDeliverJobData>;
 export type CloseExpiredChatRoomQueue = Bull.Queue<CloseExpiredChatRoomJobData>;
 export type RevealChatSecretQueue = Bull.Queue<RevealChatSecretJobData>;
 export type EndChatPollQueue = Bull.Queue<EndChatPollJobData>;

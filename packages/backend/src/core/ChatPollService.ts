@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { ChatPollsRepository, ChatPollVotesRepository, MiUser } from '@/models/_.js';
+import type { ChatPollsRepository, ChatPollVotesRepository, MiUser, MiChatPoll } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { bindThis } from '@/decorators.js';
 
@@ -13,10 +13,10 @@ import { bindThis } from '@/decorators.js';
 export class ChatPollService {
 	constructor(
 		@Inject(DI.chatPollsRepository)
-		private chatPollsRepository: chatPollsRepository,
+		private chatPollsRepository: ChatPollsRepository,
 
 		@Inject(DI.pollVotesRepository)
-		private chatPollVotesRepository: chatPollVotesRepository,
+		private chatPollVotesRepository: ChatPollVotesRepository,
 
 		private idService: IdService,
 	) {
@@ -33,8 +33,8 @@ export class ChatPollService {
 
 		// if already voted
 		const exist = await this.chatPollVotesRepository.findBy({
-			pollId: poll.id,
-			userId: user.id,
+			pollId: id,
+			userId: userId,
 		});
 
 		if (exist.length >= poll.multiple) {
@@ -46,8 +46,8 @@ export class ChatPollService {
 
 		await this.chatPollVotesRepository.insert({
 			id: this.idService.gen(),
-			pollId: poll.id,
-			userId: user.id,
+			pollId: id,
+			userId: userId,
 			choice: choice,
 		});
 	}
