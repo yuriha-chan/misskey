@@ -7,7 +7,7 @@ export class ChatRoom1756522990543 {
     name = 'ChatRoom1756522990543'
 
     async up(queryRunner) {
-        await queryRunner.query(`ALTER TABLE "chat_room" ADD "capacity" number NOT NULL DEFAULT 20`);
+        await queryRunner.query(`ALTER TABLE "chat_room" ADD "capacity" integer NOT NULL DEFAULT 20`);
         await queryRunner.query(`ALTER TABLE "chat_room" ADD "created_on" timestamp DEFAULT NULL`);
         await queryRunner.query(`ALTER TABLE "chat_room" ADD "theme" character VARYING(512) DEFAULT NULL`);
         await queryRunner.query(`ALTER TABLE "chat_room" ADD "expiration" integer DEFAULT NULL`);

@@ -317,8 +317,6 @@ export class ChatService {
 			fileId: params.file ? params.file.id : null,
 			reads: [],
 			uri: params.uri ?? null,
-			deliverCards: params.deliverCards,
-			pickRandom: params.pickRandom,
 			visibleUserIds: params.visibleUserIds ?? null,
 		} satisfies Partial<MiChatMessage>;
 
