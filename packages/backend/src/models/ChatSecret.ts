@@ -23,12 +23,20 @@ export class MiChatSecret {
 	public room: MiChatRoom;
 
 	@Column('text')
+	public title: string;
+
+	@Column('text')
 	public plaintext: string;
 
 	@Column('timestamp', {
 		nullable: true,
 	})
-	public revealAt: Date | null;
+	public revealsAt: Date | null;
+
+	@Column(id(), {
+		nullable: true,
+	})
+	public revealedAt: string;
 
 	@Column('boolean', {
 		default: false

@@ -1203,6 +1203,10 @@ export interface Locale extends ILocale {
      */
     "removed": string;
     /**
+     * この操作は元に戻せません。
+     */
+    "thisOperationCannotBeUndone": string;
+    /**
      * 「{x}」を削除しますか？
      */
     "removeAreYouSure": ParameterizedString<"x">;
@@ -1210,6 +1214,10 @@ export interface Locale extends ILocale {
      * 「{x}」を削除しますか？
      */
     "deleteAreYouSure": ParameterizedString<"x">;
+    /**
+     * 「{x}」をアーカイブしますか？
+     */
+    "archiveAreYouSure": ParameterizedString<"x">;
     /**
      * リセットしますか？
      */
@@ -3973,9 +3981,17 @@ export interface Locale extends ILocale {
      */
     "oneDay": string;
     /**
+     * 3日
+     */
+    "threeDays": string;
+    /**
      * 1週間
      */
     "oneWeek": string;
+    /**
+     * 2週間
+     */
+    "twoWeeks": string;
     /**
      * 1ヶ月
      */
@@ -3989,9 +4005,9 @@ export interface Locale extends ILocale {
      */
     "oneYear": string;
     /**
-     * 3日
+     * 3年
      */
-    "threeDays": string;
+    "threeYears": string;
     /**
      * 反映されるまで時間がかかる場合があります。
      */
@@ -5772,6 +5788,10 @@ export interface Locale extends ILocale {
          */
         "sentInvitations": string;
         /**
+         * チャットルーム
+         */
+        "chatRoom": string;
+        /**
          * 参加
          */
         "join": string;
@@ -5783,6 +5803,18 @@ export interface Locale extends ILocale {
          * ルームから退出
          */
         "leave": string;
+        /**
+         * {who}がルームに参加しました
+         */
+        "userHasJoined": ParameterizedString<"who">;
+        /**
+         * {who}がルームから退出しました
+         */
+        "userHasLeft": ParameterizedString<"who">;
+        /**
+         * {who}がルームから退出させられました
+         */
+        "userHasKicked": ParameterizedString<"who">;
         /**
          * メンバー
          */
@@ -5889,6 +5921,122 @@ export interface Locale extends ILocale {
              */
             "none": string;
         };
+        /**
+         * 公開ルームとして作成
+         */
+        "isPublicRoom": string;
+        /**
+         * 公開ルームはありません
+         */
+        "noPublicRoom": string;
+        /**
+         * 退出させる
+         */
+        "kickUser": string;
+        /**
+         * 自動で解散
+         */
+        "expires": string;
+        /**
+         * 時間経過で解散
+         */
+        "expiresIn": string;
+        /**
+         * ルームを解散してアーカイブする
+         */
+        "archiveRoom": string;
+        /**
+         * このルームはアーカイブされています。
+         */
+        "thisRoomIsArchived": string;
+        /**
+         * ルームの定員
+         */
+        "capacity": string;
+        /**
+         * 公開ルーム
+         */
+        "publicRooms": string;
+        /**
+         * 公開ルームは24時間以内に自動解散する必要があります
+         */
+        "publicRoomMustExpire": string;
+        /**
+         * 秘密を伏せる
+         */
+        "attachSecret": string;
+        /**
+         * 秘密が添付されています
+         */
+        "secretAttached": string;
+        /**
+         * 秘密を編集
+         */
+        "editSecret": string;
+        /**
+         * が秘密「{title}」を伏せました
+         */
+        "secretCommited": ParameterizedString<"title">;
+        /**
+         * の秘密が公開されました
+         */
+        "secretRevealed": string;
+        /**
+         * 秘密の内容
+         */
+        "secretContent": string;
+        /**
+         * タイトル(公開)
+         */
+        "secretTitle": string;
+        /**
+         * 秘密を公開する
+         */
+        "revealSecret": string;
+        /**
+         * 自動で秘密を公開する
+         */
+        "autoReveal": string;
+        /**
+         * 時間経過で公開:
+         */
+        "revealsAfter": string;
+        /**
+         * 秘密「{what}」が伏せられています
+         */
+        "hasCommittedSecret": ParameterizedString<"what">;
+        /**
+         * 秘密「{what}」を公開しますか？
+         */
+        "secretRevealConfirm": ParameterizedString<"what">;
+        /**
+         * 公開まで:
+         */
+        "revealsIn": string;
+        /**
+         * カードを配る
+         */
+        "deliverCards": string;
+        /**
+         * 投票を開始する
+         */
+        "startPoll": string;
+        /**
+         * 投票選択肢
+         */
+        "voteOptions": string;
+        /**
+         * 匿名投票
+         */
+        "anonymousVote": string;
+        /**
+         * 匿名発言
+         */
+        "anonymousSpeech": string;
+        /**
+         * 投票
+         */
+        "vote": string;
     };
     "_emojiPalette": {
         /**
