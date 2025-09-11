@@ -59,9 +59,96 @@ export const paramDef = {
 		text: { type: 'string', nullable: true, maxLength: 2000 },
 		fileId: { type: 'string', format: 'misskey:id' },
 		toRoomId: { type: 'string', format: 'misskey:id' },
+		commitSecret: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				plaintext: { type: 'string', nullable: false, maxLength: 500 },
+				revealsAt: { type: 'number', nullable: true },
+				revealsAfter: { type: 'number', nullable: true },
+			}
+		},
+		poll: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				choices: {
+					type: 'array',
+					uniqueItems: true,
+					minItems: 1,
+					maxItems: 30,
+					items: { type: 'string', minLength: 1, maxLength: 50 },
+				},
+				multiple: { type: 'boolean' },
+				expiresAt: { type: 'integer', nullable: true },
+				expiredAfter: { type: 'integer', nullable: true, minimum: 1 },
+			},
+			required: ['choices'],
+		},
+		deliverCards: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				cards: {
+					type: 'array',
+					uniqueItems: true,
+					minItems: 1,
+					maxItems: 30,
+					items: { type: 'string', minLength: 1, maxLength: 50 },
+				},
+				deliver: {
+					type: 'array',
+					uniqueItems: false,
+					items: {
+						type: 'object',
+						nullable: false,
+						properties: {
+							user: { type: 'string', nullable: false, format: 'misskey:id' },
+							number: { type: 'number', minimum: 0 },
+						}
+					}
+				},
+				revealsAt: { type: 'integer', nullable: true },
+				revealsAfter: { type: 'integer', nullable: true, minimum: 1 },
+			},
+			required: ['cards'],
+		},
+		visibleUserIds: { type: 'array', uniqueItems: true, items: {
+			type: 'string', format: 'misskey:id',
+		} },
 	},
 	required: ['toRoomId'],
 } as const;
+
+function renderExpiresAt(obj) {
+	let expiresAt;
+	if (obj == null) {
+		return null;
+	}
+	if (obj.expiresAfter) {
+		expiresAt = new Date(Date.now() + obj.expiresAfter * 1000);
+	} else if (obj.expiresAfter != null) {
+		expiresAt = new Date(obj.expiresAt)
+	} else {
+		expiresAt = null;
+	}
+	return { ...obj, expiresAt }
+}
+
+function renderRevealsAt(obj) {
+	let revealsAt;
+	if (obj == null) {
+		return null;
+	}
+	if (obj.revealsAfter) {
+		revealsAt = new Date(Date.now() + obj.revealsAfter * 1000);
+	} else if (obj.revealsAt != null) {
+		revealsAt = new Date(obj.revealsAt);
+	} else {
+		revealsAt = null;
+	}
+	return { ...obj, revealsAt }
+}
 
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
@@ -92,15 +179,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 			}
 
-			// テキストが無いかつ添付ファイルも無かったらエラー
-			if (ps.text == null && file == null) {
+			if (ps.text == null && file == null && ps.commitSecret == null && ps.deliverCards == null && ps.poll == null) {
 				throw new ApiError(meta.errors.contentRequired);
 			}
 
 			return await this.chatService.createMessageToRoom(me, room, {
 				text: ps.text,
 				file: file,
-
+				commitSecret: renderRevealsAt(ps.commitSecret),
+				deliverCards: renderRevealsAt(ps.deliverCards),
+				poll: renderExpiresAt(ps.poll),
 			});
 		});
 	}

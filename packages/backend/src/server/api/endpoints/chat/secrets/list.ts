@@ -10,16 +10,16 @@ import { ChatService } from '@/core/ChatService.js';
 export const meta = {
 	tags: ['chat'],
 	requireCredential: true,
-	kind: 'write:chat',
+	kind: 'read:chat',
 	errors: {},
 } as const;
 
 export const paramDef = {
 	type: 'object',
 	properties: {
-		id: { type: 'string', format: 'misskey:id' },
+		roomId: { type: 'string', format: 'misskey:id' },
 	},
-	required: ['id'],
+	required: ['roomId'],
 } as const;
 
 @Injectable()
@@ -28,9 +28,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private chatService: ChatService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			await this.chatService.checkChatAvailability(me.id, 'write');
+			await this.chatService.checkChatAvailability(me.id, 'read');
 
-			await this.chatService.revealSecret(ps.id, me);
+			const room = await this.chatService.findRoomById(ps.roomId);
+			if (room == null) {
+				throw new ApiError(meta.errors.noSuchRoom);
+			}
+
+			if (!await this.chatService.hasPermissionToViewRoomTimeline(me.id, room)) {
+				throw new ApiError(meta.errors.noSuchRoom);
+			}
+			return await this.chatService.listSecret(ps.roomId, me);
 		});
 	}
 }

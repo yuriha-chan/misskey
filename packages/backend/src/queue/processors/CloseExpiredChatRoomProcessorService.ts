@@ -43,7 +43,7 @@ export class CloseExpiredChatRoomProcessorService {
 				return;
 			}
 
-			await this.chatService.closeRoom(roomId);
+			await this.chatService.archiveRoom(roomId);
 			this.logger.info(`Successfully closed expired chat room: ${roomId}`);
 
 		} catch (error) {

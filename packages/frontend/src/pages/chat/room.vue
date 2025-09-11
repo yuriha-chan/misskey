@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkLoading/>
 			</div>
 
-			<div v-else-if="messages.length === 0">
+			<div v-else-if="timelineItems.length === 0">
 				<div class="_gaps" style="text-align: center;">
 					<div>{{ i18n.ts._chat.noMessagesYet }}</div>
 					<template v-if="user">
@@ -27,8 +27,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 
 			<div v-else ref="timelineEl" class="_gaps">
+				<div v-if="isArchived" :class="$style.isArchived">{{ i18n.ts._chat.thisRoomIsArchived }}</div>
 				<div v-if="canFetchMore">
 					<MkButton :class="$style.more" :wait="moreFetching" primary rounded @click="fetchMore">{{ i18n.ts.loadMore }}</MkButton>
+				</div>
+				<div v-if="secrets.length > 0" :class="$style.secrets">
+					<div v-for="secret in secrets" :class="$style.secret">
+						<span><MkAvatar :user="membersMap[secret.fromUserId].user" :class="$style.avatar"/> {{ i18n.tsx._chat.hasCommittedSecret({ what: secret.title }) }}</span>
+						<span v-if="secret.revealsAt !=null">{{ i18n.ts._chat.revealsIn }} <MkCountdown :to="Date.parse(secret.revealsAt)"/></span>
+						<MkButton v-if="secret.fromUserId === $i.id" primary rounded @click="() => onRevealClick(secret)">{{ i18n.ts._chat.revealSecret }}</MkButton>
+					</div>
 				</div>
 
 				<TransitionGroup
@@ -39,8 +47,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:moveClass="prefer.s.animation ? $style.transition_x_move : ''"
 					tag="div" class="_gaps"
 				>
-					<template v-for="item in timeline.toReversed()" :key="item.id">
-						<XMessage v-if="item.type === 'item'" :message="item.data"/>
+					<template v-for="item in dateSeparatedTimeline.toReversed()" :key="item.id">
+						<XMessage v-if="item.type === 'item'" :item="item.data" :membership="membersMap[item.data.data.fromUserId]"/>
 						<div v-else-if="item.type === 'date'" :class="$style.dateDivider">
 							<span><i class="ti ti-chevron-up"></i> {{ item.nextText }}</span>
 							<span style="height: 1em; width: 1px; background: var(--MI_THEME-divider);"></span>
@@ -107,6 +115,7 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
 import { prefer } from '@/preferences.js';
 import MkButton from '@/components/MkButton.vue';
+import MkCountdown from '@/components/MkCountdown.vue';
 import { useRouter } from '@/router.js';
 import { useMutationObserver } from '@/composables/use-mutation-observer.js';
 import MkInfo from '@/components/MkInfo.vue';
@@ -120,6 +129,12 @@ const props = defineProps<{
 	roomId?: string;
 }>();
 
+export type TimelineItem =
+	| { type: 'message'; data: NormalizedChatMessage }
+	| { type: 'poll'; data: Misskey.entities.ChatPoll }
+	| { type: 'secret'; data: Misskey.entities.ChatSecret }
+	| { type: 'card'; data: Misskey.entities.ChatCard };
+
 export type NormalizedChatMessage = Omit<Misskey.entities.ChatMessageLite, 'fromUser' | 'reactions'> & {
 	fromUser: Misskey.entities.UserLite;
 	reactions: (Misskey.entities.ChatMessageLite['reactions'][number] & {
@@ -130,14 +145,25 @@ export type NormalizedChatMessage = Omit<Misskey.entities.ChatMessageLite, 'from
 const initializing = ref(false);
 const initialized = ref(false);
 const moreFetching = ref(false);
-const messages = ref<NormalizedChatMessage[]>([]);
+const timelineItems = ref<TimelineItem[]>([]);
 const canFetchMore = ref(false);
 const user = ref<Misskey.entities.UserDetailed | null>(null);
 const room = ref<Misskey.entities.ChatRoom | null>(null);
 const connection = ref<Misskey.IChannelConnection<Misskey.Channels['chatUser']> | Misskey.IChannelConnection<Misskey.Channels['chatRoom']> | null>(null);
 const showIndicator = ref(false);
 const timelineEl = useTemplateRef('timelineEl');
-const timeline = makeDateSeparatedTimelineComputedRef(messages);
+
+const membersMap = ref<Record<string, Misskey.entities.ChatRoomMembership>>({});
+const secrets = ref([]);
+const isArchived = ref(false);
+
+const dateSeparatedTimeline = makeDateSeparatedTimelineComputedRef(
+	computed(() => timelineItems.value.map(item => ({
+		id: item.data.id,
+		createdAt: item.data.createdAt,
+		...item,
+	}))),
+);
 
 const SCROLL_HEAD_THRESHOLD = 200;
 
@@ -184,23 +210,21 @@ async function initialize() {
 		]);
 
 		user.value = u;
-		messages.value = m.map(x => normalizeMessage(x));
+		timelineItems.value = m.map(x => ({ type: 'message', data: normalizeMessage(x) }));
 
-		if (messages.value.length === LIMIT) {
+		if (timelineItems.value.length === LIMIT) {
 			canFetchMore.value = true;
 		}
 
 		connection.value = useStream().useChannel('chatUser', {
 			otherId: user.value.id,
 		});
-		connection.value.on('message', onMessage);
-		connection.value.on('deleted', onDeleted);
-		connection.value.on('react', onReact);
-		connection.value.on('unreact', onUnreact);
 	} else if (props.roomId) {
-		const [rResult, mResult] = await Promise.allSettled([
+		const [rResult, mResult, membersResult, sResult] = await Promise.allSettled([
 			misskeyApi('chat/rooms/show', { roomId: props.roomId }),
 			misskeyApi('chat/messages/room-timeline', { roomId: props.roomId, limit: LIMIT }),
+			misskeyApi('chat/rooms/members', { roomId: props.roomId, limit: 100 }),
+			misskeyApi('chat/secrets/list', { roomId: props.roomId, limit: 100 }),
 		]);
 
 		if (rResult.status === 'rejected') {
@@ -232,22 +256,47 @@ async function initialize() {
 			}
 		}
 
+		if (r.isPublic && !r.isJoined) {
+			await os.apiWithDialog('chat/rooms/join', { roomId: r.id });
+			initializing.value = false;
+			initialize();
+			return;
+		}
+
 		const m = mResult.status === 'fulfilled' ? mResult.value as Misskey.entities.ChatMessagesRoomTimelineResponse : [];
+		const members = membersResult.status === 'fulfilled' ? membersResult.value as Misskey.entities.ChatRoomMembership[] : [];
+		console.log(members)
+		membersMap.value = Object.fromEntries(members.map(mem => [mem.userId, mem]));
+
+		secrets.value = sResult.status === 'fulfilled' ? sResult.value : [];
+		isArchived.value = r.isArchived;
 
 		room.value = r;
-		messages.value = m.map(x => normalizeMessage(x));
+		timelineItems.value = m;
 
-		if (messages.value.length === LIMIT) {
+		if (timelineItems.value.length === LIMIT) {
 			canFetchMore.value = true;
 		}
 
 		connection.value = useStream().useChannel('chatRoom', {
 			roomId: room.value.id,
 		});
+	}
+
+	if (connection.value) {
 		connection.value.on('message', onMessage);
 		connection.value.on('deleted', onDeleted);
 		connection.value.on('react', onReact);
 		connection.value.on('unreact', onUnreact);
+		connection.value.on('join', onJoin);
+		connection.value.on('leave', onLeave);
+		connection.value.on('pollStarted', onPollStart);
+		connection.value.on('pollFinished', onPollFinish);
+		connection.value.on('secretCommitted', onSecretCommit);
+		connection.value.on('secretRevealed', onSecretReveal);
+		connection.value.on('cardsDelivered', onCardDeliver);
+		connection.value.on('cardsRevealed', onCardReveal);
+		connection.value.on('roomArchived', onRoomArchived);
 	}
 
 	window.document.addEventListener('visibilitychange', onVisibilitychange);
@@ -271,17 +320,24 @@ async function fetchMore() {
 
 	moreFetching.value = true;
 
+	const lastMessage = timelineItems.value[timelineItems.value.length - 1];
+	if (!lastMessage) {
+		moreFetching.value = false;
+		return;
+	}
+
 	const newMessages = props.userId ? await misskeyApi('chat/messages/user-timeline', {
 		userId: user.value!.id,
 		limit: LIMIT,
-		untilId: messages.value[messages.value.length - 1].id,
+		untilId: lastMessage.data.id,
 	}) : await misskeyApi('chat/messages/room-timeline', {
 		roomId: room.value!.id,
 		limit: LIMIT,
-		untilId: messages.value[messages.value.length - 1].id,
+		untilId: lastMessage.data.id,
 	});
 
-	messages.value.push(...newMessages.map(x => normalizeMessage(x)));
+	// TODO: normalize
+	timelineItems.value.push(...newMessages);
 
 	canFetchMore.value = newMessages.length === LIMIT;
 	moreFetching.value = false;
@@ -290,7 +346,7 @@ async function fetchMore() {
 function onMessage(message: Misskey.entities.ChatMessageLite) {
 	sound.playMisskeySfx('chatMessage');
 
-	messages.value.unshift(normalizeMessage(message));
+	timelineItems.value.unshift({ type: 'message', data: normalizeMessage(message) });
 
 	// TODO: DOM的にバックグラウンドになっていないかどうかも考慮する
 	if (message.fromUserId !== $i.id && !window.document.hidden && isActivated) {
@@ -304,23 +360,63 @@ function onMessage(message: Misskey.entities.ChatMessageLite) {
 	}
 }
 
+function onJoin(membership) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'join', data: membership });
+	membersMap.value[membership.userId] = membership;
+}
+function onLeave(data) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'leave', data: { ...data, user: membersMap.value[data.userId].user } });
+	membersMap.value[data.userId].hasLeft = true;
+}
+function onPollStart(poll: Misskey.entities.ChatPoll) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'pollStarted', data: poll });
+}
+function onPollFinish(poll: Misskey.entities.ChatPoll) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'pollFinished', data: poll });
+}
+function onSecretCommit(secret: Misskey.entities.ChatSecret) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'secretCommitted', data: secret });
+	secrets.value.push(secret);
+}
+function onSecretReveal(secret: Misskey.entities.ChatSecret) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'secretRevealed', data: secret });
+	secrets.value = secrets.value.filter(s => s.id !== secret.id);
+}
+function onCardDeliver(card: Misskey.entities.ChatCard) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'cardDelivered', data: card });
+}
+function onCardReveal(card: Misskey.entities.ChatCard) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'cardRevealed', data: card });
+}
+function onRoomArchived() {
+	isArchived.value = true;
+}
+
 function onDeleted(id: string) {
-	const index = messages.value.findIndex(m => m.id === id);
+	const index = timelineItems.value.findIndex(item => item.data.id === id);
 	if (index !== -1) {
-		messages.value.splice(index, 1);
+		timelineItems.value.splice(index, 1);
 	}
 }
 
 function onReact(ctx: Parameters<Misskey.Channels['chatUser']['events']['react']>[0] | Parameters<Misskey.Channels['chatRoom']['events']['react']>[0]) {
-	const message = messages.value.find(m => m.id === ctx.messageId);
-	if (message) {
+	const item = timelineItems.value.find(item => item.type === 'message' && item.data.id === ctx.messageId);
+	if (item?.type === 'message') {
 		if (room.value == null) { // 1on1の時はuserは省略される
-			message.reactions.push({
+			item.data.reactions.push({
 				reaction: ctx.reaction,
-				user: message.fromUserId === $i.id ? user.value! : $i,
+				user: item.data.fromUserId === $i.id ? user.value! : $i,
 			});
 		} else {
-			message.reactions.push({
+			item.data.reactions.push({
 				reaction: ctx.reaction,
 				user: ctx.user!,
 			});
@@ -329,17 +425,29 @@ function onReact(ctx: Parameters<Misskey.Channels['chatUser']['events']['react']
 }
 
 function onUnreact(ctx: Parameters<Misskey.Channels['chatUser']['events']['unreact']>[0] | Parameters<Misskey.Channels['chatRoom']['events']['unreact']>[0]) {
-	const message = messages.value.find(m => m.id === ctx.messageId);
-	if (message) {
-		const index = message.reactions.findIndex(r => r.reaction === ctx.reaction && r.user.id === ctx.user!.id);
+	const item = timelineItems.value.find(item => item.type === 'message' && item.data.id === ctx.messageId);
+	if (item?.type === 'message') {
+		const index = item.data.reactions.findIndex(r => r.reaction === ctx.reaction && r.user.id === ctx.user!.id);
 		if (index !== -1) {
-			message.reactions.splice(index, 1);
+			item.data.reactions.splice(index, 1);
 		}
 	}
 }
 
 function onIndicatorClick() {
 	showIndicator.value = false;
+}
+
+function onRevealClick(secret) {
+		os.confirm({
+			type: 'warning',
+			text: i18n.tsx._chat.secretRevealConfirm({ what: secret.title }),
+		}).then(({ canceled }) => {
+			if (canceled) return;
+			misskeyApi('chat/secrets/reveal', {
+				id: secret.id,
+			})
+		});
 }
 
 function notifyNewMessage() {
@@ -376,6 +484,24 @@ async function inviteUser() {
 	});
 }
 
+async function editRoom(): Promise {
+	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-room.vue').then(x => x.default), {
+		room: room.value
+	}, {
+		done: result => dispose(),
+		closed: () => dispose(),
+	});
+}
+
+async function editParticipation(): Promise {
+	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-participation.vue').then(x => x.default), {
+		room: room.value
+	}, {
+		done: result => dispose(),
+		closed: () => dispose(),
+	});
+}
+
 async function leaveRoom() {
 	if (room.value == null) return;
 
@@ -388,6 +514,8 @@ async function leaveRoom() {
 	misskeyApi('chat/rooms/leave', {
 		roomId: room.value.id,
 	});
+	connection.value?.dispose();
+	initialized.value = false;
 	router.push('/chat');
 }
 
@@ -403,7 +531,22 @@ function showMenu(ev: MouseEvent) {
 					inviteUser();
 				},
 			});
-		} else {
+			menuItems.push({
+				text: i18n.ts._chat.editRoom,
+				icon: 'ti ti-edit',
+				action: () => {
+					editRoom();
+				},
+			});
+		}
+		menuItems.push({
+			text: i18n.ts._chat.editParticipation,
+			icon: 'ti ti-settings',
+			action: () => {
+				editParticipation();
+			},
+		});
+		if (room.value.ownerId !== $i.id) {
 			menuItems.push({
 				text: i18n.ts._chat.leave,
 				icon: 'ti ti-x',
@@ -497,6 +640,35 @@ definePage(computed(() => {
 
 .more {
 	margin: 0 auto;
+}
+
+.isArchived {
+	position: sticky;
+	top: calc(10px + var(--MI-stickyTop, 0px));
+	z-index: 100;
+	background: var(--MI_THEME-bg);
+}
+
+.secrets {
+	position: sticky;
+	top: calc(10px + var(--MI-stickyTop, 0px));
+	z-index: 10;
+	> .secret {
+		display: flex;
+		align-items: center;
+		border-radius: 12px;
+		padding: 6px 10px;
+		gap: 10px;
+		border: solid 1px var(--MI_THEME-divider);
+		background: var(--MI_THEME-bg);
+		> span {
+			flex: 1;
+			> .avatar {
+				height: 30px;
+				width: 30px;
+			}
+		}
+	}
 }
 
 .footer {

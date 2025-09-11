@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
+import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
+import { MiChatRoomMembership } from './ChatRoomMembership.js'
 
 @Entity('chat_room')
 export class MiChatRoom {
@@ -59,4 +60,7 @@ export class MiChatRoom {
 		default: 10800,
 	})
 	public expiration: number | null;
+
+	@OneToMany(() => MiChatRoomMembership, membership => membership.room)
+	public memberships: MiChatRoomMembership[];
 }

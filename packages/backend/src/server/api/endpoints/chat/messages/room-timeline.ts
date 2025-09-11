@@ -76,7 +76,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			this.chatService.readRoomChatMessage(me.id, room.id);
 
-			return await this.chatEntityService.packMessagesLiteForRoom(messages);
+			return messages;
 		});
 	}
 }
