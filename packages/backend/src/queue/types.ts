@@ -147,4 +147,5 @@ export type RevealChatSecretJobData = {
 
 export type EndChatPollJobData = {
 	pollId: MiChatPoll['id'];
+	action: 'start' | 'finish';
 }

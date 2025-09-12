@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { ChatPollsRepository, ChatPollVotesRepository, MiUser, MiChatPoll } from '@/models/_.js';
+import type { ChatPollsRepository, ChatPollVotesRepository, MiUser, MiChatSecret, MiChatPoll, MiChatPollVote, MiChatCard } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { bindThis } from '@/decorators.js';
 
@@ -37,7 +37,7 @@ export class ChatPollService {
 			userId: userId,
 		});
 
-		if (exist.length >= poll.multiple) {
+		if (exist.length > 0) {
 			throw new Error('cannot vote more');
 		}
 		if (exist.some(x => x.choice === choice)) {

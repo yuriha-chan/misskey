@@ -33,5 +33,13 @@ export const packedChatRoomMembershipSchema = {
 			optional: true, nullable: false,
 			ref: 'ChatRoom',
 		},
+		bubbleColor: {
+			type: 'string',
+			optional: true, nullable: true,
+		},
+		bubbleStyle: {
+			type: 'string',
+			optional: true, nullable: true,
+		},
 	},
 } as const;

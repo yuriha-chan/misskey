@@ -28,7 +28,7 @@ export const meta = {
 
 	res: {
 		type: 'object',
-		optional: false, nullable: false,
+		optional: false, nullable: true,
 		ref: 'ChatMessageLiteForRoom',
 	},
 
@@ -63,15 +63,17 @@ export const paramDef = {
 			type: 'object',
 			nullable: true,
 			properties: {
+				title: { type: 'string', nullable: false, maxLength: 256 },
 				plaintext: { type: 'string', nullable: false, maxLength: 500 },
 				revealsAt: { type: 'number', nullable: true },
-				revealsAfter: { type: 'number', nullable: true },
+				revealsIn: { type: 'number', nullable: true },
 			}
 		},
 		poll: {
 			type: 'object',
 			nullable: true,
 			properties: {
+				title: { type: 'string', minLength: 1, maxLength: 256 },
 				choices: {
 					type: 'array',
 					uniqueItems: true,
@@ -79,11 +81,13 @@ export const paramDef = {
 					maxItems: 30,
 					items: { type: 'string', minLength: 1, maxLength: 50 },
 				},
-				multiple: { type: 'boolean' },
-				expiresAt: { type: 'integer', nullable: true },
-				expiredAfter: { type: 'integer', nullable: true, minimum: 1 },
+				voteForUser: { type: 'boolean' },
+				anonymous: { type: 'boolean' },
+				startsAt: { type: 'integer', nullable: true },
+				startsIn: { type: 'integer', nullable: true, minimum: 1 },
+				duration: { type: 'integer', nullable: true, minimum: 1 },
 			},
-			required: ['choices'],
+			required: ['title', 'choices'],
 		},
 		deliverCards: {
 			type: 'object',
@@ -108,10 +112,8 @@ export const paramDef = {
 						}
 					}
 				},
-				revealsAt: { type: 'integer', nullable: true },
-				revealsAfter: { type: 'integer', nullable: true, minimum: 1 },
 			},
-			required: ['cards'],
+			required: ['cards', 'deliver'],
 		},
 		visibleUserIds: { type: 'array', uniqueItems: true, items: {
 			type: 'string', format: 'misskey:id',
@@ -120,34 +122,26 @@ export const paramDef = {
 	required: ['toRoomId'],
 } as const;
 
-function renderExpiresAt(obj) {
-	let expiresAt;
-	if (obj == null) {
-		return null;
+function processPoll(poll: any) {
+	if (poll == null) return null;
+	const newPoll = { ...poll };
+	if (poll.startsIn) {
+		newPoll.startsAt = new Date(Date.now() + poll.startsIn * 1000);
+	} else if (poll.startsAt) {
+		newPoll.startsAt = new Date(poll.startsAt);
 	}
-	if (obj.expiresAfter) {
-		expiresAt = new Date(Date.now() + obj.expiresAfter * 1000);
-	} else if (obj.expiresAfter != null) {
-		expiresAt = new Date(obj.expiresAt)
-	} else {
-		expiresAt = null;
-	}
-	return { ...obj, expiresAt }
+	return newPoll;
 }
 
-function renderRevealsAt(obj) {
-	let revealsAt;
-	if (obj == null) {
-		return null;
+function processRevealable(item: any) {
+	if (item == null) return null;
+	const newItem = { ...item };
+	if (item.revealsIn) {
+		newItem.revealsAt = new Date(Date.now() + item.revealsIn * 1000);
+	} else if (item.revealsAt) {
+		newItem.revealsAt = new Date(item.revealsAt);
 	}
-	if (obj.revealsAfter) {
-		revealsAt = new Date(Date.now() + obj.revealsAfter * 1000);
-	} else if (obj.revealsAt != null) {
-		revealsAt = new Date(obj.revealsAt);
-	} else {
-		revealsAt = null;
-	}
-	return { ...obj, revealsAt }
+	return newItem;
 }
 
 @Injectable()
@@ -186,9 +180,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			return await this.chatService.createMessageToRoom(me, room, {
 				text: ps.text,
 				file: file,
-				commitSecret: renderRevealsAt(ps.commitSecret),
-				deliverCards: renderRevealsAt(ps.deliverCards),
-				poll: renderExpiresAt(ps.poll),
+				commitSecret: processRevealable(ps.commitSecret),
+				deliverCards: processRevealable(ps.deliverCards),
+				poll: processPoll(ps.poll),
 			});
 		});
 	}

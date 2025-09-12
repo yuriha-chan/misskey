@@ -28,6 +28,12 @@ export class MiChatPollVote {
 	@Column(id())
 	public pollId: MiChatPoll['id'];
 
+	@ManyToOne(() => MiChatPoll, (poll: MiChatPoll) => poll.votes, {
+		onDelete: 'CASCADE',
+	})
+	@JoinColumn({ name: 'pollId' })
+	public poll: MiChatPoll;
+
 	@Column('integer')
 	public choice: number;
 }

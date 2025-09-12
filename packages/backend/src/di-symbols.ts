@@ -29,6 +29,7 @@ export const DI = {
 	chatPollsRepository: Symbol('chatPollsRepository'),
 	chatPollVotesRepository: Symbol('chatPollVotesRepository'),
 	chatSecretsRepository: Symbol('chatSecretsRepository'),
+	chatCardsRepository: Symbol('chatCardsRepository'),
 	userProfilesRepository: Symbol('userProfilesRepository'),
 	userKeypairsRepository: Symbol('userKeypairsRepository'),
 	userPendingsRepository: Symbol('userPendingsRepository'),
