@@ -5,13 +5,20 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { ApiError } from '@/server/api/error.js';
 import { ChatService } from '@/core/ChatService.js';
 
 export const meta = {
 	tags: ['chat'],
 	requireCredential: true,
 	kind: 'read:chat',
-	errors: {},
+	errors: {
+		noSuchRoom: {
+			message: 'No such room.',
+			code: 'NO_SUCH_ROOM',
+			id: '8098520d-2da5-4e8f-8ee1-df78b55a4ec6',
+		},
+	},
 } as const;
 
 export const paramDef = {

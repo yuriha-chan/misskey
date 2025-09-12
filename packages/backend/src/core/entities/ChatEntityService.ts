@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { MiUser, ChatMessagesRepository, MiChatMessage, ChatRoomsRepository, MiChatRoom, MiChatRoomInvitation, ChatRoomInvitationsRepository, MiChatRoomMembership, ChatRoomMembershipsRepository } from '@/models/_.js';
+import type { MiUser, ChatMessagesRepository, MiChatMessage, ChatRoomsRepository, MiChatRoom, MiChatPoll, MiChatPollVote, ChatSecretsRepository, MiChatSecret, MiChatCard, MiChatRoomInvitation, ChatRoomInvitationsRepository, MiChatRoomMembership, ChatRoomMembershipsRepository } from '@/models/_.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { } from '@/models/Blocking.js';
@@ -14,6 +14,10 @@ import { IdService } from '@/core/IdService.js';
 import { UserEntityService } from './UserEntityService.js';
 import { DriveFileEntityService } from './DriveFileEntityService.js';
 import { In } from 'typeorm';
+
+export type MiChatPollWithVotes = MiChatPoll & {
+  votes: MiChatPollVote[];
+};
 
 @Injectable()
 export class ChatEntityService {
@@ -29,6 +33,9 @@ export class ChatEntityService {
 
 		@Inject(DI.chatRoomMembershipsRepository)
 		private chatRoomMembershipsRepository: ChatRoomMembershipsRepository,
+
+		@Inject(DI.chatSecretsRepository)
+		private chatSecretsRepository: ChatSecretsRepository,
 
 		private userEntityService: UserEntityService,
 		private driveFileEntityService: DriveFileEntityService,
@@ -248,7 +255,7 @@ export class ChatEntityService {
 	): Promise<Packed<'ChatRoom'>> {
 		const room = typeof src === 'object' ? src : await this.chatRoomsRepository.findOneByOrFail({ id: src });
 
-		const membership = me && (options?._hint_?.myMemberships?.get(room.id) ?? await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId: me.id, hasLeft: false }));
+		const membership = me && ((options?._hint_?.myMemberships?.get(room.id)) ? await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId: me.id, hasLeft: false }) : undefined);
 		const invitation = me && me.id !== room.ownerId ? (options?._hint_?.myInvitations?.get(room.id) ?? await this.chatRoomInvitationsRepository.findOneBy({ roomId: room.id, userId: me.id })) : null;
 
 		return {
@@ -266,13 +273,14 @@ export class ChatEntityService {
 			capacity: room.capacity,
 			expiration: room.expiration,
 			theme: room.theme,
+			memberships: room.memberships != null ? await this.packRoomMemberships(room.memberships, me) : null,
 		};
 	}
 
 	@bindThis
 	public async packRooms(
 		rooms: (MiChatRoom | MiChatRoom['id'])[],
-		me: { id: MiUser['id'] },
+		me?: { id: MiUser['id'] },
 	) {
 		if (rooms.length === 0) return [];
 
@@ -293,18 +301,18 @@ export class ChatEntityService {
 		const [packedOwners, myMemberships, myInvitations] = await Promise.all([
 			this.userEntityService.packMany(owners, me)
 				.then(users => new Map(users.map(u => [u.id, u]))),
-			this.chatRoomMembershipsRepository.find({
+			me ? this.chatRoomMembershipsRepository.find({
 				where: {
 					roomId: In(_rooms.map(x => x.id)),
 					userId: me.id,
 				},
-			}).then(memberships => new Map(_rooms.map(r => [r.id, memberships.find(m => m.roomId === r.id)]))),
-			this.chatRoomInvitationsRepository.find({
+			}).then(memberships => new Map(_rooms.map(r => [r.id, memberships.find(m => m.roomId === r.id)]))) : undefined,
+			me ? this.chatRoomInvitationsRepository.find({
 				where: {
 					roomId: In(_rooms.map(x => x.id)),
 					userId: me.id,
 				},
-			}).then(invitations => new Map(_rooms.map(r => [r.id, invitations.find(i => i.roomId === r.id)]))),
+			}).then(invitations => new Map(_rooms.map(r => [r.id, invitations.find(i => i.roomId === r.id)]))) : undefined,
 		]);
 
 		return Promise.all(_rooms.map(room => this.packRoom(room, me, { _hint_: { packedOwners, myMemberships, myInvitations } })));
@@ -373,7 +381,7 @@ export class ChatEntityService {
 	@bindThis
 	public async packRoomMemberships(
 		memberships: MiChatRoomMembership[],
-		me: { id: MiUser['id'] },
+		me?: { id: MiUser['id'] },
 		options: {
 			populateUser?: boolean;
 			populateRoom?: boolean;
@@ -392,5 +400,165 @@ export class ChatEntityService {
 		]);
 
 		return Promise.all(memberships.map(membership => this.packRoomMembership(membership, me, { ...options, _hint_: { packedUsers, packedRooms } })));
+	}
+
+	@bindThis
+	public async packPollScheduled(
+		poll: MiChatPoll,
+	): Promise<Packed<'ChatPollScheduled'>> {
+		return {
+			id: poll.id,
+			title: poll.title,
+			fromUserId: poll.ownerId,
+			roomId: poll.roomId,
+			createdAt: this.idService.parse(poll.id).date.toISOString(),
+			startsAt: poll.startsAt?.toISOString(),
+		};
+	}
+	@bindThis
+	public packPollsScheduled(polls: MiChatPoll[]) {
+		return Promise.all(polls.map(p => this.packPollScheduled(p)));
+	}
+
+	@bindThis
+	public async packPollStarted(
+		poll: MiChatPoll,
+		me?: { id: MiUser['id'] },
+	): Promise<Packed<'ChatPollStarted'>> {
+		const choices = poll.voteForUsers ? await this.userEntityService.packMany(poll.choices, me) : poll.choices;
+	
+		return {
+			id: poll.id,
+			title: poll.title,
+			voteForUsers: poll.voteForUsers,
+			userChoices: poll.voteForUsers ? choices as Packed<'UserLite'>[] : null,
+			textChoices: poll.voteForUsers ? null : choices as string[],
+			fromUserId: poll.ownerId,
+			roomId: poll.roomId,
+			createdAt: this.idService.parse(poll.startedId as MiChatMessage['id']).date.toISOString(),
+			finishesAt: poll.duration != null ? new Date(this.idService.parse(poll.startedId!).date.getTime() + poll.duration * 1000).toISOString() : null,
+		};
+	}
+	@bindThis
+	public packPollsStarted(polls: MiChatPoll[]) {
+		return Promise.all(polls.map(p => this.packPollStarted(p)));
+	}
+	
+	@bindThis
+	public async packPollFinished(
+		poll: MiChatPollWithVotes,
+		me?: { id: MiUser['id'] },
+	): Promise<Packed<'ChatPollFinished'>> {
+		const votes = new Map<string, MiChatPollVote[]>();
+		for (const vote of poll.votes) {
+			if (!votes.has(poll.choices[vote.choice])) {
+				votes.set(poll.choices[vote.choice], []);
+			}
+			votes.get(poll.choices[vote.choice])!.push(vote);
+		}
+	
+		const packedVotes: ({
+			user?: Packed<'UserLite'> | null;
+			text?: string | null;
+			voteCount: number;
+			votedUserIds?: MiUser['id'][] | null;
+		})[] = [];
+	
+		const choices = poll.voteForUsers ? await this.userEntityService.packMany(poll.choices, me) : poll.choices;
+	
+		for (const choice of choices) {
+			const choiceId = typeof choice === 'object' ? choice.id : choice;
+			const choiceVotes = votes.get(choiceId) ?? [];
+			packedVotes.push({
+				user: poll.voteForUsers ? choice as Packed<'UserLite'> : null,
+				text: poll.voteForUsers ? null : choice as string,
+				voteCount: choiceVotes.length,
+				votedUserIds: !poll.anonymous ? choiceVotes.map(x => x.userId) : null,
+			});
+		}
+	
+		return {
+			id: poll.id,
+			title: poll.title,
+			voteForUsers: poll.voteForUsers,
+			anonymous: poll.anonymous,
+			votes: packedVotes,
+			fromUserId: poll.ownerId,
+			roomId: poll.roomId,
+			createdAt: this.idService.parse(poll.finishedId as MiChatMessage['id']).date.toISOString(),
+		};
+	}
+	@bindThis
+	public packPollsFinished(polls: MiChatPollWithVotes[]) {
+		return Promise.all(polls.map(p => this.packPollFinished(p)));
+	}
+	
+	@bindThis
+	public async packSecret(
+		src: MiChatSecret['id'] | MiChatSecret,
+	): Promise<Packed<'ChatSecret'>> {
+		const secret = typeof src === 'object' ? src : await this.chatSecretsRepository.findOneByOrFail({ id: src });
+	
+		return {
+			id: secret.id,
+			title: secret.title,
+			fromUserId: secret.userId,
+			roomId: secret.roomId,
+			createdAt: this.idService.parse(secret.id).date.toISOString(),
+			revealsAt: secret.revealsAt?.toISOString(),
+		};
+	}
+
+	@bindThis
+	public packSecrets(secrets: MiChatSecret[]) {
+		return Promise.all(secrets.map(s => this.packSecret(s)));
+	}
+	
+	@bindThis
+	public async packSecretRevealed(
+		src: MiChatSecret['id'] | MiChatSecret,
+	): Promise<Packed<'ChatSecretRevealed'>> {
+		const secret = typeof src === 'object' ? src : await this.chatSecretsRepository.findOneByOrFail({ id: src });
+	
+		return {
+			id: secret.id,
+			title: secret.title,
+			fromUserId: secret.userId,
+			roomId: secret.roomId,
+			plaintext: secret.plaintext,
+			createdAt: this.idService.parse(secret.id).date.toISOString(),
+		};
+	}
+
+	@bindThis
+	public packSecretsRevealed(secrets: MiChatSecret[]) {
+		return Promise.all(secrets.map(s => this.packSecretRevealed(s)));
+	}
+	
+	@bindThis
+	public async packCard(
+		src: MiChatCard,
+	): Promise<Packed<'ChatCard'>> {
+		return {
+			deliverId: src.deliverId,
+			cardId: src.cardId,
+			cardKind: src.cardKind,
+			roomId: src.roomId,
+			createdAt: this.idService.parse(src.deliverId).date.toISOString(),
+		};
+	}
+	
+	@bindThis
+	public async packCardRevealed(
+		src: MiChatCard,
+	): Promise<Packed<'ChatCardRevealed'>> {
+		return {
+			deliverId: src.deliverId,
+			cardId: src.cardId,
+			cardKind: src.cardKind,
+			roomId: src.roomId,
+			createdAt: this.idService.parse(src.revealedId!).date.toISOString(),
+			fromUserId: src.userId,
+		};
 	}
 }

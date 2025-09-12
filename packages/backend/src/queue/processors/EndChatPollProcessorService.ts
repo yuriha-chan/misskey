@@ -24,12 +24,17 @@ export class EndChatPollProcessorService {
 
 	@bindThis
 	public async process(job: Bull.Job<EndChatPollJobData>): Promise<void> {
-		const { pollId } = job.data;
+		const { pollId, action } = job.data;
 		this.logger.info(`Processing job for ending poll: ${pollId}`);
 
 		try {
-			await this.chatService.closePoll(pollId);
-			this.logger.info(`Successfully ended poll: ${pollId}`);
+			if (action === 'finish') {
+				await this.chatService.finishPoll(pollId);
+				this.logger.info(`Successfully ended poll: ${pollId}`);
+			} else if (action === 'start') {
+				await this.chatService.startPoll(pollId);
+				this.logger.info(`Successfully started poll: ${pollId}`);
+			}
 		} catch (error) {
 			this.logger.error(`Failed to process job for poll: ${pollId}`);
 			throw error;

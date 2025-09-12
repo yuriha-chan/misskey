@@ -5,48 +5,28 @@
 
 import { PrimaryColumn, Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { id } from './util/id.js';
-import { MiChatRoom, MiChatPollVote, MiUser } from '@/models/_.js';
+import { MiChatRoom, MiChatPollVote, MiUser, MiChatMessage } from '@/models/_.js';
 
 @Entity('chat_poll')
 export class MiChatPoll {
 	@PrimaryColumn(id())
-	public id: string;
-
-	@Column('timestamp with time zone', {
-		nullable: true,
-	})
-	public expiresAt: Date | null;
-
-	@Column('boolean')
-	public anonymous: boolean;
-
-	@Column(id())
-	public ownerId: MiChatRoom['id'];
-
-	@ManyToOne(() => MiUser)
-	@JoinColumn({ name: 'ownerId' })
-	public owner: MiUser;
-
-	@Column('boolean', {
-		default: false
-	})
-	public finished: boolean;
-
-	@Column('timestamp with time zone', {
-		nullable: true,
-	})
-	public finishedAt: Date | null;
+	public id: MiChatMessage['id'];
 
 	@Column(id())
 	public roomId: MiChatRoom['id'];
 
 	@ManyToOne(() => MiChatRoom)
 	@JoinColumn({ name: 'roomId' })
-	public room: MiChatRoom;
+	public room: MiChatRoom | null;
 
-	@Column('varchar', {
-		length: 256, array: true,
-	})
+	@Column(id())
+	public ownerId: MiChatRoom['id'];
+
+	@ManyToOne(() => MiUser)
+	@JoinColumn({ name: 'ownerId' })
+	public owner: MiUser | null;
+
+	@Column('text')
 	public title: string;
 
 	@Column('varchar', {
@@ -54,6 +34,32 @@ export class MiChatPoll {
 	})
 	public choices: string[];
 
-	@OneToMany(() => MiChatPollVote, (vote: MiChatPollVote) => vote.pollId)
-	public votes: MiChatPollVote[];
+	@Column('boolean')
+	public voteForUsers: boolean;
+
+	@Column('boolean')
+	public anonymous: boolean;
+	@Column('timestamp with time zone', {
+		nullable: true,
+	})
+
+	public startsAt: Date | null;
+
+	@Column({...id(), 
+		nullable: true,
+	})
+	public startedId: MiChatMessage['id'] | null;
+
+	@Column('integer', {
+		nullable: true,
+	})
+	public duration: number | null;
+
+	@Column({...id(), 
+		nullable: true,
+	})
+	public finishedId: MiChatMessage['id'] | null;
+
+	@OneToMany(() => MiChatPollVote, (vote: MiChatPollVote) => vote.poll)
+	public votes: MiChatPollVote[] | null;
 }

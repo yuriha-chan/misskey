@@ -175,22 +175,24 @@ export interface ChatEventTypes {
 		user?: Packed<'UserLite'>;
 		messageId: MiChatMessage['id'];
 	};
-	pollStarted: {
-		id: MiChatPoll['id'];
-	};
 	leave: {
 		userId: MiUser['id'];
 		kicked: boolean;
+		createdAt: string;
 	};
 	join: {
 		userId: MiUser['id'];
+		createdAt: string;
 	};
 	close: {};
-	pollEnded: { id: MiChatPoll['id'], choices: string[], votes: number[]; voter?: MiUser['id'][][] };
-	cardsDelivered: string[];
-	randomPicked: string | number | MiUser['id'];
-	secretPlaced: { id: MiChatSecret['id'], userId: MiUser['id'] };
-	secretRevealed: { id: MiChatSecret['id'], plaintext: string }; 
+	roomArchived: { archiverId?: MiUser['id'] };
+	pollScheduled: Packed<'ChatPollScheduled'>;
+	pollStarted: Packed<'ChatPollStarted'>;
+	pollFinished: Packed<'ChatPollFinished'>;
+	cardDelivered: Packed<'ChatCard'>;
+	cardRevealed: Packed<'ChatCardRevealed'>;
+	secretCommitted: Packed<'ChatSecret'>;
+	secretRevealed: Packed<'ChatSecretRevealed'>;
 }
 
 export interface ReversiEventTypes {
