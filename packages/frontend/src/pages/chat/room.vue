@@ -31,11 +31,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-if="canFetchMore">
 					<MkButton :class="$style.more" :wait="moreFetching" primary rounded @click="fetchMore">{{ i18n.ts.loadMore }}</MkButton>
 				</div>
-				<div v-if="secrets.length > 0" :class="$style.secrets">
-					<div v-for="secret in secrets" :class="$style.secret">
+				<div :class="$style.stickyTop">
+					<div v-for="secret in secrets" :key="secret.id" :class="$style.secret">
 						<span><MkAvatar :user="membersMap[secret.fromUserId].user" :class="$style.avatar"/> {{ i18n.tsx._chat.hasCommittedSecret({ what: secret.title }) }}</span>
-						<span v-if="secret.revealsAt !=null">{{ i18n.ts._chat.revealsIn }} <MkCountdown :to="Date.parse(secret.revealsAt)"/></span>
+						<span v-if="secret.revealsAt !=null" :class="$style.countdownContainer">{{ i18n.ts._chat.revealsIn }} <MkCountdown :to="Date.parse(secret.revealsAt)" :class="$style.countdown"/></span>
 						<MkButton v-if="secret.fromUserId === $i.id" primary rounded @click="() => onRevealClick(secret)">{{ i18n.ts._chat.revealSecret }}</MkButton>
+					</div>
+					<div v-if="cards.length > 0" :class="$style.cards">
+						{{ i18n.ts._chat.yourCard }}:
+						<div v-for="card in cards" :key="card.id" :class="$style.card">
+							<div :class="$style.cardContent">{{ card.cardKind }}</div>
+							<MkButton primary @click="() => onCardRevealClick(card)">{{ i18n.ts._chat.revealCard }}</MkButton>
+						</div>
+					</div>
+					<div v-for="poll in polls" :key="poll.id" :class="$style.poll">
+						<span>{{ i18n.ts._chat.poll }}: {{ poll.title }}</span>
+						<span v-if="!poll.started && poll.startsAt != null" :class="$style.countdownContainer">{{ i18n.ts._chat.startsIn }} <MkCountdown :to="Date.parse(poll.startsAt)" :class="$style.countdown"/></span>
+						<MkButton v-if="!poll.started && poll.fromUserId === $i.id" danger rounded @click="() => onPollStartClick(poll)">{{ i18n.ts._chat.startPoll }}</MkButton>
+						<span v-if="poll.started && poll.finishesAt !=null" :class="$style.countdownContainer">{{ i18n.ts._chat.finishesIn }} <MkCountdown :to="Date.parse(poll.finishesAt)" :class="$style.countdown"/></span>
+						<MkButton v-if="poll.started && poll.fromUserId === $i.id" danger rounded @click="() => onPollFinishClick(poll)">{{ i18n.ts._chat.finishPoll }}</MkButton>
+						<MkButton v-if="poll.started" primary rounded @click="() => onVoteClick(poll)" :disabled="poll.voted">{{ poll.voted ? i18n.ts._chat.voted : i18n.ts._chat.vote }}</MkButton>
 					</div>
 				</div>
 
@@ -88,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</button>
 					</div>
 				</Transition>
-				<XForm v-if="initialized" :user="user" :room="room" :class="$style.form"/>
+				<XForm v-if="initialized" :user="user" :room="room" :members="membersMap" :class="$style.form"/>
 			</div>
 		</div>
 	</template>
@@ -104,6 +119,7 @@ import XForm from './room.form.vue';
 import XSearch from './room.search.vue';
 import XMembers from './room.members.vue';
 import XInfo from './room.info.vue';
+import XVote from './vote-chat-poll.vue';
 import type { MenuItem } from '@/types/menu.js';
 import type { PageHeaderItem } from '@/types/page-header.js';
 import * as os from '@/os.js';
@@ -129,12 +145,6 @@ const props = defineProps<{
 	roomId?: string;
 }>();
 
-export type TimelineItem =
-	| { type: 'message'; data: NormalizedChatMessage }
-	| { type: 'poll'; data: Misskey.entities.ChatPoll }
-	| { type: 'secret'; data: Misskey.entities.ChatSecret }
-	| { type: 'card'; data: Misskey.entities.ChatCard };
-
 export type NormalizedChatMessage = Omit<Misskey.entities.ChatMessageLite, 'fromUser' | 'reactions'> & {
 	fromUser: Misskey.entities.UserLite;
 	reactions: (Misskey.entities.ChatMessageLite['reactions'][number] & {
@@ -145,7 +155,7 @@ export type NormalizedChatMessage = Omit<Misskey.entities.ChatMessageLite, 'from
 const initializing = ref(false);
 const initialized = ref(false);
 const moreFetching = ref(false);
-const timelineItems = ref<TimelineItem[]>([]);
+const timelineItems = ref<Misskey.entities.ChatEvent[]>([]);
 const canFetchMore = ref(false);
 const user = ref<Misskey.entities.UserDetailed | null>(null);
 const room = ref<Misskey.entities.ChatRoom | null>(null);
@@ -155,6 +165,8 @@ const timelineEl = useTemplateRef('timelineEl');
 
 const membersMap = ref<Record<string, Misskey.entities.ChatRoomMembership>>({});
 const secrets = ref([]);
+const cards = ref([]);
+const polls = ref([]);
 const isArchived = ref(false);
 
 const dateSeparatedTimeline = makeDateSeparatedTimelineComputedRef(
@@ -220,11 +232,13 @@ async function initialize() {
 			otherId: user.value.id,
 		});
 	} else if (props.roomId) {
-		const [rResult, mResult, membersResult, sResult] = await Promise.allSettled([
+		const [rResult, mResult, membersResult, sResult, pResult, cResult] = await Promise.allSettled([
 			misskeyApi('chat/rooms/show', { roomId: props.roomId }),
 			misskeyApi('chat/messages/room-timeline', { roomId: props.roomId, limit: LIMIT }),
 			misskeyApi('chat/rooms/members', { roomId: props.roomId, limit: 100 }),
 			misskeyApi('chat/secrets/list', { roomId: props.roomId, limit: 100 }),
+			misskeyApi('chat/polls/list', { roomId: props.roomId, limit: 100 }),
+			misskeyApi('chat/cards/list', { roomId: props.roomId, limit: 100 }),
 		]);
 
 		if (rResult.status === 'rejected') {
@@ -256,10 +270,10 @@ async function initialize() {
 			}
 		}
 
-		if (r.isPublic && !r.isJoined) {
+		if (r.isPublic && !r.isJoined && !r.isArchived) {
 			await os.apiWithDialog('chat/rooms/join', { roomId: r.id });
 			initializing.value = false;
-			initialize();
+			setTimeout(initialize, 1000);
 			return;
 		}
 
@@ -269,6 +283,15 @@ async function initialize() {
 		membersMap.value = Object.fromEntries(members.map(mem => [mem.userId, mem]));
 
 		secrets.value = sResult.status === 'fulfilled' ? sResult.value : [];
+
+		cards.value = cResult.status === 'fulfilled' ? cResult.value : [];
+
+		if (pResult.status === 'fulfilled') {
+			const scheduledPolls = pResult.value.scheduledPolls as Misskey.entities.ChatPollsScheduled[];
+			const startedPolls = pResult.value.startedPolls as Misskey.entities.ChatPollsStarted[];
+			polls.value = [...scheduledPolls, ...startedPolls.map(p => ({ ...p, started: true }))];
+		}
+
 		isArchived.value = r.isArchived;
 
 		room.value = r;
@@ -290,12 +313,13 @@ async function initialize() {
 		connection.value.on('unreact', onUnreact);
 		connection.value.on('join', onJoin);
 		connection.value.on('leave', onLeave);
+		connection.value.on('pollScheduled', onPollSchedule);
 		connection.value.on('pollStarted', onPollStart);
 		connection.value.on('pollFinished', onPollFinish);
 		connection.value.on('secretCommitted', onSecretCommit);
 		connection.value.on('secretRevealed', onSecretReveal);
-		connection.value.on('cardsDelivered', onCardDeliver);
-		connection.value.on('cardsRevealed', onCardReveal);
+		connection.value.on('cardDelivered', onCardDeliver);
+		connection.value.on('cardRevealed', onCardReveal);
 		connection.value.on('roomArchived', onRoomArchived);
 	}
 
@@ -370,13 +394,22 @@ function onLeave(data) {
 	timelineItems.value.unshift({ type: 'leave', data: { ...data, user: membersMap.value[data.userId].user } });
 	membersMap.value[data.userId].hasLeft = true;
 }
-function onPollStart(poll: Misskey.entities.ChatPoll) {
+function onPollSchedule(poll: Misskey.entities.ChatPollScheduled) {
+	sound.playMisskeySfx('chatMessage');
+	timelineItems.value.unshift({ type: 'pollScheduled', data: poll });
+	polls.value.push(poll);
+	console.log(polls.value);
+}
+function onPollStart(poll: Misskey.entities.ChatPollStarted) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'pollStarted', data: poll });
+	polls.value = polls.value.filter(p => p.id !== poll.id);
+	polls.value.push({...poll, started: true});
 }
-function onPollFinish(poll: Misskey.entities.ChatPoll) {
+function onPollFinish(poll: Misskey.entities.ChatPollFinished) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'pollFinished', data: poll });
+	polls.value = polls.value.filter(p => p.id !== poll.id);
 }
 function onSecretCommit(secret: Misskey.entities.ChatSecret) {
 	sound.playMisskeySfx('chatMessage');
@@ -391,10 +424,12 @@ function onSecretReveal(secret: Misskey.entities.ChatSecret) {
 function onCardDeliver(card: Misskey.entities.ChatCard) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'cardDelivered', data: card });
+	cards.value.push(card);
 }
-function onCardReveal(card: Misskey.entities.ChatCard) {
+function onCardReveal(card: Misskey.entities.ChatCardRevealed) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'cardRevealed', data: card });
+	cards.value = cards.value.filter((c) => c.deliverId != card.deliverId || c.cardId != card.cardId); 
 }
 function onRoomArchived() {
 	isArchived.value = true;
@@ -450,6 +485,61 @@ function onRevealClick(secret) {
 		});
 }
 
+function onCardRevealClick(card) {
+		os.confirm({
+			type: 'warning',
+			text: i18n.tsx._chat.cardRevealConfirm({ what: card.cardKind }),
+		}).then(({ canceled }) => {
+			if (canceled) return;
+			misskeyApi('chat/cards/reveal', {
+				deliverId: card.deliverId,
+				cardId: card.cardId,
+			})
+		});
+}
+
+async function onVoteClick(poll) {
+	const { dispose } = await os.popupAsyncWithDialog(XVote, {
+		options: poll.voteForUsers ? poll.userChoices : poll.textChoices,
+		voteForUsers: poll.voteForUsers,
+	}, {
+		done: result => {
+			misskeyApi('chat/polls/vote', {
+				pollId: poll.id,
+				choice: result.choice,
+			}).then(() => {
+				poll.voted = true;
+				sound.playMisskeySfx('chatMessage');
+			});
+		},
+		closed: () => dispose(),
+	});
+}
+
+function onPollStartClick(poll) {
+		os.confirm({
+			type: 'warning',
+			text: i18n.tsx._chat.pollStartConfirm({ what: poll.title }),
+		}).then(({ canceled }) => {
+			if (canceled) return;
+			misskeyApi('chat/polls/start', {
+				pollId: poll.id,
+			})
+		});
+}
+
+function onPollFinishClick(poll) {
+		os.confirm({
+			type: 'warning',
+			text: i18n.tsx._chat.pollFinishConfirm({ what: poll.title }),
+		}).then(({ canceled }) => {
+			if (canceled) return;
+			misskeyApi('chat/polls/finish', {
+				pollId: poll.id,
+			})
+		});
+}
+
 function notifyNewMessage() {
 	showIndicator.value = true;
 }
@@ -481,15 +571,6 @@ async function inviteUser() {
 	os.apiWithDialog('chat/rooms/invitations/create', {
 		roomId: room.value.id,
 		userId: invitee.id,
-	});
-}
-
-async function editRoom(): Promise {
-	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-room.vue').then(x => x.default), {
-		room: room.value
-	}, {
-		done: result => dispose(),
-		closed: () => dispose(),
 	});
 }
 
@@ -529,13 +610,6 @@ function showMenu(ev: MouseEvent) {
 				icon: 'ti ti-user-plus',
 				action: () => {
 					inviteUser();
-				},
-			});
-			menuItems.push({
-				text: i18n.ts._chat.editRoom,
-				icon: 'ti ti-edit',
-				action: () => {
-					editRoom();
 				},
 			});
 		}
@@ -649,11 +723,11 @@ definePage(computed(() => {
 	background: var(--MI_THEME-bg);
 }
 
-.secrets {
+.stickyTop {
 	position: sticky;
 	top: calc(10px + var(--MI-stickyTop, 0px));
 	z-index: 10;
-	> .secret {
+	> div {
 		display: flex;
 		align-items: center;
 		border-radius: 12px;
@@ -669,6 +743,21 @@ definePage(computed(() => {
 			}
 		}
 	}
+}
+
+.cardContent {
+	text-align: center;
+	font-weight: bold;
+	font-size: 110%;
+}
+
+.countdownContainer {
+	font-weight: bold;
+}
+
+.countdown {
+	font-size: 140%;
+	letter-spacing: 0.1rem;
 }
 
 .footer {

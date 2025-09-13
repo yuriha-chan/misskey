@@ -5,8 +5,9 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { ChatPollsRepository, ChatPollVotesRepository, MiUser, MiChatSecret, MiChatPoll, MiChatPollVote, MiChatCard } from '@/models/_.js';
+import type { ChatPollsRepository, ChatPollVotesRepository, ChatRoomMembershipsRepository, MiUser, MiChatRoomMembership, MiChatPoll, MiChatPollVote, MiChatRoom } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
+import { ChatService } from '@/core/ChatService.js';
 import { bindThis } from '@/decorators.js';
 
 @Injectable()
@@ -15,10 +16,14 @@ export class ChatPollService {
 		@Inject(DI.chatPollsRepository)
 		private chatPollsRepository: ChatPollsRepository,
 
-		@Inject(DI.pollVotesRepository)
+		@Inject(DI.chatPollVotesRepository)
 		private chatPollVotesRepository: ChatPollVotesRepository,
 
+		@Inject(DI.chatRoomMembershipsRepository)
+		private chatRoomMembershipsRepository: ChatRoomMembershipsRepository,
+
 		private idService: IdService,
+		private chatService: ChatService,
 	) {
 	}
 
@@ -30,6 +35,13 @@ export class ChatPollService {
 
 		// Check whether is valid choice
 		if (poll.choices[choice] == null) throw new Error('invalid choice param');
+
+		if (poll.finishedId != null) throw new Error('poll already closed');
+
+		const memberships: MiChatRoomMembership[] = await this.chatRoomMembershipsRepository.findBy({ roomId: poll.roomId, hasLeft: false });
+		if (!memberships.some((m) => m.userId === userId)) {
+			throw new Error('not a room member');
+		}
 
 		// if already voted
 		const exist = await this.chatPollVotesRepository.findBy({
@@ -50,5 +62,12 @@ export class ChatPollService {
 			userId: userId,
 			choice: choice,
 		});
+
+		const votes = await this.chatPollVotesRepository.findBy({ pollId: id });
+		const votedUserIds = votes.map(v => v.userId);
+		const allVoted = memberships.map(m => m.userId).every(uid => votedUserIds.includes(uid));
+		if (allVoted) {
+			this.chatService.finishPoll(id);
+		}
 	}
 }

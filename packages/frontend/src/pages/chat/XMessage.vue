@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div v-if="item" :class="[$style.root, { [$style.isMe]: isMe }]">
 	<MkAvatar v-if="item.type === 'message' && props.membership?.user" :class="$style.avatar" :user="props.membership?.user" :link="!isMe" :preview="false"/>
-	<div :class="[$style.body, item.type === 'message' && item.data.file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
+	<div :class="[$style.body, item.type !== 'file' && item.data.file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
 		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && fromUser != null" :user="fromUser"/></div>
 		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.type === 'message' && item.data.file != null" :accented="isMe" :style="bubbleStyle">
 			<Mfm
@@ -22,38 +22,53 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkMediaList v-if="item.data.file" :mediaList="[item.data.file]" :class="$style.file"/>
 			<MkUrlPreview v-for="url in urls" :key="url" :url="url" style="margin: 8px 0;"/>
 		</MkFukidashi>
+		<div v-else-if="item.type === 'pollScheduled'">
+			<div :class="$style.poll">
+				<div><MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollScheduled({ what: item.data.title }) }}</div>
+				<div><b>{{ i18n.ts._chat.startsIn }} {{ Math.round( (Date.parse(item.data.startsAt) - Date.parse(item.data.createdAt)) / 1000) }} {{ i18n.ts._time.second }}</b></div>
+			</div>
+		</div>
 		<div v-else-if="item.type === 'pollStarted'">
 			<div :class="$style.poll">
-				<div> {{ item.data.userId }} has started a new poll:</div>
-				<div><b>{{ item.data.question }}</b></div>
-				<div v-for="(choice, i) in item.data.choices" :key="i" :class="$style.pollChoice" @click="vote(i)">
-					<span>{{ choice.text }}</span>
-				</div>
+				<div><MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollStarted({ what: item.data.title }) }}</div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'pollFinished'">
-			<div :class="$style.poll">
-				<div><b>{{ item.data.question }}</b></div>
-				<div v-for="(choice, i) in item.data.choices" :key="i" :class="$style.pollChoice">
-					<span>{{ choice.text }}</span> ⇒ <span>{{ choice.votes }}</span> votes
+			<div><i class="ti ti-info-circle"/> {{ i18n.tsx._chat.pollFinished({ what: item.data.title }) }}</div>
+			<div :class="$style.pollFinish">
+				<div v-for="(entry, i) in item.data.votes" :key="i" :class="$style.pollChoice">
+					<div :class="$style.choiceContainer">
+						<div v-if="item.data.voteForUsers" :class="$style.choice"><MkUserCardMini :class="$style.card" :user="entry.user!" :withChart="false"/></div>
+						<div v-else :class="$style.choice">{{ entry.text }}</div>
+						<div :class="$style.vote"><span :class="$style.voteCount">{{ entry.voteCount }}</span> {{ i18n.ts._chat.gotVotes }}</div>
+					</div>
+					<div :class="$style.choiceFooter" v-if="!item.data.anonymous">
+						<span>{{ i18n.ts._chat.voters }}:</span><MkAvatars :userIds="entry.votedUserIds"/>
+					</div>
 				</div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'secretCommitted'">
 			<div :class="$style.secret">
-				<span class="$style.message"><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.tsx._chat.secretCommited({title: item.data.title}) }}</span>
+				<span class="$style.message"><MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.tsx._chat.secretCommited({title: item.data.title}) }}</span>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'secretRevealed'" :class="$style.secret">
-			<div class="$style.message"><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}</div>
+			<div :class="$style.secret">
+				<MkMention :username="props.membership!.user.username" :host="props.membership!.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}
+			</div>
 			<div>{{ item.data.title }} ⇒ <span :class="$style.plainText">{{ item.data.plaintext }}</span></div>
 		</div>
-		<div v-else-if="item.type === 'cardsDelivered'">
-			<div :class="$style.card" v-for="card in item.data.cards">
-				<div :class="$style.cardHeader">
-					<i class="ti ti-cards"></i>
-					Your card(s) deliverd: <b>{{ card.title }}</b>
-				</div>
+		<div v-else-if="item.type === 'cardDelivered'">
+			<div :class="$style.card">
+				<i class="ti ti-cards"></i>
+				{{ i18n.ts._chat.cardDelivered }}: <b :class="$style.cardContent">{{ item.data.cardKind }}</b><span :class="$style.deliverId">&lt;<MkColorId :id="item.data.deliverId"/>&gt;</span>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'cardRevealed'">
+			<div :class="$style.card">
+				<MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.cardRevealed }}:
+				<i class="ti ti-cards"></i> <b :class="$style.cardContent">{{ item.data.cardKind }}</b><span :class="$style.deliverId">&lt;<MkColorId :id="item.data.deliverId"/>&gt;</span>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'join'">
@@ -118,11 +133,14 @@ import { prefer } from '@/preferences.js';
 import { DI } from '@/di.js';
 import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.js';
 import MkMention from '@/components/MkMention.vue';
+import MkUserCardMini from '@/components/MkUserCardMini.vue';
+import MkAvatars from '@/components/MkAvatars.vue';
+import MkColorId from '@/components/MkColorId.vue';
 
 const $i = ensureSignin();
 
 const props = defineProps<{
-	item: TimelineItem;
+	item: Misskey.entities.ChatEvent;
 	membership?: Misskey.entities.ChatRoomMembership;
 	isSearchResult?: boolean;
 }>();
@@ -406,17 +424,25 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 	height: 24px;
 }
 
-.poll {
+.pollFinish {
 	margin-top: 8px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 3px;
 	b {
 		display: block;
 		margin-bottom: 8px;
 	}
 }
+@media (min-width: 1440px) {
+	.pollFinish {
+		gap: 4px;
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
+
 
 .pollChoice {
-	display: flex;
-	justify-content: space-between;
 	padding: 8px;
 	border: solid 1px var(--MI_THEME-divider);
 	border-radius: 8px;
@@ -426,8 +452,33 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 	&:hover {
 		background: var(--MI_THEME-panel-hover);
 	}
+	> .choiceContainer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		> .choice {
+			flex: 2;
+			> .card {
+				max-width: 160px;
+			}
+		}
+		> .vote {
+			padding: 14px;
+		}
+	}
+	> .choiceFooter{
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 4px;
+	}
 }
 
+.voteCount {
+	font-size: 150%;
+	font-weight: bold;
+}
+	
 .secret {
 	> .message {
 		font-style: italic;
@@ -443,19 +494,17 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 
 .card {
 	padding: 8px;
-	.cardHeader {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		font-size: 1.1em;
-	}
-	hr {
-		margin: 8px 0;
-		border-color: var(--MI_THEME-divider);
-	}
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	.cardContent {
-		white-space: pre-wrap;
-		word-break: break-word;
+		font-size: 120%;
+	}
+	.deliverId {
+		font-size: 80%;
+		opacity: 0.8;
 	}
 }
+
+
 </style>

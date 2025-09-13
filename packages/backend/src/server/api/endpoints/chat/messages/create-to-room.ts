@@ -73,13 +73,13 @@ export const paramDef = {
 			type: 'object',
 			nullable: true,
 			properties: {
-				title: { type: 'string', minLength: 1, maxLength: 256 },
+				title: { type: 'string', maxLength: 256 },
 				choices: {
 					type: 'array',
 					uniqueItems: true,
 					minItems: 1,
 					maxItems: 30,
-					items: { type: 'string', minLength: 1, maxLength: 50 },
+					items: { type: 'string', minLength: 1, maxLength: 200 },
 				},
 				voteForUser: { type: 'boolean' },
 				anonymous: { type: 'boolean' },
@@ -95,22 +95,29 @@ export const paramDef = {
 			properties: {
 				cards: {
 					type: 'array',
-					uniqueItems: true,
+					nullable: false,
 					minItems: 1,
-					maxItems: 30,
-					items: { type: 'string', minLength: 1, maxLength: 50 },
-				},
-				deliver: {
-					type: 'array',
-					uniqueItems: false,
+					maxItems: 60,
 					items: {
 						type: 'object',
 						nullable: false,
 						properties: {
-							user: { type: 'string', nullable: false, format: 'misskey:id' },
+							name: { type: 'string', nullable: false, minLength: 1, maxLength: 256 },
+							count: { type: 'integer', nullable: false, minimum: 1, maximum: 30 },
+						},
+					},
+				},
+				deliver: {
+					type: 'array',
+					nullable: false,
+					items: {
+						type: 'object',
+						nullable: false,
+						properties: {
+							userId: { type: 'string', nullable: false, format: 'misskey:id' },
 							number: { type: 'number', minimum: 0 },
-						}
-					}
+						},
+					},
 				},
 			},
 			required: ['cards', 'deliver'],
@@ -144,6 +151,13 @@ function processRevealable(item: any) {
 	return newItem;
 }
 
+function processDeliver(item: any) {
+	if (item == null) return null;
+	const newItem = {...item};
+	newItem.deliver = Object.fromEntries(item.deliver.map((d: any) => [d.userId, d.count]));
+	return newItem;
+}
+
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
@@ -173,7 +187,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 			}
 
-			if (ps.text == null && file == null && ps.commitSecret == null && ps.deliverCards == null && ps.poll == null) {
+			if (ps.text == null && file == null && ps.commitSecret == null && ps.deliverCards == null && ps.poll == null && ps.deliverCards == null) {
 				throw new ApiError(meta.errors.contentRequired);
 			}
 
@@ -181,7 +195,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				text: ps.text,
 				file: file,
 				commitSecret: processRevealable(ps.commitSecret),
-				deliverCards: processRevealable(ps.deliverCards),
+				deliverCards: processDeliver(ps.deliverCards),
 				poll: processPoll(ps.poll),
 			});
 		});

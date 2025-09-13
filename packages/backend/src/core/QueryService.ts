@@ -77,6 +77,34 @@ export class QueryService {
 		return q;
 	}
 
+	public getRange<T extends ObjectLiteral>(
+		q: SelectQueryBuilder<T>,
+		sinceId: string | null,
+		untilId: string | null,
+		ascending: boolean,
+		targetColumn: string = 'id',
+		includeEnd: boolean = true,
+	): SelectQueryBuilder<T> {
+		if (ascending) {
+			if (sinceId != null) {
+				q.andWhere(`${q.alias}.${targetColumn} > :sinceId`, { sinceId });
+			}
+			if (untilId != null) {
+				q.andWhere(`${q.alias}.${targetColumn} ${includeEnd ? '<=' : '<'} :untilId`, { untilId });
+			}
+			q.orderBy(`${q.alias}.${targetColumn}`, 'ASC');
+		} else {
+			if (sinceId != null) {
+				q.andWhere(`${q.alias}.${targetColumn} ${includeEnd ? '>=' : '>'} :sinceId`, { sinceId });
+			}
+			if (untilId != null) {
+				q.andWhere(`${q.alias}.${targetColumn} < :untilId`, { untilId });
+			}
+			q.orderBy(`${q.alias}.${targetColumn}`, 'DESC');
+		}
+		return q;
+	}
+
 	/**
 	 * ミュートやブロックのようにすべてのタイムラインで共通に使用するフィルターを定義します。
 	 *
