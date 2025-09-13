@@ -25,7 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:enterFromClass="$style.transition_navFooter_enterFrom"
 				:leaveToClass="$style.transition_navFooter_leaveTo"
 			>
-				<XMobileFooterMenu v-if="isMobile && navFooterShowing" v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing" ref="navFooter"/>
+				<XMobileFooterMenu v-if="isMobile && navFooterShowing && navFooterShowingByPage " v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing" ref="navFooter"/>
 			</Transition>
 		</div>
 
@@ -80,6 +80,7 @@ window.addEventListener('resize', () => {
 const pageMetadata = ref<null | PageMetadata>(null);
 const widgetsShowing = ref(false);
 const navFooterShowing = ref(true);
+const navFooterShowingByPage = ref(true);
 
 provide(DI.router, mainRouter);
 provideMetadataReceiver((metadataGetter) => {
@@ -147,6 +148,14 @@ onMounted(() => {
 			if (window.innerWidth >= DESKTOP_THRESHOLD) isDesktop.value = true;
 		}, { passive: true });
 	}
+	mainRouter.addListener('change', ctx => {
+		console.log(ctx.fullPath);
+		if (ctx.fullPath.startsWith("/chat/room/") || ctx.fullPath.startsWith("/chat/user/")) {
+			navFooterShowingByPage.value = false;
+		} else {
+			navFooterShowingByPage.value = true;
+		}
+	});
 });
 
 
