@@ -5832,6 +5832,10 @@ export interface Locale extends ILocale {
          */
         "revealSecret": string;
         /**
+         * カードを公開
+         */
+        "revealCard": string;
+        /**
          * 自動で秘密を公開する
          */
         "autoReveal": string;
@@ -5848,33 +5852,169 @@ export interface Locale extends ILocale {
          */
         "secretRevealConfirm": ParameterizedString<"what">;
         /**
-         * 公開まで:
+         * カード「{what}」を公開しますか？
+         */
+        "cardRevealConfirm": ParameterizedString<"what">;
+        /**
+         * がカードを公開しました
+         */
+        "cardRevealed": string;
+        /**
+         * カードの名前を入力 (例: スペードのエース)
+         */
+        "cardPlaceHolder": string;
+        /**
+         * 枚
+         */
+        "cardSuffix": string;
+        /**
+         * 投票済み
+         */
+        "voted": string;
+        /**
+         * 投票者
+         */
+        "voters": string;
+        /**
+         * 票
+         */
+        "gotVotes": string;
+        /**
+         * 公開まで
          */
         "revealsIn": string;
         /**
-         * カードを配る
+         * 開始まで
          */
-        "deliverCards": string;
+        "startsIn": string;
+        /**
+         * 終了まで
+         */
+        "finishesIn": string;
+        /**
+         * 投票を編集
+         */
+        "editPoll": string;
         /**
          * 投票を開始する
          */
         "startPoll": string;
         /**
-         * 投票選択肢
+         * 投票を終了
          */
-        "voteOptions": string;
+        "finishPoll": string;
         /**
-         * 匿名投票
+         * が投票「{what}」が予定しました
          */
-        "anonymousVote": string;
+        "pollScheduled": ParameterizedString<"what">;
         /**
-         * 匿名発言
+         * が投票「{what}」を開始しました
          */
-        "anonymousSpeech": string;
+        "pollStarted": ParameterizedString<"what">;
+        /**
+         * 投票「{what}」が終了しました
+         */
+        "pollFinished": ParameterizedString<"what">;
+        /**
+         * 匿名投票 (開票時に投票者が表示されない)
+         */
+        "anonymousPoll": string;
+        /**
+         * ルーム参加者に投票
+         */
+        "voteForRoomMembers": string;
+        /**
+         * 自分以外のルーム参加者に投票
+         */
+        "voteForRoomMembersNotMe": string;
+        /**
+         * ユーザーに投票
+         */
+        "voteForUsers": string;
+        /**
+         * 投票
+         */
+        "poll": string;
         /**
          * 投票
          */
         "vote": string;
+        /**
+         * 投票先を選択
+         */
+        "selectVote": string;
+        /**
+         * 投票選択肢
+         */
+        "pollChoices": string;
+        /**
+         * 投票時間
+         */
+        "pollDuration": string;
+        /**
+         * 投票開始まで
+         */
+        "pollStartsIn": string;
+        /**
+         * 投票のタイトル
+         */
+        "pollTitle": string;
+        /**
+         * 予定時刻前に投票「{what}」を締め切ります。まだ全員が投票していないようですが、よろしいですか？
+         */
+        "pollFinishConfirm": ParameterizedString<"what">;
+        /**
+         * 予定時刻前に投票「{what}」を開始します。よろしいですか？
+         */
+        "pollStartConfirm": ParameterizedString<"what">;
+        /**
+         * カードの一覧
+         */
+        "cardsList": string;
+        /**
+         * カードのタイトル
+         */
+        "cardsTitle": string;
+        /**
+         * 配布カードを編集
+         */
+        "editCards": string;
+        /**
+         * 参加設定を編集
+         */
+        "editParticipation": string;
+        /**
+         * 解散されたルームを含む
+         */
+        "includeArchivedRooms": string;
+        /**
+         * 公開ルームがありません
+         */
+        "noPublicRooms": string;
+        /**
+         * あなたのカード
+         */
+        "yourCard": string;
+        /**
+         * カードを配る
+         */
+        "deliverCards": string;
+        /**
+         * ユーザーごとの配布数
+         */
+        "cardCountsByUser": string;
+        /**
+         * 全員に配る枚数を設定
+         */
+        "setCardCountsAll": string;
+        /**
+         * カードが配られました
+         */
+        "cardDelivered": string;
+        /**
+         * 匿名発言
+         */
+        "anonymousSpeech": string;
     };
     "_emojiPalette": {
         /**

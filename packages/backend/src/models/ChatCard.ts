@@ -3,7 +3,7 @@ import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiChatRoom } from './ChatRoom.js';
 
-@Entity('chat_secret')
+@Entity('chat_card')
 export class MiChatCard {
 	@PrimaryColumn(id())
 	public deliverId: string;

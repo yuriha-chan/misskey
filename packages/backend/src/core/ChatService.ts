@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { Brackets, IsNull, Not } from 'typeorm';
+import { DataSource, Brackets, IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { QueueService } from '@/core/QueueService.js';
@@ -57,6 +57,9 @@ export class ChatService {
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
+		@Inject(DI.db)
+		private db: DataSource,
+
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
 
@@ -89,7 +92,6 @@ export class ChatService {
 
 		private userEntityService: UserEntityService,
 		private chatEntityService: ChatEntityService,
-		private chatPollService: ChatPollService,
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
 		private apRendererService: ApRendererService,
@@ -251,15 +253,26 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async listSecret(roomId: MiChatRoom['id'], user: MiUser) {
+	public async listSecret(roomId: MiChatRoom['id'], me?: MiUser) {
 		const secrets = await this.chatSecretsRepository.find({ where: { roomId, revealedId: IsNull() }});
 		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt, createdAt: this.idService.parse(s.id).date.toISOString() }));
 	}
 
 	@bindThis
-	public async listPoll(roomId: MiChatPoll['id'], user: MiUser) {
-		const polls = await this.chatPollsRepository.find({ where: { roomId, finishedId: IsNull() }});
-		return polls.map(p => ({ id: p.id, title: p.title, roomId: p.roomId, fromUserId: p.ownerId, finishesAt: p.duration ? new Date(this.idService.parse(p.startedId!).date.getTime() + p.duration * 1000) : null, createdAt: this.idService.parse(p.id).date.toISOString() }));
+	public async listPoll(roomId: MiChatPoll['id'], me?: MiUser) {
+		const [scheduledPolls, startedPolls] = await Promise.all([
+			this.chatPollsRepository.findBy({ roomId, startedId: IsNull() })
+				.then((p) => this.chatEntityService.packPollsScheduled(p)), 
+			this.chatPollsRepository.findBy({ roomId, startedId: Not(IsNull()), finishedId: IsNull() })
+				.then((p) => this.chatEntityService.packPollsStarted(p)),
+		]);
+		return { scheduledPolls, startedPolls };
+	}
+
+	@bindThis
+	public async listCard(roomId: MiChatRoom['id'], user: { id: MiUser['id'] }) {
+		const cards = await this.chatCardsRepository.findBy({ roomId, userId: user.id, revealedId: IsNull() });
+		return this.chatEntityService.packCards(cards);
 	}
 
 	@bindThis
@@ -297,19 +310,6 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async finishPoll(pollId: MiChatPoll['id'], user?: { id: MiUser["id"] }) {
-		const poll = await this.chatPollsRepository.findOneOrFail({ where: { id: pollId }, relations: ['votes']}) as MiChatPollWithVotes;
-		if (user) {
-			if (poll.ownerId !== user.id) {
-				throw new Error("not permitted to close poll");
-			}
-		}
-		await this.chatPollsRepository.update(poll.id, { finishedId: this.idService.gen() })
-		const packedPoll: Packed<'ChatPollFinished'> = await this.chatEntityService.packPollFinished(poll);
-		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollFinished', packedPoll);
-	}
-
-	@bindThis
 	public async schedulePoll(poll: MiChatPoll) {
 		const packedPollScheduled: Packed<'ChatPollScheduled'> = await this.chatEntityService.packPollScheduled(poll);
 		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollScheduled', packedPollScheduled);
@@ -336,10 +336,12 @@ export class ChatService {
 				throw new Error("not permitted to start poll");
 			}
 		}
-		const packedPollStarted: Packed<'ChatPollStarted'> = await this.chatEntityService.packPollStarted(poll);
+		const startedId = this.idService.gen();
+		await this.chatPollsRepository.update(poll.id, { startedId });
+		const packedPollStarted: Packed<'ChatPollStarted'> = await this.chatEntityService.packPollStarted({ ...poll, startedId });
 		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollStarted', packedPollStarted);
 		if (poll.duration) {
-			const delay = poll.duration;
+			const delay = poll.duration * 1000;
 			if (delay <= 0) {
 				throw new Error("invalid duration");
 			}
@@ -351,6 +353,23 @@ export class ChatService {
 				removeOnComplete: true,
 			});
 		}
+	}
+
+	@bindThis
+	public async finishPoll(pollId: MiChatPoll['id'], user?: { id: MiUser["id"] }) {
+		const poll = await this.chatPollsRepository.findOneOrFail({ where: { id: pollId }, relations: ['votes']}) as MiChatPollWithVotes;
+		if (user) {
+			if (poll.ownerId !== user.id) {
+				throw new Error("not permitted to close poll");
+			}
+		}
+		if (poll.finishedId != null) {
+			return;
+		}
+		const finishedId = this.idService.gen();
+		await this.chatPollsRepository.update(poll.id, { finishedId });
+		const packedPoll: Packed<'ChatPollFinished'> = await this.chatEntityService.packPollFinished({ ...poll, finishedId });
+		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollFinished', packedPoll);
 	}
 
 	@bindThis
@@ -464,16 +483,16 @@ export class ChatService {
 				voteForUsers: params.poll.voteForUsers,
 				anonymous: params.poll.anonymous,
 				startsAt: params.poll.startsAt ?? null,
-				startedId: params.poll.startsAt != null ? message.id : null,
+				startedId: null,
 				duration: params.poll.duration ?? null,
 				finishedId: null,
 				votes: null,
 			} satisfies Partial<MiChatPoll>;
 			await this.chatPollsRepository.insertOne(poll);
-			if (poll.startedId != null) {
-				this.startPoll(poll.id);
-			} else {
+			if (poll.startsAt != null) {
 				this.schedulePoll(poll);
+			} else {
+				this.startPoll(poll.id);
 			}
 		}
 
@@ -659,64 +678,145 @@ export class ChatService {
 		return messages;
 	}
 
+
+	private mergeSorted<T>(
+		arrays: T[][],
+		ascending: boolean,
+		getKey: (item: T) => number
+	): T[] {
+		const mergeHeads = new Array(arrays.length).fill(0);
+		const result: T[] = [];
+	
+		while (true) {
+			let bestItem: T | null = null;
+			let bestKey: number = -Infinity;
+			let bestIndex: number = -1;
+	
+			for (let i = 0; i < arrays.length; i++) {
+				if (mergeHeads[i] >= arrays[i].length) {
+					continue;
+				}
+	
+				const currentItem = arrays[i][mergeHeads[i]];
+				const currentKey = (ascending ? -1 : 1) * getKey(currentItem);
+				if (currentKey > bestKey) {
+					bestIndex = i;
+					bestKey = currentKey;
+					bestItem = currentItem;
+				}
+			}
+	
+			/* all scanned */
+			if (bestItem === null) {
+				break;
+			}
+			result.push(bestItem);
+			mergeHeads[bestIndex]++;
+		}
+		return result;
+	}
+
+	/**
+	 * limit is a soft limit -- when multiple entries are found in the last ID, then entries having the last IDs are returned beyond the provided limit
+	 */
 	@bindThis
 	public async roomTimeline(
 		roomId: MiChatRoom['id'],
 		limit: number,
-		sinceId?: MiChatMessage['id'] | null,
-		untilId?: MiChatMessage['id'] | null
+		meId: MiUser['id'],
+		sinceId: MiChatMessage['id'] | null,
+		untilId: MiChatMessage['id'] | null
 	) {
-		const query = this.queryService
-			.makePaginationQuery(this.chatMessagesRepository.createQueryBuilder('message'), sinceId, untilId)
-			.andWhere('message.toRoomId = :roomId', { roomId })
-			.leftJoinAndSelect('message.file', 'file')
-			.leftJoinAndSelect('message.fromUser', 'fromUser');
-	
-		const messages = await query.take(limit).getMany();
-	
-		if (messages.length === 0) {
+		const ascending = (sinceId != null);
+		const noId = sinceId == null && untilId == null;
+		// calculate the last Id
+		const otherIds: { id: string }[] = await this.db.query(`
+			SELECT "id" FROM (
+				SELECT "id", 'message' AS "type", 0 AS "subkey" FROM "chat_message" WHERE "toRoomId" = $1
+			   UNION ALL
+				SELECT "startedId" as "id", 'pollStarted' AS "type", 0::smallint AS "subkey" FROM "chat_poll" WHERE "roomId" = $1 AND "startedId" IS NOT NULL
+			   UNION ALL
+				SELECT "finishedId" as "id", 'pollFinished' AS "type", 0::smallint AS "subkey" FROM "chat_poll" WHERE "roomId" = $1 AND "finishedId" IS NOT NULL
+			   UNION ALL
+				SELECT "id", 'secretComitted' AS "type", 0::smallint AS "subkey" FROM "chat_secret" WHERE "roomId" = $1
+			   UNION ALL
+				SELECT "revealedId" as "id", 'secretRevealed' AS "type", 0::smallint AS "subkey" FROM "chat_secret" WHERE "roomId" = $1 AND "revealedId" IS NOT NULL
+			   UNION ALL
+				SELECT "deliverId" as "id", 'cardDelivered' AS "type", "cardId" AS "subkey" FROM "chat_card" WHERE "roomId" = $1 AND "userId" = $2
+			   UNION ALL
+				SELECT "revealedId" as "id", 'cardRevealed' AS "type", 0::smallint AS "subkey" FROM "chat_card" WHERE "roomId" = $1 AND "revealedId" IS NOT NULL
+			) as "tiimeline" ${ noId ? "" : `WHERE ("id" ${ascending ? '>' : '<'} $4)` } ORDER BY "id" DESC, "type" DESC, "subkey" DESC
+			LIMIT $3
+		`, [roomId, meId, limit, ...(noId ? [] : [ascending ? sinceId : untilId])]);
+
+		if (otherIds.length === 0) {
 			return [];
 		}
+
+		if (ascending) {
+			untilId = otherIds[otherIds.length - 1].id;
+		} else {
+			sinceId = otherIds[otherIds.length - 1].id;
+		}
 	
-		const first = messages[0];
-		const last = messages[messages.length - 1];
-	
-		const ascending = first.id < last.id;
-	
-		const [polls, finishedPolls, secrets, revealedSecrets] = await Promise.all([
-			this.queryService.makePaginationQuery(this.chatPollsRepository.createQueryBuilder('poll'), sinceId, untilId, null, null, 'startedId')
+		const [messages, polls, finishedPolls, secrets, revealedSecrets, cards, revealedCards] = await Promise.all([
+			this.queryService
+				.getRange(this.chatMessagesRepository.createQueryBuilder('message'), sinceId, untilId, ascending, 'id')
+				.andWhere('message.toRoomId = :roomId', { roomId })
+				.leftJoinAndSelect('message.file', 'file')
+				.leftJoinAndSelect('message.fromUser', 'fromUser')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatPollsRepository.createQueryBuilder('poll'), sinceId, untilId, ascending, 'startedId')
 				.andWhere('poll.roomId = :roomId', { roomId })
-				.andWhere('poll.startedId IS NOT NULL', { roomId })
-				.take(limit).getMany(),
-			this.queryService.makePaginationQuery(this.chatPollsRepository.createQueryBuilder('poll'), sinceId, untilId, null, null, 'finishedId')
+				.andWhere('poll.startedId IS NOT NULL')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatPollsRepository.createQueryBuilder('poll'), sinceId, untilId, ascending, 'finishedId')
 				.leftJoinAndSelect('poll.votes', 'vote')
-				.andWhere('poll.roomId = :roomId', { roomId }) .andWhere('poll.finishedId IS NOT NULL', { roomId })
-				.take(limit).getMany(),
-			this.queryService.makePaginationQuery(this.chatSecretsRepository.createQueryBuilder('secret'), sinceId, untilId)
+				.andWhere('poll.roomId = :roomId', { roomId })
+				.andWhere('poll.finishedId IS NOT NULL')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatSecretsRepository.createQueryBuilder('secret'), sinceId, untilId, ascending, 'id')
 				.andWhere('secret.roomId = :roomId', { roomId })
-				.take(limit).getMany(),
-			this.queryService.makePaginationQuery(this.chatSecretsRepository.createQueryBuilder('secret'), sinceId, untilId, null, null, 'revealedId')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatSecretsRepository.createQueryBuilder('secret'), sinceId, untilId, ascending, 'revealedId')
 				.andWhere('secret.roomId = :roomId', { roomId })
-				.andWhere('secret.revealedId IS NOT NULL', { roomId })
-				.take(limit).getMany()]);
-		const [packedPolls, packedPollsFinished, packedSecrets, packedSecretsRevealed, packedMessages] = await Promise.all([
+				.andWhere('secret.revealedId IS NOT NULL')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatCardsRepository.createQueryBuilder('card'), sinceId, untilId, ascending, 'deliverId')
+				.andWhere('card.roomId = :roomId', { roomId })
+				.andWhere('card.userId = :userId', { userId: meId })
+				.getMany(),
+			this.queryService
+				.getRange(this.chatCardsRepository.createQueryBuilder('card'), sinceId, untilId, ascending, 'revealedId')
+				.andWhere('card.roomId = :roomId', { roomId })
+				.andWhere('card.revealedId IS NOT NULL')
+				.getMany()]);
+
+		const [packedMessages, packedPolls, packedPollsFinished, packedSecrets, packedSecretsRevealed, packedCards, packedCardsRevealed] = await Promise.all([
+			this.chatEntityService.packMessagesLiteForRoom(messages),
 			this.chatEntityService.packPollsStarted(polls),
 			this.chatEntityService.packPollsFinished(finishedPolls as MiChatPollWithVotes[]),
 			this.chatEntityService.packSecrets(secrets),
 			this.chatEntityService.packSecretsRevealed(revealedSecrets),
-			this.chatEntityService.packMessagesLiteForRoom(messages)]);
+			this.chatEntityService.packCards(cards),
+			this.chatEntityService.packCardsRevealed(revealedCards)]);
 
-		const events: Packed<'ChatEvent'>[] = [
-			...packedMessages.map(x => ({ type: 'message', data: x })),
-			...packedPolls.map(x => ({ type: 'pollStarted', data: x })),
-			...packedPollsFinished.map(x => ({ type: 'pollFinished', data: x })),
-			...packedSecrets.map(x => ({ type: 'secretCommitted', data: x })),
-			...packedSecretsRevealed.map(x => ({ type: 'secretRevealed', data: x })),
+		const events: Packed<'ChatEvent'>[][] = [
+			packedMessages.map(x => ({ type: 'message', data: x })),
+			packedPolls.map(x => ({ type: 'pollStarted', data: x })),
+			packedPollsFinished.map(x => ({ type: 'pollFinished', data: x })),
+			packedSecrets.map(x => ({ type: 'secretCommitted', data: x })),
+			packedSecretsRevealed.map(x => ({ type: 'secretRevealed', data: x })),
+			packedCards.map(x => ({ type: 'cardDelivered', data: x })),
+			packedCardsRevealed.map(x => ({ type: 'cardRevealed', data: x })),
 		];
 	
-		events.sort((a: Packed<'ChatEvent'>, b: Packed<'ChatEvent'>) => ascending ? Date.parse(a.data.createdAt) - Date.parse(b.data.createdAt) : Date.parse(b.data.createdAt) - Date.parse(a.data.createdAt));
-	
-		return events.slice(0, limit);
+		return this.mergeSorted(events, ascending, x => Date.parse(x.data.createdAt))
 	}
 
 	@bindThis

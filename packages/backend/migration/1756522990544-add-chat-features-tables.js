@@ -54,7 +54,7 @@ export class AddChatFeaturesTables1756522990544 {
 				"userId" character varying NOT NULL,
 				"roomId" character varying NOT NULL,
 				"cardKind" character varying NOT NULL,
-				"revealedId" character varying NOT NULL,
+				"revealedId" character varying,
 				CONSTRAINT "PK_chat_card_id" PRIMARY KEY ("deliverId", "cardId")
 			)
 		`);
