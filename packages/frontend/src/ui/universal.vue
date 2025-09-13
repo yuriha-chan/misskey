@@ -148,8 +148,11 @@ onMounted(() => {
 			if (window.innerWidth >= DESKTOP_THRESHOLD) isDesktop.value = true;
 		}, { passive: true });
 	}
+	const fullPath = mainRouter.getCurrentFullPath();
+	if (fullPath.startsWith("/chat/room/") || fullPath.startsWith("/chat/user/")) {
+			navFooterShowingByPage.value = false;
+	}
 	mainRouter.addListener('change', ctx => {
-		console.log(ctx.fullPath);
 		if (ctx.fullPath.startsWith("/chat/room/") || ctx.fullPath.startsWith("/chat/user/")) {
 			navFooterShowingByPage.value = false;
 		} else {
