@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkButton v-if="secret.fromUserId === $i.id" primary rounded @click="() => onRevealClick(secret)">{{ i18n.ts._chat.revealSecret }}</MkButton>
 					</div>
 					<div v-if="cards.length > 0" :class="$style.cards">
-						{{ i18n.ts._chat.yourCard }}:
+						<i class="ti ti-cards"/>
 						<div v-for="card in cards" :key="card.id" :class="$style.card">
 							<div :class="$style.cardContent">{{ card.cardKind }}</div>
 							<MkButton primary @click="() => onCardRevealClick(card)">{{ i18n.ts._chat.revealCard }}</MkButton>
@@ -745,6 +745,11 @@ definePage(computed(() => {
 	}
 }
 
+.cards {
+	max-width: 95%;
+	overflow-x: scroll;
+}
+
 .cardContent {
 	text-align: center;
 	font-weight: bold;
@@ -756,7 +761,7 @@ definePage(computed(() => {
 }
 
 .countdown {
-	font-size: 140%;
+	font-size: 135%;
 	letter-spacing: 0.1rem;
 }
 

@@ -62,13 +62,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-else-if="item.type === 'cardDelivered'">
 			<div :class="$style.card">
 				<i class="ti ti-cards"></i>
-				{{ i18n.ts._chat.cardDelivered }}: <b :class="$style.cardContent">{{ item.data.cardKind }}</b><span :class="$style.deliverId">&lt;<MkColorId :id="item.data.deliverId"/>&gt;</span>
+				{{ i18n.ts._chat.cardDelivered }}: <div :class="$style.cardContainer"><b :class="$style.cardContent">{{ item.data.cardKind }}</b><MkColorId :id="item.data.deliverId" :class="$style.deliverId"/></div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'cardRevealed'">
 			<div :class="$style.card">
 				<MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.cardRevealed }}:
-				<i class="ti ti-cards"></i> <b :class="$style.cardContent">{{ item.data.cardKind }}</b><span :class="$style.deliverId">&lt;<MkColorId :id="item.data.deliverId"/>&gt;</span>
+				<i class="ti ti-cards"></i> <div :class="$style.cardContainer"><b :class="$style.cardContent">{{ item.data.cardKind }}</b><MkColorId :id="item.data.deliverId" :class="$style.deliverId"/></div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'join'">
@@ -428,7 +428,7 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 }
 
 .pollFinish {
-	margin-top: 8px;
+	margin-top: 3px;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 3px;
@@ -446,10 +446,10 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 
 
 .pollChoice {
-	padding: 8px;
+	padding: 4px;
 	border: solid 1px var(--MI_THEME-divider);
 	border-radius: 8px;
-	margin-top: 4px;
+	margin-top: 2px;
 	cursor: pointer;
 
 	&:hover {
@@ -462,11 +462,11 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 		> .choice {
 			flex: 2;
 			> .card {
-				max-width: 160px;
+				max-width: 140px;
 			}
 		}
 		> .vote {
-			padding: 14px;
+			padding: 4px 8px 4px;
 		}
 	}
 	> .choiceFooter{
@@ -496,16 +496,21 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 }
 
 .card {
-	padding: 8px;
+	padding: 4px;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	.cardContent {
-		font-size: 120%;
-	}
-	.deliverId {
-		font-size: 80%;
-		opacity: 0.8;
+	.cardContainer {
+		display: flex;
+		flex-direction: column;
+		align-items: end;
+		.cardContent {
+			font-size: 110%;
+		}
+		.deliverId {
+			font-size: 80%;
+			opacity: 0.8;
+		}
 	}
 }
 
