@@ -22,8 +22,6 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		username: { type: 'string' },
-		password: { type: 'string' },
-		token: { type: 'string', nullable: true },
 	},
 	required: ['username', 'password'],
 } as const;
@@ -42,28 +40,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private signupService: SignupService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			// authenticate the main account 
-			const token = ps.token;
-			const profile = await this.userProfilesRepository.findOneByOrFail({ userId: me.id });
-
-			if (profile.twoFactorEnabled) {
-				if (token == null) {
-					throw new Error('authentication failed');
-				}
-
-				try {
-					await this.userAuthService.twoFactorAuthenticate(profile, token);
-				} catch (e) {
-					throw new Error('authentication failed');
-				}
-			}
-
-			const passwordMatched = await bcrypt.compare(ps.password, profile.password!);
-			if (!passwordMatched) {
-				throw new Error('incorrect password');
-			}
-
-			// delete the sub account
 			await this.signupService.signup({ username: ps.username, mainAccountId: me.id });
 		});
 	}
