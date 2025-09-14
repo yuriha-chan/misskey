@@ -16,6 +16,10 @@ export const meta = {
 	requireCredential: true,
 
 	secure: true,
+	limit: {
+		duration: ms('12hour'),
+		max: 10,
+	},
 } as const;
 
 export const paramDef = {
