@@ -11,6 +11,7 @@ import { DeleteAccountService } from '@/core/DeleteAccountService.js';
 import { DI } from '@/di-symbols.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
 import { SignupService } from '@/core/SignupService.js';
+import { ms } from 'ms';
 
 export const meta = {
 	requireCredential: true,

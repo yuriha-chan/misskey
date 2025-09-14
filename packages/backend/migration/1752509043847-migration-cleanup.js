@@ -8,7 +8,9 @@ export class MigrationCleanup1752509043847 {
 
     async up(queryRunner) {
         // 1745378064470-composite-note-index.js created a index ON "note" ("userId", "id" DESC) as IDX_724b311e6f883751f261ebe378 but should be named IDX_a6f649630f55af3888e5a42919
+	/*
         await queryRunner.query(`ALTER INDEX "IDX_724b311e6f883751f261ebe378" RENAME TO "IDX_a6f649630f55af3888e5a42919"`);
+	*/
 
         // 1713656541000-abuse-report-notification.js generated system_webhook with hand-written SQL with CURRENT_TIMESTAMP as the default value, but its representation in TypeORM is `now()`
         // see https://github.com/typeorm/typeorm/blob/f351757a15b9d2bd9d4222c69dcfd2316f46b5d1/src/driver/postgres/PostgresDriver.ts#L1575
@@ -74,6 +76,8 @@ export class MigrationCleanup1752509043847 {
 
         await queryRunner.query(`ALTER TABLE "system_webhook" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP`);
 
+	/*
         await queryRunner.query(`ALTER INDEX "IDX_a6f649630f55af3888e5a42919" RENAME TO "IDX_724b311e6f883751f261ebe378"`);
+	*/
     }
 }
