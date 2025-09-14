@@ -58,6 +58,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			// Publish event
 			this.globalEventService.publishInternalEvent('userTokenRegenerated', { id: me.id, oldToken, newToken });
 			this.globalEventService.publishMainStream(me.id, 'myTokenRegenerated');
+
+			// regenerate subaccount tokens
+			const subAccountProfiles = await this.userProfilesRepository.findBy({ mainAccountId: me.id });
+			for (const subAccountProfile of subAccountProfiles) {
+				const newToken = generateNativeUserToken();
+				const subAccountId = subAccountProfile.userId;
+
+				await this.usersRepository.update(subAccountId, {
+					token: newToken,
+				});
+
+				this.globalEventService.publishInternalEvent('userTokenRegenerated', { id: subAccountId, oldToken, newToken });
+				this.globalEventService.publishMainStream(subAccountId, 'myTokenRegenerated');
+			}
 		});
 	}
 }

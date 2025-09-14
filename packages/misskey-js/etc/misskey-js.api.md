@@ -1044,6 +1044,12 @@ type ChatCard = components['schemas']['ChatCard'];
 type ChatCardRevealed = components['schemas']['ChatCardRevealed'];
 
 // @public (undocumented)
+type ChatCardsListRequest = operations['chat___cards___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatCardsRevealRequest = operations['chat___cards___reveal']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ChatEvent = components['schemas']['ChatEvent'];
 
 // @public (undocumented)
@@ -1116,7 +1122,19 @@ type ChatPollFinished = components['schemas']['ChatPollFinished'];
 type ChatPollScheduled = components['schemas']['ChatPollScheduled'];
 
 // @public (undocumented)
+type ChatPollsFinishRequest = operations['chat___polls___finish']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsListRequest = operations['chat___polls___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsStartRequest = operations['chat___polls___start']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ChatPollStarted = components['schemas']['ChatPollStarted'];
+
+// @public (undocumented)
+type ChatPollsVoteRequest = operations['chat___polls___vote']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoom = components['schemas']['ChatRoom'];
@@ -1741,6 +1759,8 @@ declare namespace entities {
         ChartsUserReactionsResponse,
         ChartsUsersRequest,
         ChartsUsersResponse,
+        ChatCardsListRequest,
+        ChatCardsRevealRequest,
         ChatHistoryRequest,
         ChatHistoryResponse,
         ChatMessagesCreateToRoomRequest,
@@ -1758,6 +1778,10 @@ declare namespace entities {
         ChatMessagesUnreactRequest,
         ChatMessagesUserTimelineRequest,
         ChatMessagesUserTimelineResponse,
+        ChatPollsFinishRequest,
+        ChatPollsListRequest,
+        ChatPollsStartRequest,
+        ChatPollsVoteRequest,
         ChatRoomsArchiveRequest,
         ChatRoomsCreateRequest,
         ChatRoomsCreateResponse,
@@ -1940,7 +1964,9 @@ declare namespace entities {
         IAuthorizedAppsResponse,
         IChangePasswordRequest,
         IClaimAchievementRequest,
+        ICreateSubAccountRequest,
         IDeleteAccountRequest,
+        IDeleteSubAccountRequest,
         IExportFollowingRequest,
         IFavoritesRequest,
         IFavoritesResponse,
@@ -2073,6 +2099,7 @@ declare namespace entities {
         NotesTranslateRequest,
         NotesTranslateResponse,
         NotesUnrenoteRequest,
+        NotesUpdateVisibilityRequest,
         NotesUserListTimelineRequest,
         NotesUserListTimelineResponse,
         NotificationsCreateRequest,
@@ -2601,10 +2628,16 @@ export interface IChannelConnection<Channel extends AnyOf<Channels> = AnyOf<Chan
 type IClaimAchievementRequest = operations['i___claim-achievement']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ICreateSubAccountRequest = operations['i___create-sub-account']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ID = string;
 
 // @public (undocumented)
 type IDeleteAccountRequest = operations['i___delete-account']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IDeleteSubAccountRequest = operations['i___delete-sub-account']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type IExportFollowingRequest = operations['i___export-following']['requestBody']['content']['application/json'];
@@ -3257,6 +3290,9 @@ type NotesTranslateResponse = operations['notes___translate']['responses']['200'
 
 // @public (undocumented)
 type NotesUnrenoteRequest = operations['notes___unrenote']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesUpdateVisibilityRequest = operations['notes___update-visibility']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesUserListTimelineRequest = operations['notes___user-list-timeline']['requestBody']['content']['application/json'];
