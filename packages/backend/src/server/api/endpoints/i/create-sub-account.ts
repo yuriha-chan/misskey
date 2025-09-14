@@ -40,7 +40,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private signupService: SignupService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			await this.signupService.signup({ username: ps.username, mainAccountId: me.id });
+			const { account, secret } = await this.signupService.signup({ username: ps.username, mainAccountId: me.id });
+			return { id: account.id, i: secret };
 		});
 	}
 }
