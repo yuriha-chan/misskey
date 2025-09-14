@@ -2,10 +2,9 @@ version: '3.9'
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: node:22.15.0-bookworm
     container_name: misskey-web-dev
+    entrypoint: tail -f /dev/null
     ports:
       - "3000:3000"
       - "5173:5173"
@@ -13,9 +12,12 @@ services:
     volumes:
       - ./files:/misskey/files
       - ./.config.dev:/misskey/.config:ro
+      - .:/misskey
     networks:
       - internal_network
       - external_network
+    env_file:
+      - ./.config.dev/docker.env
     depends_on:
       db:
         condition: service_healthy
@@ -50,7 +52,7 @@ services:
       - db-data:/var/lib/postgresql/data
     hostname: postgres
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
       retries: 20
 
