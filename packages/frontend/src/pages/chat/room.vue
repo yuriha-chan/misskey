@@ -279,7 +279,6 @@ async function initialize() {
 
 		const m = mResult.status === 'fulfilled' ? mResult.value as Misskey.entities.ChatMessagesRoomTimelineResponse : [];
 		const members = membersResult.status === 'fulfilled' ? membersResult.value as Misskey.entities.ChatRoomMembership[] : [];
-		console.log(members)
 		membersMap.value = Object.fromEntries(members.map(mem => [mem.userId, mem]));
 
 		secrets.value = sResult.status === 'fulfilled' ? sResult.value : [];
@@ -398,7 +397,6 @@ function onPollSchedule(poll: Misskey.entities.ChatPollScheduled) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'pollScheduled', data: poll });
 	polls.value.push(poll);
-	console.log(polls.value);
 }
 function onPollStart(poll: Misskey.entities.ChatPollStarted) {
 	sound.playMisskeySfx('chatMessage');
