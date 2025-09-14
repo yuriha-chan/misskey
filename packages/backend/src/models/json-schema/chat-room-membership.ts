@@ -41,5 +41,9 @@ export const packedChatRoomMembershipSchema = {
 			type: 'string',
 			optional: true, nullable: true,
 		},
+		hasLeft: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		}
 	},
 } as const;

@@ -336,6 +336,9 @@ export class ChatService {
 				throw new Error("not permitted to start poll");
 			}
 		}
+		if (poll.startedId != null) {
+			return;
+		}
 		const startedId = this.idService.gen();
 		await this.chatPollsRepository.update(poll.id, { startedId });
 		const packedPollStarted: Packed<'ChatPollStarted'> = await this.chatEntityService.packPollStarted({ ...poll, startedId });

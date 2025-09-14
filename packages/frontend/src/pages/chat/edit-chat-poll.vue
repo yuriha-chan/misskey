@@ -117,7 +117,7 @@ const canSend = computed(() =>
 onMounted(() => {
 	if (props.poll != null) {
 		title.value = props.poll.title;
-		if (props.voteForUsers) {
+		if (props.poll.voteForUsers) {
 			userChoices.value = props.poll.choices;
 		} else {
 			textChoices.value = props.poll.choices;
@@ -130,7 +130,7 @@ onMounted(() => {
 });
 
 function addChoice(user: boolean) {
-	(user ? userChoices : textChoices).value.push('');
+	(user ? userChoices : textChoices).value.push(user ? null : '');
 }
 function removeChoice(user: boolean, idx: number) {
 	(user ? userChoices : textChoices).value.splice(idx, 1);

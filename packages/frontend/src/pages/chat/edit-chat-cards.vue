@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, useTemplateRef } from 'vue';
+import { ref, computed, watch, onMounted, useTemplateRef } from 'vue';
 import { i18n } from '@/i18n.js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -64,7 +64,7 @@ import MkFoldableSection from '@/components/MkFoldableSection.vue'
 const title = ref('');
 const cardsList = ref<{ name: string, count: number }[]>([{ name: '', count: 1}]);
 const deliver = ref<{ user: Misskey.entities.UserLite; count: number }[]>([]);
-const allCount = ref(0);
+const allCount = ref(1);
 
 const emit = defineEmits<{
 	(ev: 'done', v: { updated?: any; created?: any }): void;
@@ -80,7 +80,7 @@ const uiWindow = useTemplateRef('uiWindow');
 
 function updateToMembers() {
 	const known = new Set(deliver.value.map(d => d.user.id));
-	const updated = new Set(Object.keys(props.members));
+	const updated = new Set(Object.keys(props.members).filter(uid => !props.members[uid].hasLeft));
 	const left = known.difference(updated);
 	const joined = updated.difference(known);
 	deliver.value = [...deliver.value.filter(d => !left.has(d.user.id)), ...Array.from(joined).map(uid => ({ user: props.members[uid].user, count: 1}))];
@@ -96,7 +96,7 @@ onMounted(() => {
 	updateToMembers()
 });
 
-watch(() => props.members, updateToMembers);
+watch(() => ({ ...props.members }), updateToMembers);
 
 function addCard() {
 	cardsList.value.push({ name: '', count: 1 });
