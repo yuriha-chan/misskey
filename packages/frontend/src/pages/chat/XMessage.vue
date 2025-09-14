@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div v-if="item" :class="[$style.root, { [$style.isMe]: isMe }]">
-	<MkAvatar v-if="item.type === 'message' && props.membership?.user" :class="$style.avatar" :user="props.membership?.user" :link="!isMe" :preview="false"/>
+	<MkAvatar v-if="item.type === 'message' && props.membership?.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership?.user" :link="!isMe" :preview="false"/>
 	<div :class="[$style.body, item.type !== 'file' && item.data.file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
 		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && fromUser != null" :user="fromUser"/></div>
 		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.type === 'message' && item.data.file != null" :accented="isMe" :style="bubbleStyle">
@@ -328,11 +328,14 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 }
 
 .avatar {
-	position: sticky;
-	top: calc(16px + var(--MI-stickyTop, 0px));
 	display: block;
 	width: 50px;
 	height: 50px;
+
+	&.useSticky {
+		position: sticky;
+		top: calc(16px + var(--MI-stickyTop, 0px));
+	}
 }
 
 @container (max-width: 450px) {
