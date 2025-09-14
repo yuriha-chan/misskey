@@ -84,7 +84,6 @@ function updateToMembers() {
 	const left = known.difference(updated);
 	const joined = updated.difference(known);
 	deliver.value = [...deliver.value.filter(d => !left.has(d.user.id)), ...Array.from(joined).map(uid => ({ user: props.members[uid].user, count: 1}))];
-	console.log(left, joined, deliver.value);
 }
 
 onMounted(() => {
