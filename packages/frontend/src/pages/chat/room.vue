@@ -103,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</button>
 					</div>
 				</Transition>
-				<XForm v-if="initialized" :user="user" :room="room" :members="membersMap" :class="$style.form"/>
+				<XForm v-if="initialized" :isArchive="isArchive" :user="user" :room="room" :members="membersMap" :class="$style.form"/>
 			</div>
 		</div>
 	</template>
@@ -392,7 +392,7 @@ function onJoin(membership) {
 function onLeave(data) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'leave', data: { ...data, user: membersMap.value[data.userId].user } });
-	membersMap.value[data.userId].hasLeft = true;
+	membersMap.value[data.userId] = { ...membersMap.value[data.userId], hasLeft: true };
 }
 function onPollSchedule(poll: Misskey.entities.ChatPollScheduled) {
 	sound.playMisskeySfx('chatMessage');
