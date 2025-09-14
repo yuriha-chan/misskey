@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-	<MkPagination v-slot="{items}" ref="list" :pagination="followingPagination" :class="$style.root">
+	<MkPagination v-slot="{items}" ref="list" :paginator="followingPaginator" :key="props.anchorDate" :class="$style.root">
 		<div class="_gaps_s" :class="$style.updates">
 			<div v-for="item in items" :key="item.id" :class="$style.notes">
 				<div v-for="note in item.notes" :key="note.id">
@@ -16,8 +16,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { ref, watch, markRaw } from 'vue';
 import * as Misskey from 'misskey-js';
+import { Paginator } from '@/utility/paginator.js';
 import MkPagination from '@/components/MkPagination.vue';
 import MkNote from '@/components/MkNote.vue';
 
@@ -25,25 +26,40 @@ const props = defineProps<{
 	anchorDate: number;
 }>();
 
-const followingPagination = computed((previous) => ({
-	endpoint: 'notes/followings-updates' as const,
-	limit: 10,
-	offsetMode: true,
-	params: {
-		anchorDate: props.anchorDate,
-	}
-}));
+const followingPaginator = ref(
+	markRaw(
+		new Paginator('notes/followings-updates', {
+			limit: 10,
+			offsetMode: true,
+			params: {
+				anchorDate: props.anchorDate,
+			}
+		})
+	)
+);
+
+watch(() => props.anchorDate, () => {
+	followingPaginator.value = markRaw(
+		new Paginator('notes/followings-updates', {
+			limit: 10,
+			offsetMode: true,
+			params: {
+				anchorDate: props.anchorDate,
+			}
+		})
+	)
+});
 </script>
 
 <style lang="scss" module>
 .root {
-        .updates {
-                background: var(--MI_THEME-bg);
-                .notes {
+	.updates {
+		background: var(--MI_THEME-bg);
+		.notes {
 			background: var(--MI_THEME-panel);
 			border-radius: var(--MI-radius);
 			margin: 3px 0 3px;
-                }
-        }
+		}
+	}
 }
 </style>

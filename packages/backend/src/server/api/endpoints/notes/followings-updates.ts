@@ -84,7 +84,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		const updatedUsers = await this.db.query(`SELECT c."userId" as user, d.m as last FROM ( SELECT DISTINCT ON (f."followeeId") f."followeeId" AS "userId" FROM "following" f JOIN "note" n ON n."userId" = f."followeeId" WHERE f."followerId" = $1 AND n."id" > $2 AND n."visibility" <> 'specified' AND n."renoteId" IS NULL AND n."replyId" IS NULL ORDER BY f."followeeId", n."id" DESC) AS c LEFT JOIN LATERAL ( SELECT "id" AS m FROM "note" WHERE "userId" = c."userId" AND "id" <= $2 AND note."visibility" <> 'specified' AND note."renoteId" IS NULL AND note."replyId" IS NULL ORDER BY "id" DESC LIMIT 1) AS d ON true ORDER BY d.m ASC NULLS FIRST OFFSET $3 LIMIT $4`, [ me.id, ps.anchorId, ps.offset, ps.limit ]);
 		return await Promise.all(updatedUsers.map(async (row: { user: string; last: string; }) => {
 			const userId = row.user;
-			const query = this.notesRepository.createQueryBuilder('note').innerJoinAndSelect('note.user', 'user')
+			const query = this.notesRepository.createQueryBuilder('note')
+			         .innerJoinAndSelect('note.user', 'user')
+			         .leftJoinAndSelect('note.reply', 'reply')
+			         .leftJoinAndSelect('note.renote', 'renote')
+			         .leftJoinAndSelect('reply.user', 'replyUser')
+			         .leftJoinAndSelect('renote.user', 'renoteUser');
+
 			this.queryService.generateVisibilityQuery(query, me);
 			this.queryService.generateBaseNoteFilteringQuery(query, me);
 			this.queryService.generateMutedUserRenotesQueryForNotes(query, me);
