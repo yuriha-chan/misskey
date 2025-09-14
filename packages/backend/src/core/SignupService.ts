@@ -55,8 +55,9 @@ export class SignupService {
 		passwordHash?: MiUserProfile['password'] | null;
 		host?: string | null;
 		ignorePreservedUsernames?: boolean;
+		mainAccountId?: MiUser['id'];
 	}) {
-		const { username, password, passwordHash, host } = opts;
+		const { username, password, passwordHash, host, mainAccountId } = opts;
 		let hash = passwordHash;
 
 		// Validate username
@@ -146,6 +147,7 @@ export class SignupService {
 				userId: account.id,
 				autoAcceptFollowed: true,
 				password: hash,
+				mainAccountId,
 			}));
 
 			await transactionalEntityManager.save(new MiUsedUsername({
