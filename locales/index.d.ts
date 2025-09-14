@@ -5994,7 +5994,7 @@ export interface Locale extends ILocale {
          */
         "revealSecret": string;
         /**
-         * カードを公開
+         * 公開
          */
         "revealCard": string;
         /**

@@ -1497,7 +1497,7 @@ _chat:
   secretContent: "秘密の内容"
   secretTitle: "タイトル(公開)"
   revealSecret: "秘密を公開する"
-  revealCard: "カードを公開"
+  revealCard: "公開"
   autoReveal: "自動で秘密を公開する"
   revealsAfter: "時間経過で公開:"
   hasCommittedSecret: "秘密「{what}」が伏せられています"
