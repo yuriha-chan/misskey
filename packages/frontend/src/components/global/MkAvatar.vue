@@ -116,7 +116,7 @@ const foregroundDecorations = computed(() => {
 });
 
 const imgAnimations = computed(() => {
-	if (defaultStore.state.disableShowingAnimatedImages) { return ["none"]; }
+	if (prefer.s.disableShowingAnimatedImages) { return ["none"]; }
 	const decorations = props.decorations ?? props.user.avatarDecorations;
 	return decorations.filter((deco) => (deco.imgAnimation !== '' && deco.imgAnimation !== 'none')).map((deco) => deco.imgAnimation);
 });
@@ -154,7 +154,7 @@ function getDecorationMixBlendMode(decoration: Omit<Misskey.entities.UserDetaile
 }
 
 function getDecorationAnimation(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
-	if (defaultStore.state.disableShowingAnimatedImages) { return "none"; }
+	if (prefer.s.disableShowingAnimatedImages) { return "none"; }
 	const animation = (slot === "bg") ? decoration.bgAnimation : decoration.animation;
 	return animation ? animation : "none";
 }
