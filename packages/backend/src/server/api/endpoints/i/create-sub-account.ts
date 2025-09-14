@@ -23,7 +23,7 @@ export const paramDef = {
 	properties: {
 		username: { type: 'string' },
 	},
-	required: ['username', 'password'],
+	required: ['username'],
 } as const;
 
 @Injectable()
