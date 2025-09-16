@@ -426,7 +426,7 @@ export class ChatEntityService {
 		poll: MiChatPoll,
 		me?: { id: MiUser['id'] },
 	): Promise<Packed<'ChatPollStarted'>> {
-		const choices = poll.voteForUsers ? await this.userEntityService.packMany(poll.choices, me) : poll.choices;
+		const choices = poll.voteForUsers ? await this.userEntityService.packManyNullable(poll.choices, me, { nullable: true }) : poll.choices;
 	
 		return {
 			id: poll.id,
@@ -450,12 +450,9 @@ export class ChatEntityService {
 		poll: MiChatPollWithVotes,
 		me?: { id: MiUser['id'] },
 	): Promise<Packed<'ChatPollFinished'>> {
-		const votes = new Map<string, MiChatPollVote[]>();
+		const votes: MiChatPollVote[][] = poll.choices.map((_) => []);
 		for (const vote of poll.votes) {
-			if (!votes.has(poll.choices[vote.choice])) {
-				votes.set(poll.choices[vote.choice], []);
-			}
-			votes.get(poll.choices[vote.choice])!.push(vote);
+			votes[vote.choice].push(vote);
 		}
 	
 		const packedVotes: ({
@@ -465,18 +462,17 @@ export class ChatEntityService {
 			votedUserIds?: MiUser['id'][] | null;
 		})[] = [];
 	
-		const choices = poll.voteForUsers ? await this.userEntityService.packMany(poll.choices, me) : poll.choices;
+		const choices = poll.voteForUsers ? await this.userEntityService.packManyNullable(poll.choices, me, { nullable: true }) : poll.choices;
 	
-		for (const choice of choices) {
-			const choiceId = typeof choice === 'object' ? choice.id : choice;
-			const choiceVotes = votes.get(choiceId) ?? [];
+		choices.forEach((choice, i) => {
+			const choiceVotes = votes[i];
 			packedVotes.push({
 				user: poll.voteForUsers ? choice as Packed<'UserLite'> : null,
 				text: poll.voteForUsers ? null : choice as string,
 				voteCount: choiceVotes.length,
 				votedUserIds: !poll.anonymous ? choiceVotes.map(x => x.userId) : null,
 			});
-		}
+		});
 	
 		return {
 			id: poll.id,
