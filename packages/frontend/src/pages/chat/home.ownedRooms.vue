@@ -5,7 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_gaps">
-	<MkSwitch v-model="includeArchived" :label="i18n.ts._chat.includeArchivedRooms"/>
+	<MkSwitch v-model="includeArchived">
+		<template #label>{{ i18n.ts._chat.includeArchivedRooms }}<template/>
+	</MkSwitch>
 	<div v-if="rooms.length > 0" class="_gaps_s">
 		<XRoom v-for="room in rooms" :key="room.id" :room="room"/>
 	</div>

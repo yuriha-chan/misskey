@@ -1220,6 +1220,12 @@ export class ChatService {
 	}
 
 	@bindThis
+	public async updateMembership(userId: MiUser['id'], roomId: MiChatRoom['id'], config: { bubbleColor?: string, bubbleStyle?: string }) {
+		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
+		await this.chatRoomMembershipsRepository.update(membership.id, config);
+	}
+
+	@bindThis
 	public updateRoom(room: MiChatRoom, params: {
 		name?: string;
 		description?: string;
