@@ -20,7 +20,8 @@
 								aria-labelledby="`label_${idx}`"
 							/>
 							<label :for="`option_${idx}`" :class="$style.itemRoot">
-								<MkUserCardMini v-if="props.voteForUsers" :user="item" :withChart="false"/>
+								<MkUserCardMini v-if="props.voteForUsers && item" :user="item" :withChart="false"/>
+								<div v-else-if="props.voteForUsers">(deleted user)</div>
 								<div v-else :class="$style.itemCaption" :id="`label_${idx}`">
 									<div :class="$style.itemName">{{ item }}</div>
 								</div>
