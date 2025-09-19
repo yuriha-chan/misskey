@@ -279,7 +279,7 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 
 	if (!isMe.value && fromUser.value != null) {
 		menu.push({
-			text: i18n.ts.reportAbuse,
+			text: i18n.ts.contactAdmin,
 			icon: 'ti ti-exclamation-circle',
 			action: async () => {
 				const localUrl = `${url}/chat/messages/${props.item.data.id}`;
