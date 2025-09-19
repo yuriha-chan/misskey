@@ -38,7 +38,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.pollFinish">
 				<div v-for="(entry, i) in item.data.votes" :key="i" :class="$style.pollChoice">
 					<div :class="$style.choiceContainer">
-						<div v-if="item.data.voteForUsers" :class="$style.choice"><MkUserCardMini :class="$style.card" :user="entry.user!" :withChart="false"/></div>
+						<div v-if="item.data.voteForUsers" :class="$style.choice">
+							<MkUserCardMini v-if="entry.user" :class="$style.card" :user="entry.user" :withChart="false"/>
+							<div v-else :class="$style.card">(deleted user)</div>
+						</div>
 						<div v-else :class="$style.choice">{{ entry.text }}</div>
 						<div :class="$style.vote"><span :class="$style.voteCount">{{ entry.voteCount }}</span> {{ i18n.ts._chat.gotVotes }}</div>
 					</div>
