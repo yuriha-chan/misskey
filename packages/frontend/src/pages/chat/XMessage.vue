@@ -155,7 +155,7 @@ const urls = computed(() => (props.item.type === 'message' && props.item.data.te
 const bubbleStyle = computed(() => {
 	if (props.membership?.bubbleColor) {
 		return {
-			'--mk-fukidashi-bg': props.membership.bubbleColor,
+			'--MI_USER-fukidashi' : props.membership.bubbleColor ?? '--var(--MI_THEME-panel)',
 		};
 	}
 	return {};

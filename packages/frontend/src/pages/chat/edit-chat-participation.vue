@@ -9,15 +9,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div style="display: flex; flex-direction: column; min-height: 100%;">
 		<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px; flex-grow: 1;">
 			<div class="_gaps_m">
-				<MkSelect v-model="bubbleColor">
-					<option :style="{ backgroundColor: color.lightColor }" v-for="color in bubbleColors" :value="JSON.stringify(color)">{{ color.lightColor }}</option>
-				</MkSelect>
-				<MkSelect v-model="bubbleStyle">
-					<option value="00000000">fukidashi rounded</option>
-					<option value="00000001">fukidashi rectangle</option>
-					<option value="00000002">rounded</option>
-					<option value="00000004">rectangle</option>
-				</MkSelect>
+				<label class="label">{{ i18n.ts._chat.selectBubbleColor }}</label>
+				<div :class="$style.itemSelect" role="list">
+					<div v-for="(item, idx) in bubbleColors" :key="idx" :class="$style.itemOuter" role="listitem">
+						<input
+							:id="`option_${idx}`"
+							class="sr-only"
+							:class="$style.itemRadio"
+							v-model="selectedId"
+							type="radio"
+							name="customItem"
+							:value="idx"
+							aria-labelledby="`label_${idx}`"
+						/>
+						<label :for="`option_${idx}`" :class="$style.itemRoot">
+							<div class="$style.sampleItem" :style="{ 'MK_USER-fukidashi': item }" :id="`label_${idx}`">
+								<MkFukidashi>Sample Text</MkFukidashi>
+							</div>
+						</label>
+					</div>
+				</div>
 				<div>
 					<MkButton primary full @click="done">{{ i18n.ts.update }}</MkButton>
 				</div>
@@ -46,18 +57,21 @@ const emit = defineEmits<{
 const uiWindow = useTemplateRef('uiWindow');
 
 const bubbleColors = [
-	{ lightColor: "#f4fec1" },
-	{ lightColor: "#e0ccde" },
-	{ lightColor: "#d9f9a5" },
-	{ lightColor: "#bdcedb" },
-	{ lightColor: "#FFB2E6" }
+	"#ff6f61",
+	"#6b5b95",
+	"#88b04b",
+	"#4caf50",
+	"#8bc340",
+	"#ffeb3b",
+	"#92a8d1",
+	"#ff69b4",
+	"#ff6347",
 ]
  
 async function done() {
-	const created = await os.apiWithDialog('chat/rooms/edit-participation', {
+	const created = await os.apiWithDialog('chat/rooms/update-membership', {
 		roomId: props.room.value.id,
 		bubbleColor: bubbleColor.value,
-		bubbleStyle: bubbleStyle.value
 	});
 	emit('done', { created });
 	uiWindow.value?.close();
