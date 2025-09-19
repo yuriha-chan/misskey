@@ -20,7 +20,7 @@
 				<MkSwitch v-model="expires" :disabled="roomIsPublic">
 					<template #label>{{ i18n.ts._chat.expires }}</template>
 				</MkSwitch>
-				<MkInput v-if="expires" v-model.number="expiresIn" type="number" min="0.1" max="744">
+				<MkInput v-if="expires" v-model.number="expiresIn" type="number" :min="0.1" :max="roomIsPublic ? 6 : 744">
 					<template #label>{{ i18n.ts._chat.expiresIn }}</template>
 					<template #suffix>{{ i18n.ts._time.hour }}</template>
 				</MkInput>
@@ -43,10 +43,10 @@ import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
 const roomName = ref('');
 const roomDescription = ref('');
-const roomCapacity = ref(20);
+const roomCapacity = ref(8);
 const roomIsPublic = ref(false);
 const expires = ref(true);
-const expiresIn = ref(3);
+const expiresIn = ref(1);
 const emit = defineEmits<{
 	(ev: 'done', v: { updated?: any; created?: any }): void;
 	(ev: 'closed'): void;
@@ -58,7 +58,7 @@ const uiWindow = useTemplateRef('uiWindow');
 watch(roomIsPublic, () => {
 		if (roomIsPublic.value) {
 			expires.value = true;
-			expiresIn.value = Math.min(24, expiresIn.value);
+			expiresIn.value = Math.min(6, expiresIn.value);
 		}
 })
 
