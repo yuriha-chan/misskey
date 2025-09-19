@@ -21,8 +21,8 @@ export const meta = {
 	kind: 'write:chat',
 
 	limit: {
-		duration: ms('1day'),
-		max: 10,
+		duration: ms('12hours'),
+		max: 30,
 	},
 
 	res: {
