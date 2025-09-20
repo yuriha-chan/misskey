@@ -208,7 +208,7 @@ async function search() {
 }
 
 const headerActions = computed(() => {
-	if (channel.value && channel.value.userId) {
+	if (channel.value && channel.value.userId || iAmModerator) {
 		const headerItems: PageHeaderItem[] = [];
 
 		headerItems.push({
@@ -242,7 +242,7 @@ const headerActions = computed(() => {
 			});
 		}
 
-		if (($i && $i.id === channel.value.userId) || iAmModerator) {
+		if (($i && $i.id === channel.value?.userId) || iAmModerator) {
 			headerItems.push({
 				icon: 'ti ti-settings',
 				text: i18n.ts.edit,
