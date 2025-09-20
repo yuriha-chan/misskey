@@ -90,7 +90,7 @@ onMounted(() => {
 
 const featuredPaginator = markRaw(new Paginator('channels/featured', {
 	limit: 10,
-	noPaging: true,
+	offsetMode: true,
 }));
 const favoritesPaginator = markRaw(new Paginator('channels/my-favorites', {
 	limit: 100,

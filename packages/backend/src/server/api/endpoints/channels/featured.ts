@@ -27,7 +27,14 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
+	properties: {
+		limit: {
+			type: 'number',
+		},
+		offset: {
+			type: 'number',
+		},
+	},
 	required: [],
 } as const;
 
@@ -45,7 +52,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.andWhere('channel.isArchived = FALSE')
 				.orderBy('channel.lastNotedAt', 'DESC');
 
-			const channels = await query.limit(10).getMany();
+			if (ps.offset) {
+				query.offset(ps.offset);
+			}
+
+			const channels = await query.limit(ps.limit ?? 10).getMany();
 
 			return await Promise.all(channels.map(x => this.channelEntityService.pack(x, me)));
 		});
