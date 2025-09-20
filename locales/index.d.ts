@@ -8894,6 +8894,14 @@ export interface Locale extends ILocale {
          * チャンネル外へのリノートと引用リノートを許可する
          */
         "allowRenoteToExternal": string;
+        /**
+         * チャンネルを見つけやすくする
+         */
+        "makeExplorable": string;
+        /**
+         * チャンネルが「トレンド一覧」に表示されるようになります。身内用のチャンネルではオフにしてください。
+         */
+        "makeExplorableDescription": string;
     };
     "_menuDisplay": {
         /**
