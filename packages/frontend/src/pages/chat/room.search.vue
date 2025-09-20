@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div v-if="searchResults.length > 0" class="_gaps_s">
 			<div v-for="message in searchResults" :key="message.id" :class="$style.searchResultItem">
-				<XMessage :item="{ type: 'message', data: message }" :user="message.fromUser" :isSearchResult="true"/>
+				<XMessage :item="{ type: 'message', data: message }" :membership="{ user: message.fromUser }" :isSearchResult="true"/>
 			</div>
 		</div>
 		<MkResult v-else type="notFound"/>

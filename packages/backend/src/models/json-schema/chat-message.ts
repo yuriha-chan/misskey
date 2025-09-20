@@ -211,11 +211,6 @@ export const packedChatMessageLiteForRoomSchema = {
 			type: 'string',
 			optional: false, nullable: false,
 		},
-		fromUser: {
-			type: 'object',
-			optional: false, nullable: false,
-			ref: 'UserLite',
-		},
 		toRoomId: {
 			type: 'string',
 			optional: false, nullable: false,
