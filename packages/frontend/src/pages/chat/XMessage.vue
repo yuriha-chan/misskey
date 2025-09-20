@@ -5,10 +5,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div v-if="item" :class="[$style.root, { [$style.isMe]: isMe }]">
-	<MkAvatar v-if="item.type === 'message' && props.membership?.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership?.user" :link="!isMe" :preview="false"/>
+	<MkAvatar v-if="item.type === 'message' && props.membership.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership.user" :link="!isMe" :preview="false"/>
 	<div :class="[$style.body, item.type !== 'file' && item.data.file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
-		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && fromUser != null" :user="fromUser"/></div>
-		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.type === 'message' && item.data.file != null" :accented="isMe" :style="bubbleStyle">
+		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName']" :user="props.membership.user"/></div>
+		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.data.file != null" :style="bubbleStyle">
 			<Mfm
 				v-if="item.data.text"
 				ref="text"
@@ -58,7 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div v-else-if="item.type === 'secretRevealed'" :class="$style.secret">
 			<div :class="$style.secret">
-				<MkMention :username="props.membership!.user.username" :host="props.membership!.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}
+				<MkMention :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}
 			</div>
 			<div>{{ item.data.title }} ⇒ <span :class="$style.plainText">{{ item.data.plaintext }}</span></div>
 		</div>
@@ -144,21 +144,17 @@ const $i = ensureSignin();
 
 const props = defineProps<{
 	item: Misskey.entities.ChatEvent;
-	membership?: Misskey.entities.ChatRoomMembership;
+	membership: Misskey.entities.ChatRoomMembership;
 	isSearchResult?: boolean;
 }>();
 
-const fromUser = computed(() => props.item.data.fromUser ?? props.item.data.user);
-const isMe = computed(() => fromUser.value?.id === $i.id);
+const isMe = computed(() => props.membership.user.id === $i.id);
 const urls = computed(() => (props.item.type === 'message' && props.item.data.text) ? extractUrlFromMfm(mfm.parse(props.item.data.text)) : []);
 
 const bubbleStyle = computed(() => {
-	if (props.membership?.bubbleColor) {
-		return {
-			'--MI_USER-fukidashi' : props.membership.bubbleColor ?? '--var(--MI_THEME-panel)',
-		};
-	}
-	return {};
+	return {
+		'--MI_USER-fukidashi' : props.membership.bubbleColor || (isMe ? 'var(--MI_THEME-accent)' : 'var(--MI_THEME-panel)'),
+	};
 });
 
 const revealedSecrets = ref<Record<string, string>>({});
@@ -277,14 +273,14 @@ function showMenu(ev: MouseEvent, contextmenu = false) {
 		});
 	}
 
-	if (!isMe.value && fromUser.value != null) {
+	if (!isMe.value && props.membership.user != null) {
 		menu.push({
 			text: i18n.ts.contactAdmin,
 			icon: 'ti ti-exclamation-circle',
 			action: async () => {
 				const localUrl = `${url}/chat/messages/${props.item.data.id}`;
 				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkAbuseReportWindow.vue').then(x => x.default), {
-					user: fromUser.value!,
+					user: props.membership.user,
 					initialComment: `${localUrl}\n-----\n`,
 				}, {
 					closed: () => dispose(),
