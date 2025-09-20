@@ -2263,6 +2263,8 @@ _channel:
   nameAndDescription: "Name and description"
   nameOnly: "Name only"
   allowRenoteToExternal: "Allow renote and quote outside the channel"
+  makeExplorable: "Make explorable"
+  makeExplorableDescription: "This channel will appear in the trended channels tab. For invited-only channels turn off this switch."
 _menuDisplay:
   sideFull: "Side"
   sideIcon: "Side (Icons)"

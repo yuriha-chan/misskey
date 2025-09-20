@@ -24,7 +24,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkSwitch>
 
 			<MkSwitch v-model="isExplorable">
-				<template #label>{{ i18n.ts.isExplorable }}</template>
+				<template #label>{{ i18n.ts._channel.makeExplorable }}</template>
+				<template #caption>{{ i18n.ts._channel.makeExplorableDescription }}</template>
 			</MkSwitch>
 
 			<MkSwitch v-model="allowRenoteToExternal">

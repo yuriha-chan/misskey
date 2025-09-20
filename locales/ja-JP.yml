@@ -2321,6 +2321,8 @@ _channel:
   nameAndDescription: "名前と説明"
   nameOnly: "名前のみ"
   allowRenoteToExternal: "チャンネル外へのリノートと引用リノートを許可する"
+  makeExplorable: "チャンネルを見つけやすくする"
+  makeExplorableDescription: "チャンネルが「トレンド一覧」に表示されるようになります。身内用のチャンネルではオフにしてください。"
 
 _menuDisplay:
   sideFull: "横"
