@@ -23,6 +23,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label>{{ i18n.ts.sensitive }}</template>
 			</MkSwitch>
 
+			<MkSwitch v-model="isExplorable">
+				<template #label>{{ i18n.ts.isExplorable }}</template>
+			</MkSwitch>
+
 			<MkSwitch v-model="allowRenoteToExternal">
 				<template #label>{{ i18n.ts._channel.allowRenoteToExternal }}</template>
 			</MkSwitch>
@@ -98,6 +102,7 @@ const bannerUrl = ref<string | null>(null);
 const bannerId = ref<string | null>(null);
 const color = ref('#000');
 const isSensitive = ref(false);
+const isExplorable = ref(true);
 const allowRenoteToExternal = ref(true);
 const pinnedNotes = ref<{ id: Misskey.entities.Note['id'] }[]>([]);
 
@@ -123,6 +128,7 @@ async function fetchChannel() {
 	bannerId.value = result.bannerId;
 	bannerUrl.value = result.bannerUrl;
 	isSensitive.value = result.isSensitive;
+	isExplorable.value = result.isExplorable;
 	pinnedNotes.value = result.pinnedNoteIds.map(id => ({
 		id,
 	}));
@@ -159,6 +165,7 @@ function save() {
 		bannerId: bannerId.value,
 		color: color.value,
 		isSensitive: isSensitive.value,
+		isExplorable: isExplorable.value,
 		allowRenoteToExternal: allowRenoteToExternal.value,
 	} satisfies Misskey.entities.ChannelsCreateRequest;
 

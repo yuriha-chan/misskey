@@ -76,6 +76,12 @@ export class MiChannel {
 	public isArchived: boolean;
 
 	@Index()
+	@Column('boolean', {
+		default: true,
+	})
+	public isExplorable: boolean;
+
+	@Index()
 	@Column('integer', {
 		default: 0,
 		comment: 'The count of notes.',

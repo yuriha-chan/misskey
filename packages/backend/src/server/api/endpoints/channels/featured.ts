@@ -50,6 +50,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const query = this.channelsRepository.createQueryBuilder('channel')
 				.where('channel.lastNotedAt IS NOT NULL')
 				.andWhere('channel.isArchived = FALSE')
+				.andWhere('channel.isExplorable = TRUE')
 				.orderBy('channel.lastNotedAt', 'DESC');
 
 			if (ps.offset) {

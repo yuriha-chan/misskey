@@ -56,6 +56,10 @@ export const packedChannelSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		isExplorable: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 		usersCount: {
 			type: 'number',
 			nullable: false, optional: false,
