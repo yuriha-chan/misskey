@@ -1445,7 +1445,7 @@ _chat:
   thisRoomIsArchived: "このルームはアーカイブされています。"
   capacity: "ルームの定員"
   publicRooms: "公開ルーム"
-  publicRoomMustExpire: "公開ルームは24時間以内に自動解散する必要があります"
+  publicRoomMustExpire: "公開ルームは6時間以内に自動解散する必要があります"
   attachSecret: "秘密を伏せる"
   secretAttached: "秘密が添付されています"
   editSecret: "秘密を編集"
@@ -1501,6 +1501,7 @@ _chat:
   setCardCountsAll: "全員に配る枚数を設定"
   cardDelivered: "カードが配られました"
   anonymousSpeech: "匿名発言"
+  selectBubbleColor: "自分の発言の吹き出しの色を選択"
 
 _emojiPalette:
   palettes: "パレット"
