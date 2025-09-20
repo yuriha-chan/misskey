@@ -224,6 +224,8 @@ async function initialize() {
 		user.value = u;
 		timelineItems.value = m.map(x => ({ type: 'message', data: normalizeMessage(x) }));
 
+		membersMap.value = { [$i.id]: { user: $i, bubbleColor: "", bubbleStyle: ""}, [u.id]: { user: u, bubbleColor: "", bubbleStyle: ""} };
+
 		if (timelineItems.value.length === LIMIT) {
 			canFetchMore.value = true;
 		}
@@ -320,6 +322,7 @@ async function initialize() {
 		connection.value.on('cardDelivered', onCardDeliver);
 		connection.value.on('cardRevealed', onCardReveal);
 		connection.value.on('roomArchived', onRoomArchived);
+		connection.value.on('membershipUpdated', onMembershipUpdate);
 	}
 
 	window.document.addEventListener('visibilitychange', onVisibilitychange);
@@ -431,6 +434,10 @@ function onCardReveal(card: Misskey.entities.ChatCardRevealed) {
 }
 function onRoomArchived() {
 	isArchived.value = true;
+}
+function onMembershipUpdate(membership) {
+	console.log(membersMap.value[membership.userId]);
+	membersMap.value[membership.userId].bubbleColor = membership.bubbleColor;
 }
 
 function onDeleted(id: string) {
@@ -574,7 +581,7 @@ async function inviteUser() {
 
 async function editParticipation(): Promise {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-participation.vue').then(x => x.default), {
-		room: room.value
+		roomId: room.value.id
 	}, {
 		done: result => dispose(),
 		closed: () => dispose(),
@@ -596,40 +603,6 @@ async function leaveRoom() {
 	connection.value?.dispose();
 	initialized.value = false;
 	router.push('/chat');
-}
-
-function showMenu(ev: MouseEvent) {
-	const menuItems: MenuItem[] = [];
-
-	if (room.value) {
-		if (room.value.ownerId === $i.id) {
-			menuItems.push({
-				text: i18n.ts._chat.inviteUser,
-				icon: 'ti ti-user-plus',
-				action: () => {
-					inviteUser();
-				},
-			});
-		}
-		menuItems.push({
-			text: i18n.ts._chat.editParticipation,
-			icon: 'ti ti-settings',
-			action: () => {
-				editParticipation();
-			},
-		});
-		if (room.value.ownerId !== $i.id) {
-			menuItems.push({
-				text: i18n.ts._chat.leave,
-				icon: 'ti ti-x',
-				action: () => {
-					leaveRoom();
-				},
-			});
-		}
-	}
-
-	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
 const tab = ref('chat');
@@ -660,11 +633,39 @@ const headerTabs = computed(() => room.value ? [{
 	icon: 'ti ti-search',
 }]);
 
-const headerActions = computed<PageHeaderItem[]>(() => [{
-	icon: 'ti ti-dots',
-	text: '',
-	handler: showMenu,
-}]);
+const headerActions = computed<PageHeaderItem[]>(() => {
+	const actions: PageHeaderItem[] = [];
+
+	if (room.value) {
+		if (room.value.ownerId === $i.id) {
+			actions.push({
+				text: i18n.ts._chat.inviteUser,
+				icon: 'ti ti-user-plus',
+				handler: () => {
+					inviteUser();
+				},
+			});
+		}
+		actions.push({
+			text: '',
+			icon: 'ti ti-settings',
+			handler: () => {
+				editParticipation();
+			},
+		});
+		if (room.value.ownerId !== $i.id) {
+			actions.push({
+				text: i18n.ts._chat.leave,
+				icon: 'ti ti-x',
+				handler: () => {
+					leaveRoom();
+				},
+			});
+		}
+	}
+
+	return actions;
+});
 
 definePage(computed(() => {
 	if (initialized.value) {

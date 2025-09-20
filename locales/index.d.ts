@@ -5994,7 +5994,7 @@ export interface Locale extends ILocale {
          */
         "publicRooms": string;
         /**
-         * 公開ルームは24時間以内に自動解散する必要があります
+         * 公開ルームは6時間以内に自動解散する必要があります
          */
         "publicRoomMustExpire": string;
         /**
@@ -6182,6 +6182,10 @@ export interface Locale extends ILocale {
          */
         "editParticipation": string;
         /**
+         * 退出積みルームを含む
+         */
+        "includeLeftRooms": string;
+        /**
          * 解散されたルームを含む
          */
         "includeArchivedRooms": string;
@@ -6213,6 +6217,10 @@ export interface Locale extends ILocale {
          * 匿名発言
          */
         "anonymousSpeech": string;
+        /**
+         * 自分の発言の吹き出しの色を選択
+         */
+        "selectBubbleColor": string;
     };
     "_emojiPalette": {
         /**

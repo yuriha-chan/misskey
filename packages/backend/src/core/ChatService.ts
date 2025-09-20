@@ -1223,6 +1223,8 @@ export class ChatService {
 	public async updateMembership(userId: MiUser['id'], roomId: MiChatRoom['id'], config: { bubbleColor?: string, bubbleStyle?: string }) {
 		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
 		await this.chatRoomMembershipsRepository.update(membership.id, config);
+		const packedMembership = await this.chatEntityService.packRoomMembership({ ...membership!, ...config }, { id: userId }, { populateUser: true, populateRoom: false });
+		this.globalEventService.publishChatRoomStream(roomId, 'membershipUpdated', packedMembership);
 	}
 
 	@bindThis

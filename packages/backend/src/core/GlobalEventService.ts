@@ -193,6 +193,7 @@ export interface ChatEventTypes {
 	cardRevealed: Packed<'ChatCardRevealed'>;
 	secretCommitted: Packed<'ChatSecret'>;
 	secretRevealed: Packed<'ChatSecretRevealed'>;
+	membershipUpdated: Packed<'ChatRoomMembership'>;
 }
 
 export interface ReversiEventTypes {
