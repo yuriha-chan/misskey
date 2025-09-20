@@ -1,7 +1,7 @@
 <template>
 <div class="_gaps">
 	<MkSwitch v-model="includeLeft">
-		<template #label>{{ i18n.ts._chat.includeLeftRooms" }}</template>
+		<template #label>{{ i18n.ts._chat.includeLeftRooms }}</template>
 	</MkSwitch>
 	<div v-if="memberships.length > 0" class="_gaps_s">
 		<XRoom v-for="membership in memberships" :key="membership.id" :room="membership.room!"/>
