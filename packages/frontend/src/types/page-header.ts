@@ -8,4 +8,5 @@ export type PageHeaderItem = {
     icon: string;
     highlighted?: boolean;
     handler: (ev: MouseEvent) => void;
+    showText: boolean;
 };
