@@ -657,6 +657,7 @@ const headerActions = computed<PageHeaderItem[]>(() => {
 			actions.push({
 				text: i18n.ts._chat.leave,
 				icon: 'ti ti-x',
+				showText: true,
 				handler: () => {
 					leaveRoom();
 				},
