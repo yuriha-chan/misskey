@@ -64,6 +64,7 @@ export const paramDef = {
 		includeRenotedMyNotes: { type: 'boolean', default: true },
 		includeLocalRenotes: { type: 'boolean', default: true },
 		withFiles: { type: 'boolean', default: false },
+		excludeFiles: { type: 'boolean', default: false },
 		withRenotes: { type: 'boolean', default: true },
 		withHashtags: { type: 'boolean', default: true },
 		withReplies: { type: 'boolean', default: false },
@@ -112,6 +113,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					includeRenotedMyNotes: ps.includeRenotedMyNotes,
 					includeLocalRenotes: ps.includeLocalRenotes,
 					withFiles: ps.withFiles,
+					excludeFiles: ps.excludeFiles,
 					withReplies: ps.withReplies,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags,
@@ -161,10 +163,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				useDbFallback: this.serverSettings.enableFanoutTimelineDbFallback,
 				alwaysIncludeMyNotes: true,
 				excludePureRenotes: !ps.withRenotes,
-				excludeHashtags: !ps.withHashtags,
 				noteFilter: note => {
 					if (note.reply && note.reply.visibility === 'followers') {
 						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
+					}
+					if (note.visibility === 'home' || note.visibility === 'followers') {
+						if (!Object.hasOwn(followings, note.userId) && note.userId !== me.id) return false;
+					}
+					if (ps.excludeFiles && (note.files.length > 0 || note.renote?.files?.length > 0)) {
+						return false;
+					}
+					if (!ps.withHashtags && note.tags.length > 0 || note.renote?.tags?.length > 0) {
+						return false;
 					}
 
 					return true;
@@ -177,6 +187,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					includeRenotedMyNotes: ps.includeRenotedMyNotes,
 					includeLocalRenotes: ps.includeLocalRenotes,
 					withFiles: ps.withFiles,
+					excludeFiles: ps.withFiles,
 					withReplies: ps.withReplies,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags,
@@ -199,6 +210,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		includeRenotedMyNotes: boolean,
 		includeLocalRenotes: boolean,
 		withFiles: boolean,
+		excludeFiles: boolean,
 		withReplies: boolean,
 		withRenotes: boolean,
 		withHashtags: boolean,
@@ -286,6 +298,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		if (ps.withFiles) {
 			query.andWhere('note.fileIds != \'{}\'');
+		}
+
+		if (ps.excludeFiles) {
+			query.andWhere('note.fileIds = \'{}\'');
 		}
 
 		if (!ps.withRenotes) {

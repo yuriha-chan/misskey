@@ -49,6 +49,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		withFiles: { type: 'boolean', default: false },
+		excludeFiles: { type: 'boolean', default: false },
 		withRenotes: { type: 'boolean', default: true },
 		withHashtags: { type: 'boolean', default: true },
 		fileType: { type: 'array', items: {
@@ -99,6 +100,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					sinceId,
 					limit: ps.limit,
 					withFiles: ps.withFiles,
+					excludeFiles: ps.excludeFiles,
 					withReplies: ps.withReplies,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags
@@ -128,11 +130,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				alwaysIncludeMyNotes: true,
 				excludePureRenotes: !ps.withRenotes,
 				excludeHashtags: !ps.withHashtags,
+				noteFilter: note => {
+					if (note.reply && note.reply.visibility === 'followers') {
+						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
+					}
+					if (note.visibility === 'home' || note.visibility === 'followers') {
+						if (!Object.hasOwn(followings, note.userId) && note.userId !== me.id) return false;
+					}
+					if (ps.excludeFiles && (note.files.length > 0 || note.renote?.files?.length > 0)) {
+						return false;
+					}
+					if (!ps.withHashtags && note.tags.length > 0 || note.renote?.tags?.length > 0) {
+						return false;
+					}
+
+					return true;
+				},
 				dbFallback: async (untilId, sinceId, limit) => await this.getFromDb({
 					untilId,
 					sinceId,
 					limit,
 					withFiles: ps.withFiles,
+					excludeFiles: ps.excludeFiles,
 					withReplies: ps.withReplies,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags,
@@ -154,6 +173,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		untilId: string | null,
 		limit: number,
 		withFiles: boolean,
+		excludeFiles: boolean,
 		withReplies: boolean,
 		withRenotes: boolean,
 		withHashtags: boolean
@@ -173,6 +193,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		if (ps.withFiles) {
 			query.andWhere('note.fileIds != \'{}\'');
+		}
+
+		if (ps.excludeFiles) {
+			query.andWhere('note.fileIds s \'{}\'');
 		}
 
 		if (!ps.withReplies) {

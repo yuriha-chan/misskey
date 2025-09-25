@@ -91,12 +91,14 @@ const props = withDefaults(defineProps<{
 	withHashtags?: boolean;
 	withSensitive?: boolean;
 	onlyFiles?: boolean;
+	excludeFiles?: boolean;
 }>(), {
 	withRenotes: true,
 	withReplies: false,
 	withHashtags: true,
 	withSensitive: true,
 	onlyFiles: false,
+	onlyNoFiles: false,
 	sound: false,
 	customSound: null,
 });
@@ -118,7 +120,9 @@ if (props.src === 'antenna') {
 	paginator = markRaw(new Paginator('notes/timeline', {
 		computedParams: computed(() => ({
 			withRenotes: props.withRenotes,
+			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles ? true : undefined,
 		})),
 		useShallowRef: true,
 	}));
@@ -129,6 +133,7 @@ if (props.src === 'antenna') {
 			withReplies: props.withReplies,
 			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles ? true : undefined,
 		})),
 		useShallowRef: true,
 	}));
@@ -139,6 +144,7 @@ if (props.src === 'antenna') {
 			withReplies: props.withReplies,
 			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles ? true : undefined,
 		})),
 		useShallowRef: true,
 	}));
@@ -148,6 +154,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles ? true : undefined,
 		})),
 		useShallowRef: true,
 	}));
@@ -327,7 +334,9 @@ function connectChannel() {
 	} else if (props.src === 'home') {
 		connections.homeTimeline = stream.useChannel('homeTimeline', {
 			withRenotes: props.withRenotes,
+			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles,
 		});
 		connections.main = stream.useChannel('main');
 		connections.homeTimeline.on('note', prepend);
@@ -337,6 +346,7 @@ function connectChannel() {
 			withReplies: props.withReplies,
 			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles,
 		});
 		connections.localTimeline.on('note', prepend);
 	} else if (props.src === 'social') {
@@ -345,6 +355,7 @@ function connectChannel() {
 			withReplies: props.withReplies,
 			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles,
 		});
 		connections.hybridTimeline.on('note', prepend);
 	} else if (props.src === 'global') {
@@ -352,6 +363,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withHashtags: props.withHashtags,
 			withFiles: props.onlyFiles ? true : undefined,
+			excludeFiles: props.excludeFiles,
 		});
 		connections.globalTimeline.on('note', prepend);
 	} else if (props.src === 'mentions') {

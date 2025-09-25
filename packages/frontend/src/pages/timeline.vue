@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkPostForm v-if="prefer.r.showFixedPostForm.value" :class="$style.postForm" class="_panel" fixed style="margin-bottom: var(--MI-margin);"/>
 		<MkStreamingNotesTimeline
 			ref="tlComponent"
-			:key="src + withRenotes + withReplies + withHashtags + onlyFiles + withSensitive"
+			:key="src + withRenotes + withReplies + withHashtags + onlyFiles + excludeFiles + withSensitive"
 			:class="[$style.tl, reduceMargin ? $style.reduceMargin : null]"
 			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
 			:list="src.split(':')[1]"
@@ -21,6 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:withHashtags="withHashtags"
 			:withSensitive="withSensitive"
 			:onlyFiles="onlyFiles"
+			:excludeFiles="excludeFiles"
 			:sound="true"
 		/>
 	</div>
@@ -106,6 +107,19 @@ const onlyFiles = computed<boolean>({
 		}
 	},
 	set: (x) => saveTlFilter('onlyFiles', x),
+});
+
+const excludeFiles = computed<boolean>({
+	get: () => {
+		if (['local', 'social'].includes(src.value) && localSocialTLFilterSwitchStore.value) {
+			return false;
+		} else if (localSocialTLFilterSwitchStore.value === 'onlyFiles') {
+			return true;
+		} else {
+			return store.r.tl.value.filter.excludeFiles;
+		}
+	},
+	set: (x) => saveTlFilter('excludeFiles', x),
 });
 
 watch([withReplies, onlyFiles], ([withRepliesTo, onlyFilesTo]) => {
@@ -240,13 +254,15 @@ const headerActions = computed(() => {
 			if (isBasicTimeline(src.value)) {
 				menuItems.push({
 					type: 'switch',
+					icon: 'ti ti-hashtag',
 					text: i18n.ts.withHashtags,
 					ref: withHashtags,
 				})
-      }
+			}
 
 			if (isBasicTimeline(src.value) && hasWithReplies(src.value)) {
 				menuItems.push({
+					type: 'switch',
 					icon: 'ti ti-messages',
 					text: i18n.ts.showRepliesToOthersInTimeline,
 					ref: withReplies,
@@ -259,13 +275,24 @@ const headerActions = computed(() => {
 				icon: 'ti ti-eye-exclamation',
 				text: i18n.ts.withSensitive,
 				ref: withSensitive,
-			}, {
-				type: 'switch',
-				icon: 'ti ti-photo',
-				text: i18n.ts.fileAttachedOnly,
-				ref: onlyFiles,
-				disabled: isBasicTimeline(src.value) && hasWithReplies(src.value) ? withReplies : false,
-			}, {
+			});
+
+			if (isBasicTimeline(src.value)) {
+				menuItems.push({
+					type: 'switch',
+					icon: 'ti ti-photo',
+					text: i18n.ts.fileAttachedOnly,
+					ref: onlyFiles,
+				});
+				menuItems.push({
+					type: 'switch',
+					icon: 'ti ti-photo-exclamation',
+					text: i18n.ts.fileNotAttachedOnly,
+					ref: excludeFiles,
+				});
+			}
+
+			menuItems.push({
 				type: 'divider',
 			}, {
 				type: 'switch',
