@@ -31,7 +31,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	/>
 	<i v-else-if="is === 'image'" class="ti ti-photo" :class="$style.icon"></i>
 	<i v-else-if="is === 'video'" class="ti ti-video" :class="$style.icon"></i>
-	<i v-else-if="is === 'audio' || is === 'midi'" class="ti ti-file-music" :class="$style.icon"></i>
+	<MkMediaAudioMini v-else-if="is === 'audio'" :audio="file"/>
+	<i v-else-if="is === 'midi'" class="ti ti-file-music" :class="$style.icon"></i>
 	<i v-else-if="is === 'csv'" class="ti ti-file-text" :class="$style.icon"></i>
 	<i v-else-if="is === 'pdf'" class="ti ti-file-text" :class="$style.icon"></i>
 	<i v-else-if="is === 'textfile'" class="ti ti-file-text" :class="$style.icon"></i>
@@ -46,6 +47,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkImgWithBlurhash from '@/components/MkImgWithBlurhash.vue';
+import MkMediaAudioMini from '@/components/MkMediaAudioMini.vue';
 import { prefer } from '@/preferences.js';
 
 const props = defineProps<{

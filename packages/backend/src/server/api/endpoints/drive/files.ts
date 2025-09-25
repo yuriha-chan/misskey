@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { DriveFilesRepository } from '@/models/_.js';
 import { QueryService } from '@/core/QueryService.js';
@@ -38,6 +39,8 @@ export const paramDef = {
 		untilDate: { type: 'integer' },
 		folderId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
 		type: { type: 'string', nullable: true, pattern: /^[a-zA-Z\/\-*]+$/.toString().slice(1, -1) },
+		types: { type: 'array', nullable: true, items: {type: 'string', pattern: /^[a-zA-Z\/\-*]+$/.toString().slice(1, -1) }},
+		excludeTypes: { type: 'array', nullable: true, items: {type: 'string', pattern: /^[a-zA-Z\/\-*]+$/.toString().slice(1, -1) }},
 		sort: { type: 'string', nullable: true, enum: ['+createdAt', '-createdAt', '+name', '-name', '+size', '-size', null] },
 	},
 	required: [],
@@ -62,12 +65,33 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				query.andWhere('file.folderId IS NULL');
 			}
 
-			if (ps.type) {
-				if (ps.type.endsWith('/*')) {
-					query.andWhere('file.type like :type', { type: ps.type.replace('/*', '/') + '%' });
-				} else {
-					query.andWhere('file.type = :type', { type: ps.type });
-				}
+			const types = ps.types ?? (ps.type != null ? [ps.type] : null);
+
+			if (types) {
+				query.andWhere(new Brackets(qb => {
+					types.forEach((type, i) => {
+						// avoid duplicated slot names
+						const slot = `type_${i}`;
+						if (type.endsWith('/*')) {
+							qb.orWhere(`file.type LIKE :${slot}`, { [slot]: type.replace('/*', '/') + '%' });
+						} else {
+							qb.orWhere(`file.type = :${slot}`, { [slot]: type });
+						}
+					});
+				}));
+			}
+
+			if (ps.excludeTypes) {
+				query.andWhere(new Brackets(qb => {
+					ps.excludeTypes.forEach((type, i) => {
+						const slot = `excludeType_${i}`;
+						if (type.endsWith('/*')) {
+							qb.andWhere(`file.type NOT LIKE :${slot}`, { [slot]: type.replace('/*', '/') + '%' });
+						} else {
+							qb.andWhere(`file.type != :${slot}`, { [slot]: type });
+						}
+					});
+				}));
 			}
 
 			switch (ps.sort) {

@@ -81,6 +81,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<MkButton v-if="foldersPaginator.canFetchOlder.value" primary rounded @click="foldersPaginator.fetchOlder()">{{ i18n.ts.loadMore }}</MkButton>
 
+			<div v-if="!props.type" :class="$style.filterButtons">
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.image }]" @click="filter = { ...filter, image: !filter.image }"><i class="ti ti-photo"/>{{i18n.ts.image}}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.video }]" @click="filter = { ...filter, video: !filter.video }"><i class="ti ti-video"/>{{i18n.ts.video}}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.audio }]" @click="filter = { ...filter, audio: !filter.audio }"><i class="ti ti-music"/>{{i18n.ts.sounds}}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.other }]" @click="filter = { ...filter, other: !filter.other }"><i class="ti ti-file"/>{{i18n.ts.other}}</button>
+			</div>
+
 			<MkStickyContainer v-for="(item, i) in filesTimeline" :key="`${item.date.getFullYear()}/${item.date.getMonth() + 1}`">
 				<template #header>
 					<div :class="$style.date">
@@ -171,6 +178,8 @@ const emit = defineEmits<{
 const folder = ref<Misskey.entities.DriveFolder | null>(null);
 const hierarchyFolders = ref<Misskey.entities.DriveFolder[]>([]);
 
+const filter = ref({ image: true, video: true, audio: true, other: true });
+
 // ドロップされようとしているか
 const draghover = ref(false);
 
@@ -199,11 +208,46 @@ const sortModeSelect = ref<NonNullable<Misskey.entities.DriveFilesRequest['sort'
 const filesPaginator = markRaw(new Paginator('drive/files', {
 	limit: 30,
 	canFetchDetection: 'limit',
-	params: () => ({ // 自動でリロードしたくないためcomputedParamsは使わない
-		folderId: folder.value ? folder.value.id : null,
-		type: props.type,
-		sort: sortModeSelect.value,
-	}),
+	params: () => { // 自動でリロードしたくないためcomputedParamsは使わない
+		if (props.type != null) {
+			return {
+				folderId: folder.value ? folder.value.id : null,
+				type: props.type,
+				sort: sortModeSelect.value,
+				types: null,
+				excludeTypes: null,
+			};
+		}
+
+		const MEDIA_TYPES = {
+			image: "image/*",
+			video: "video/*",
+			audio: "audio/*",
+		};
+		const availableTypes = Object.keys(MEDIA_TYPES);
+	
+	
+		let types = null;
+		let excludeTypes = null;
+	
+		if (filter.value.other) {
+			excludeTypes = availableTypes
+				.filter(type => !filter.value[type])
+				.map(type => MEDIA_TYPES[type]);
+		} else {
+			types = availableTypes
+				.filter(type => filter.value[type])
+				.map(type => MEDIA_TYPES[type]);
+		}
+	
+		return {
+			folderId: folder.value ? folder.value.id : null,
+			type: null,
+			sort: sortModeSelect.value,
+			types: types,
+			excludeTypes: excludeTypes,
+		};
+	},
 }));
 
 const foldersPaginator = markRaw(new Paginator('drive/folders', {
@@ -218,14 +262,16 @@ const filesTimeline = makeDateGroupedTimelineComputedRef(filesPaginator.items, '
 
 watch(folder, () => emit('cd', folder.value));
 watch(sortModeSelect, () => {
-	initialize();
+	initialize({ folders: false, files: true });
 });
 
-async function initialize() {
+watch(filter, () => initialize({ folders: false, files: true }));
+
+async function initialize(opts = { folders: true, files: true}) {
 	fetching.value = true;
 	await Promise.all([
-		foldersPaginator.init(),
-		filesPaginator.init(),
+		opts.folders && foldersPaginator.init(),
+		opts.files && filesPaginator.init(),
 	]);
 	fetching.value = false;
 }
@@ -853,5 +899,27 @@ onBeforeUnmount(() => {
 	height: calc(100% - 38px);
 	border: dashed 2px var(--MI_THEME-focus);
 	pointer-events: none;
+}
+
+.filterButtons {
+	display: flex;
+	gap: 5px;
+}
+.filterButton {
+	margin: 0;
+	height: 40px;
+	font-size: 1em;
+	border-radius: 12px;
+	border-width: 1px;
+	boder-style: solid;
+
+	&:hover {
+		background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
+	}
+
+	&.active {
+		color: var(--MI_THEME-accent);
+		border-color: var(--MI_THEME-accent);
+	}
 }
 </style>

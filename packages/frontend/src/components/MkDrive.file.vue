@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@dragstart="onDragstart"
 	@dragend="onDragend"
 >
-	<div style="pointer-events: none;">
+	<div>
 		<div v-if="$i?.avatarId == file.id" :class="[$style.label]">
 			<img :class="$style.labelImg" src="/client-assets/label.svg"/>
 			<p :class="$style.labelText">{{ i18n.ts.avatar }}</p>
