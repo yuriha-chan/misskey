@@ -88,7 +88,8 @@ function onDragend() {
 .root {
 	position: relative;
 	padding: 8px 0 0 0;
-	min-height: 180px;
+	min-height: 130px;
+	width: 100%;
 	border-radius: 8px;
 	cursor: pointer;
 
@@ -214,7 +215,7 @@ function onDragend() {
 }
 
 .thumbnail {
-	width: 110px;
+	width: 100%;
 	height: 110px;
 	margin: auto;
 }

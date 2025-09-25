@@ -806,14 +806,15 @@ onBeforeUnmount(() => {
 .files {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-	grid-gap: 12px;
+	grid-gap: 10px;
 	padding: 16px 32px;
 }
 
 @container (max-width: 600px) {
 	.folders,
 	.files {
-		padding: 16px;
+		padding: 8px;
+		grid-gap: 6px;
 	}
 }
 
