@@ -191,7 +191,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		}
 
 		if (ps.excludeFiles) {
-			query.andWhere('note.fileIds s \'{}\'');
+			query.andWhere('note.fileIds = \'{}\'');
 		}
 
 		if (!ps.withReplies) {
