@@ -95,6 +95,11 @@ export class FanoutTimelineEndpointService {
 				filter = (note) => note.fileIds.length !== 0 && parentFilter(note);
 			}
 
+			if (ps.excludeFiles) {
+				const parentFilter = filter;
+				filter = (note) => note.fileIds.length === 0 && (note.renote?.fileIds?.length ?? 0) === 0 && parentFilter(note);
+			}
+
 			if (ps.excludeReplies) {
 				const parentFilter = filter;
 				filter = (note) => !isReply(note, ps.me?.id) && parentFilter(note);
@@ -107,7 +112,7 @@ export class FanoutTimelineEndpointService {
 
 			if (ps.excludeHashtags) {
 				const parentFilter = filter;
-				filter = (note) => note.tags.length === 0 && parentFilter(note);
+				filter = (note) => note.tags.length === 0 && (note.renote?.tags?.length ?? 0) === 0 && parentFilter(note);
 			}
 
 			if (ps.me) {

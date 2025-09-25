@@ -12,6 +12,7 @@ import ActiveUsersChart from '@/core/chart/charts/active-users.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
+import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
@@ -80,6 +81,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private roleService: RoleService,
 		private activeUsersChart: ActiveUsersChart,
 		private idService: IdService,
+		private cacheService: CacheService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
 		private queryService: QueryService,
 	) {
@@ -115,6 +117,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				return await this.noteEntityService.packMany(timeline, me);
 			}
 
+			const followings = me ? await this.cacheService.userFollowingsCache.fetch(me.id) : null;
+
 			const timeline = await this.fanoutTimelineEndpointService.timeline({
 				untilId,
 				sinceId,
@@ -128,22 +132,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					: me ? ['localTimeline', `localTimelineWithReplyTo:${me.id}`]
 					: ['localTimeline'],
 				alwaysIncludeMyNotes: true,
-				excludePureRenotes: !ps.withRenotes,
+				excludeFiles: ps.excludeFiles,
 				excludeHashtags: !ps.withHashtags,
+				excludePureRenotes: !ps.withRenotes,
 				noteFilter: note => {
-					if (note.reply && note.reply.visibility === 'followers') {
-						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
+					if ((note.visibility === 'home' || note.visibility === 'followers') && me) {
+						if (!Object.hasOwn(followings!, note.userId) && note.userId !== me.id) return false;
 					}
-					if (note.visibility === 'home' || note.visibility === 'followers') {
-						if (!Object.hasOwn(followings, note.userId) && note.userId !== me.id) return false;
-					}
-					if (ps.excludeFiles && (note.files.length > 0 || note.renote?.files?.length > 0)) {
-						return false;
-					}
-					if (!ps.withHashtags && note.tags.length > 0 || note.renote?.tags?.length > 0) {
-						return false;
-					}
-
 					return true;
 				},
 				dbFallback: async (untilId, sinceId, limit) => await this.getFromDb({

@@ -5081,6 +5081,10 @@ export interface Locale extends ILocale {
      */
     "fileAttachedOnly": string;
     /**
+     * ファイル付きを除外
+     */
+    "excludeFileAttached": string;
+    /**
      * TLに他の人への返信を含める
      */
     "showRepliesToOthersInTimeline": string;
@@ -5836,7 +5840,7 @@ export interface Locale extends ILocale {
          */
         "ignore": string;
         /**
-         * ルームから退出
+         * 退出
          */
         "leave": string;
         /**
@@ -6182,7 +6186,7 @@ export interface Locale extends ILocale {
          */
         "editParticipation": string;
         /**
-         * 退出積みルームを含む
+         * 退出済みルームを含む
          */
         "includeLeftRooms": string;
         /**

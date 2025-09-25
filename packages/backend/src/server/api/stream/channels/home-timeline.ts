@@ -19,6 +19,7 @@ class HomeTimelineChannel extends Channel {
 	private withRenotes: boolean;
 	private withHashtags: boolean;
 	private withFiles: boolean;
+	private excludeFiles: boolean;
 
 	constructor(
 		private noteEntityService: NoteEntityService,
@@ -35,6 +36,7 @@ class HomeTimelineChannel extends Channel {
 		this.withRenotes = !!(params.withRenotes ?? true);
 		this.withHashtags = !!(params.withHashtags ?? true);
 		this.withFiles = !!(params.withFiles ?? false);
+		this.excludeFiles = !!(params.excludeFiles ?? false);
 		this.subscriber.on('notesStream', this.onNote);
 	}
 
@@ -43,6 +45,7 @@ class HomeTimelineChannel extends Channel {
 		const isMe = this.user!.id === note.userId;
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
+		if (this.excludeFiles && (note.fileIds !== null && note.fileIds.length > 0)) return;
 
 		if (note.channelId) {
 			if (!this.followingChannels.has(note.channelId)) return;

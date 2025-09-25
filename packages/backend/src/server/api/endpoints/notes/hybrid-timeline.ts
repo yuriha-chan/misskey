@@ -162,6 +162,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				redisTimelines: timelineConfig,
 				useDbFallback: this.serverSettings.enableFanoutTimelineDbFallback,
 				alwaysIncludeMyNotes: true,
+				excludeFiles: ps.excludeFiles,
+				excludeHashtags: !ps.withHashtags,
 				excludePureRenotes: !ps.withRenotes,
 				noteFilter: note => {
 					if (note.reply && note.reply.visibility === 'followers') {
@@ -169,12 +171,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 					if (note.visibility === 'home' || note.visibility === 'followers') {
 						if (!Object.hasOwn(followings, note.userId) && note.userId !== me.id) return false;
-					}
-					if (ps.excludeFiles && (note.files.length > 0 || note.renote?.files?.length > 0)) {
-						return false;
-					}
-					if (!ps.withHashtags && note.tags.length > 0 || note.renote?.tags?.length > 0) {
-						return false;
 					}
 
 					return true;
@@ -187,7 +183,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					includeRenotedMyNotes: ps.includeRenotedMyNotes,
 					includeLocalRenotes: ps.includeLocalRenotes,
 					withFiles: ps.withFiles,
-					excludeFiles: ps.withFiles,
+					excludeFiles: ps.excludeFiles,
 					withReplies: ps.withReplies,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags,

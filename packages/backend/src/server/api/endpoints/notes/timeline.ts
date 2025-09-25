@@ -87,6 +87,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					includeRenotedMyNotes: ps.includeRenotedMyNotes,
 					includeLocalRenotes: ps.includeLocalRenotes,
 					withFiles: ps.withFiles,
+					excludeFiles: ps.excludeFiles,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags,
 				}, me);
@@ -113,18 +114,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				useDbFallback: this.serverSettings.enableFanoutTimelineDbFallback,
 				redisTimelines: ps.withFiles ? [`homeTimelineWithFiles:${me.id}`] : [`homeTimeline:${me.id}`],
 				alwaysIncludeMyNotes: true,
+				excludeFiles: ps.excludeFiles,
+				excludeHashtags: !ps.withHashtags,
 				excludePureRenotes: !ps.withRenotes,
 				noteFilter: note => {
 					if (note.reply && note.reply.visibility === 'followers') {
 						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
 					}
-					if (ps.excludeFiles && (note.files.length > 0 || note.renote?.files?.length > 0)) {
-						return false;
-					}
-					if (!ps.withHashtags && note.tags.length > 0 || note.renote?.tags?.length > 0) {
-						return false;
-					}
-
 					return true;
 				},
 				dbFallback: async (untilId, sinceId, limit) => await this.getFromDb({
@@ -135,7 +131,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					includeRenotedMyNotes: ps.includeRenotedMyNotes,
 					includeLocalRenotes: ps.includeLocalRenotes,
 					withFiles: ps.withFiles,
-					excludeFiles: ps.excludeFiles,,
+					excludeFiles: ps.excludeFiles,
 					withRenotes: ps.withRenotes,
 					withHashtags: ps.withHashtags,
 				}, me),

@@ -114,7 +114,7 @@ const excludeFiles = computed<boolean>({
 		if (['local', 'social'].includes(src.value) && localSocialTLFilterSwitchStore.value) {
 			return false;
 		} else if (localSocialTLFilterSwitchStore.value === 'onlyFiles') {
-			return true;
+			return false;
 		} else {
 			return store.r.tl.value.filter.excludeFiles;
 		}
@@ -254,7 +254,7 @@ const headerActions = computed(() => {
 			if (isBasicTimeline(src.value)) {
 				menuItems.push({
 					type: 'switch',
-					icon: 'ti ti-hashtag',
+					icon: 'ti ti-hash',
 					text: i18n.ts.withHashtags,
 					ref: withHashtags,
 				})
@@ -287,7 +287,7 @@ const headerActions = computed(() => {
 				menuItems.push({
 					type: 'switch',
 					icon: 'ti ti-photo-exclamation',
-					text: i18n.ts.fileNotAttachedOnly,
+					text: i18n.ts.excludeFileAttached,
 					ref: excludeFiles,
 				});
 			}

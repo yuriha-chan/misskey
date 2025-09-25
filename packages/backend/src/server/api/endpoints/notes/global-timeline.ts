@@ -41,6 +41,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		withFiles: { type: 'boolean', default: false },
+		excludeFiles: { type: 'boolean', default: false },
 		withRenotes: { type: 'boolean', default: true },
 		withHashtags: { type: 'boolean', default: true },
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
@@ -87,6 +88,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.withFiles) {
 				query.andWhere('note.fileIds != \'{}\'');
+			}
+
+			if (ps.excludeFiles) {
+				query.andWhere('note.fileIds = \'{}\'');
 			}
 
 			if (!ps.withRenotes) {
