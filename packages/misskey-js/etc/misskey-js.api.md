@@ -915,6 +915,9 @@ type ChannelsCreateResponse = operations['channels___create']['responses']['200'
 type ChannelsFavoriteRequest = operations['channels___favorite']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChannelsFeaturedRequest = operations['channels___featured']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ChannelsFeaturedResponse = operations['channels___featured']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1219,6 +1222,9 @@ type ChatRoomsShowRequest = operations['chat___rooms___show']['requestBody']['co
 
 // @public (undocumented)
 type ChatRoomsShowResponse = operations['chat___rooms___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChatRoomsUpdateMembershipRequest = operations['chat___rooms___update-membership']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoomsUpdateRequest = operations['chat___rooms___update']['requestBody']['content']['application/json'];
@@ -1722,6 +1728,7 @@ declare namespace entities {
         ChannelsCreateRequest,
         ChannelsCreateResponse,
         ChannelsFavoriteRequest,
+        ChannelsFeaturedRequest,
         ChannelsFeaturedResponse,
         ChannelsFollowRequest,
         ChannelsFollowedRequest,
@@ -1813,6 +1820,7 @@ declare namespace entities {
         ChatRoomsShowResponse,
         ChatRoomsUpdateRequest,
         ChatRoomsUpdateResponse,
+        ChatRoomsUpdateMembershipRequest,
         ChatSecretsListRequest,
         ChatSecretsRevealRequest,
         ClipsAddNoteRequest,

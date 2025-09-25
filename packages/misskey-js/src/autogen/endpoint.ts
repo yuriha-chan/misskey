@@ -178,6 +178,7 @@ import type {
 	ChannelsCreateRequest,
 	ChannelsCreateResponse,
 	ChannelsFavoriteRequest,
+	ChannelsFeaturedRequest,
 	ChannelsFeaturedResponse,
 	ChannelsFollowRequest,
 	ChannelsFollowedRequest,
@@ -269,6 +270,7 @@ import type {
 	ChatRoomsShowResponse,
 	ChatRoomsUpdateRequest,
 	ChatRoomsUpdateResponse,
+	ChatRoomsUpdateMembershipRequest,
 	ChatSecretsListRequest,
 	ChatSecretsRevealRequest,
 	ClipsAddNoteRequest,
@@ -796,7 +798,7 @@ export type Endpoints = {
 	'bubble-game/register': { req: BubbleGameRegisterRequest; res: EmptyResponse };
 	'channels/create': { req: ChannelsCreateRequest; res: ChannelsCreateResponse };
 	'channels/favorite': { req: ChannelsFavoriteRequest; res: EmptyResponse };
-	'channels/featured': { req: EmptyRequest; res: ChannelsFeaturedResponse };
+	'channels/featured': { req: ChannelsFeaturedRequest; res: ChannelsFeaturedResponse };
 	'channels/follow': { req: ChannelsFollowRequest; res: EmptyResponse };
 	'channels/followed': { req: ChannelsFollowedRequest; res: ChannelsFollowedResponse };
 	'channels/my-favorites': { req: EmptyRequest; res: ChannelsMyFavoritesResponse };
@@ -853,6 +855,7 @@ export type Endpoints = {
 	'chat/rooms/owned': { req: ChatRoomsOwnedRequest; res: ChatRoomsOwnedResponse };
 	'chat/rooms/show': { req: ChatRoomsShowRequest; res: ChatRoomsShowResponse };
 	'chat/rooms/update': { req: ChatRoomsUpdateRequest; res: ChatRoomsUpdateResponse };
+	'chat/rooms/update-membership': { req: ChatRoomsUpdateMembershipRequest; res: EmptyResponse };
 	'chat/secrets/list': { req: ChatSecretsListRequest; res: EmptyResponse };
 	'chat/secrets/reveal': { req: ChatSecretsRevealRequest; res: EmptyResponse };
 	'clips/add-note': { req: ClipsAddNoteRequest; res: EmptyResponse };

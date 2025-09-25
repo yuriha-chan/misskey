@@ -1626,6 +1626,15 @@ export type paths = {
          */
         post: operations['chat___rooms___update'];
     };
+    '/chat/rooms/update-membership': {
+        /**
+         * chat/rooms/update-membership
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:chat*
+         */
+        post: operations['chat___rooms___update-membership'];
+    };
     '/chat/secrets/list': {
         /**
          * chat/secrets/list
@@ -5045,6 +5054,7 @@ export type components = {
             pinnedNoteIds: string[];
             color: string;
             isArchived: boolean;
+            isExplorable: boolean;
             usersCount: number;
             notesCount: number;
             isSensitive: boolean;
@@ -5685,7 +5695,6 @@ export type components = {
             /** Format: date-time */
             createdAt: string;
             fromUserId: string;
-            fromUser: components['schemas']['UserLite'];
             toRoomId: string;
             text?: string | null;
             fileId?: string | null;
@@ -14936,6 +14945,14 @@ export interface operations {
         };
     };
     channels___featured: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    limit?: number;
+                    offset?: number;
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {
@@ -15615,6 +15632,7 @@ export interface operations {
                     /** Format: misskey:id */
                     bannerId?: string | null;
                     isArchived?: boolean | null;
+                    isExplorable?: boolean | null;
                     pinnedNoteIds?: string[];
                     color?: string;
                     isSensitive?: boolean | null;
@@ -19035,6 +19053,71 @@ export interface operations {
             };
         };
     };
+    'chat___rooms___update-membership': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    roomId: string;
+                    bubbleColor?: string | null;
+                    bubbleStyle?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
     chat___secrets___list: {
         requestBody: {
             content: {
@@ -19976,6 +20059,8 @@ export interface operations {
                      */
                     folderId?: string | null;
                     type?: string | null;
+                    types?: string[] | null;
+                    excludeTypes?: string[] | null;
                     /** @enum {string|null} */
                     sort?: '+createdAt' | '-createdAt' | '+name' | '-name' | '+size' | '-size' | null;
                 };
@@ -25838,8 +25923,6 @@ export interface operations {
             content: {
                 'application/json': {
                     username: string;
-                    password: string;
-                    token?: string | null;
                 };
             };
         };
@@ -25879,6 +25962,15 @@ export interface operations {
             };
             /** @description I'm Ai */
             418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Too many requests */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -31080,6 +31172,8 @@ export interface operations {
                 'application/json': {
                     /** @default false */
                     withFiles?: boolean;
+                    /** @default false */
+                    excludeFiles?: boolean;
                     /** @default true */
                     withRenotes?: boolean;
                     /** @default true */
@@ -31174,6 +31268,8 @@ export interface operations {
                     includeLocalRenotes?: boolean;
                     /** @default false */
                     withFiles?: boolean;
+                    /** @default false */
+                    excludeFiles?: boolean;
                     /** @default true */
                     withRenotes?: boolean;
                     /** @default true */
@@ -31246,6 +31342,8 @@ export interface operations {
                 'application/json': {
                     /** @default false */
                     withFiles?: boolean;
+                    /** @default false */
+                    excludeFiles?: boolean;
                     /** @default true */
                     withRenotes?: boolean;
                     /** @default true */
@@ -32433,6 +32531,8 @@ export interface operations {
                     includeLocalRenotes?: boolean;
                     /** @default false */
                     withFiles?: boolean;
+                    /** @default false */
+                    excludeFiles?: boolean;
                     /** @default true */
                     withRenotes?: boolean;
                     /** @default true */
