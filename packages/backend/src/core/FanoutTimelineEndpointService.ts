@@ -36,6 +36,7 @@ type TimelineOptions = {
 	ignoreAuthorFromMute?: boolean;
 	ignoreAuthorFromInstanceBlock?: boolean;
 	excludeNoFiles?: boolean;
+	excludeFiles?: boolean;
 	excludeReplies?: boolean;
 	excludePureRenotes: boolean;
 	excludeHashtags?: boolean;
