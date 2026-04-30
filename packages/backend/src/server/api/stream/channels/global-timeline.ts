@@ -22,6 +22,7 @@ class GlobalTimelineChannel extends Channel {
 	private withRenotes: boolean;
 	private withHashtags: boolean;
 	private withFiles: boolean;
+	private excludeFiles: boolean;
 
 	constructor(
 		private meta: MiMeta,
@@ -41,6 +42,7 @@ class GlobalTimelineChannel extends Channel {
 
 		this.withRenotes = !!(params.withRenotes ?? true);
 		this.withFiles = !!(params.withFiles ?? false);
+		this.excludeFiles = !!(params.excludeFiles ?? false);
 		this.withHashtags = !!(params.withHashtags ?? true);
 
 		// Subscribe events
@@ -50,6 +52,7 @@ class GlobalTimelineChannel extends Channel {
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
+		if (this.excludeFiles && ((note.fileIds?.length ?? 0) > 0 || (note.renote?.fileIds?.length ?? 0) > 0)) return;
 
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;

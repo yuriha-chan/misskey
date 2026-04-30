@@ -56,7 +56,7 @@ class HybridTimelineChannel extends Channel {
 		const isMe = this.user!.id === note.userId;
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
-		if (this.excludeFiles && (note.fileIds != null && note.fileIds.length > 0)) return;
+		if (this.excludeFiles && ((note.fileIds?.length ?? 0) > 0 || (note.renote?.fileIds?.length ?? 0) > 0)) return;
 
 		// チャンネルの投稿ではなく、自分自身の投稿 または
 		// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
