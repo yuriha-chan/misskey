@@ -15,6 +15,7 @@ import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
+import { SearchPrefilterService } from './SearchPrefilterService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type { Index, MeiliSearch } from 'meilisearch';
@@ -38,6 +39,8 @@ export type SearchOpts = {
 	userId?: MiNote['userId'] | null;
 	channelId?: MiNote['channelId'] | null;
 	host?: string | null;
+	timeline?: "homeTimeline" | "localTimeline" | null;
+	specified?: boolean;
 };
 
 export type SearchPagination = {
@@ -94,6 +97,8 @@ export class SearchService {
 		private queryService: QueryService,
 		private idService: IdService,
 		private loggerService: LoggerService,
+		private fanoutTimelineService: FanoutTimelineService,
+		private searchPrefilterService: SearchPrefilterService,
 	) {
 		if (meilisearch) {
 			this.meilisearchNoteIndex = meilisearch.index(`${config.meilisearch!.index}---notes`);
@@ -206,19 +211,22 @@ export class SearchService {
 	): Promise<MiNote[]> {
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
-		if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
-			const isCommon = await this.notesRepository.query( "SELECT EXISTS ( SELECT 1 FROM note WHERE note.text &@~ $1 LIMIT 1 OFFSET 2000) AS exists", [q]);
-			// use pgroonga index first for rare query
-			if (!isCommon[0].exists) {
-				const filtered = this.notesRepository.createQueryBuilder('note').select('note.id', 'id').where('note.text &@~ :q_filtered', { q_filtered: q });
-				query.innerJoin(`(${filtered.getQuery()})`, 'filtered', 'note.id = filtered.id').setParameters(filtered.getParameters());
-			}
-		}
-
 		if (opts.userId) {
 			query.andWhere('note.userId = :userId', { userId: opts.userId });
 		} else if (opts.channelId) {
 			query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
+		} else if (opts.timeline && me) {
+			const timeline = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
+			const idCompare: (a: string, b: string) => number = ascending ? (a, b) => a < b ? -1 : 1 : (a, b) => a > b ? -1 : 1;
+			const redisResult = await this.fanoutTimelineService.get(timeline, pagination.sinceId, pagination.untilId);
+			const redisResultIds = Array.from(new Set(redisResult.flat(1))).sort(idCompare);
+			let noteIds = redisResultIds.slice(0, pagination.limit*100);
+			query.andWhere('note.id IN (:...noteIds)', { noteIds: noteIds })
+		} else if (opts.specified && me) {
+			query.andWhere(':userId IN note.visibleUserIds', { userId: me.id });
+		} else {
+			const prefilterResult = await this.searchPrefilterService.get(q, pagination.sinceId, pagination.untilId, limit*20);
+			query.andWhere('note.id IN (:...noteIds)', { noteIds: prefilterResult })
 		}
 
 		query
@@ -229,7 +237,6 @@ export class SearchService {
 			.leftJoinAndSelect('renote.user', 'renoteUser');
 
 		if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
-			// Strangely, duplicated criteria is required to enable index scan
 			query.andWhere('note.text &@~ :q', { q });
 		} else {
 			query.andWhere('LOWER(note.text) LIKE :q', { q: `%${ sqlLikeEscape(q.toLowerCase()) }%` });

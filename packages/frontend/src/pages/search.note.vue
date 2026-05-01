@@ -24,6 +24,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<option value="local">{{ instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal }}</option>
 					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="server">{{ i18n.ts._search.searchScopeServer }}</option>
 					<option value="user">{{ i18n.ts._search.searchScopeUser }}</option>
+					<option value="LTL">{{ i18n.ts._search.recentLocalTimeline }}</option>
+					<option value="HTL">{{ i18n.ts._search.recentHomeTimeline }}</option>
+					<option value="specified">{{ i18n.ts._search.specifiedToMe }}</option>
 				</MkRadios>
 
 				<div v-if="instance.federation !== 'none' && searchScope === 'server'" :class="$style.subOptionRoot">
@@ -177,10 +180,12 @@ if (fetchedUser != null) {
 }
 //#endregion
 
-const searchScope = ref<'all' | 'local' | 'server' | 'user'>((() => {
+const searchScope = ref<'all' | 'local' | 'server' | 'LTL' | 'HTL' | 'specified' | 'user'>((() => {
 	if (user.value != null) return 'user';
 	if (noteSearchableScope === 'local') return 'local';
 	if (hostInput.value) return 'server';
+	if (noteSearchableScope === 'LTL') return 'LTL';
+	if (noteSearchableScope === 'HTL') return 'HTL';
 	return 'all';
 })());
 
@@ -205,6 +210,21 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			host: fixHostIfLocal(user.value.host),
 			userId: user.value.id,
+		};
+	}
+	if (searchScope.value === 'HTL') {
+		return {
+			timeline: 'homeTimeline',
+		};
+	}
+	if (searchScope.value === 'LTL') {
+		return {
+			timeline: 'localTimeline',
+		};
+	}
+	if (searchScope.value === 'specified') {
+		return {
+			specified: true,
 		};
 	}
 
