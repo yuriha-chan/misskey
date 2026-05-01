@@ -184,8 +184,6 @@ const searchScope = ref<'all' | 'local' | 'server' | 'LTL' | 'HTL' | 'specified'
 	if (user.value != null) return 'user';
 	if (noteSearchableScope === 'local') return 'local';
 	if (hostInput.value) return 'server';
-	if (noteSearchableScope === 'LTL') return 'LTL';
-	if (noteSearchableScope === 'HTL') return 'HTL';
 	return 'all';
 })());
 
@@ -193,6 +191,8 @@ type SearchParams = {
 	readonly query: string;
 	readonly host?: string;
 	readonly userId?: string;
+	readonly timeline?: string;
+	readonly specified?: boolean;
 };
 
 const fixHostIfLocal = (target: string | null | undefined) => {
@@ -214,16 +214,19 @@ const searchParams = computed<SearchParams | null>(() => {
 	}
 	if (searchScope.value === 'HTL') {
 		return {
+			query: trimmedQuery,
 			timeline: 'homeTimeline',
 		};
 	}
 	if (searchScope.value === 'LTL') {
 		return {
+			query: trimmedQuery,
 			timeline: 'localTimeline',
 		};
 	}
 	if (searchScope.value === 'specified') {
 		return {
+			query: trimmedQuery,
 			specified: true,
 		};
 	}

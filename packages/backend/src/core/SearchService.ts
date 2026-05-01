@@ -15,6 +15,7 @@ import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
+import { FanoutTimelineService } from './FanoutTimelineService.js';
 import { SearchPrefilterService } from './SearchPrefilterService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
@@ -217,15 +218,16 @@ export class SearchService {
 			query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
 		} else if (opts.timeline && me) {
 			const timeline = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
+			const ascending = (pagination.sinceId && (pagination.untilId == null));
 			const idCompare: (a: string, b: string) => number = ascending ? (a, b) => a < b ? -1 : 1 : (a, b) => a > b ? -1 : 1;
 			const redisResult = await this.fanoutTimelineService.get(timeline, pagination.sinceId, pagination.untilId);
 			const redisResultIds = Array.from(new Set(redisResult.flat(1))).sort(idCompare);
 			let noteIds = redisResultIds.slice(0, pagination.limit*100);
 			query.andWhere('note.id IN (:...noteIds)', { noteIds: noteIds })
 		} else if (opts.specified && me) {
-			query.andWhere(':userId IN note.visibleUserIds', { userId: me.id });
+			query.andWhere('note.visibleUserIds @> ARRAY[:userId]::varchar[]', { userId: me.id });
 		} else {
-			const prefilterResult = await this.searchPrefilterService.get(q, pagination.sinceId, pagination.untilId, limit*20);
+			const prefilterResult = await this.searchPrefilterService.filter(q, pagination.sinceId, pagination.untilId, pagination.limit*20);
 			query.andWhere('note.id IN (:...noteIds)', { noteIds: prefilterResult })
 		}
 
