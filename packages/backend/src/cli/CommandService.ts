@@ -9,6 +9,8 @@ import { DI } from '@/di-symbols.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { MetaService } from '@/core/MetaService.js';
+import { DeleteAccountService } from '@/core/DeleteAccountService.js';
+import type { MiMeta, UsersRepository } from '@/models/_.js';
 
 @Injectable()
 export class CommandService {
@@ -19,6 +21,15 @@ export class CommandService {
 		private config: Config,
 
 		private metaService: MetaService,
+
+		@Inject(DI.meta)
+		private meta: MiMeta,
+
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
+
+		private deleteAccountService: DeleteAccountService,
+
 	) {
 	}
 
@@ -45,5 +56,11 @@ export class CommandService {
 			turnstileSecretKey: null,
 			enableTestcaptcha: false,
 		});
+	}
+
+	@bindThis
+	public async deleteAccount(id) {
+		const root = await this.usersRepository.findOneByOrFail({ id: this.meta.rootUserId });
+		await this.deleteAccountService.deleteAccount({ id, host: null }, root);
 	}
 }
