@@ -28,6 +28,7 @@ switch (command) {
 		console.log('Available commands:');
 		console.log('  help - Displays this help message');
 		console.log('  reset-captcha - Resets the captcha');
+		console.log('  delete-account <userId> - Delete an account');
 		break;
 	}
 	case 'ping': {
@@ -37,6 +38,12 @@ switch (command) {
 	case 'reset-captcha': {
 		await commandService.resetCaptcha();
 		console.log('Captcha has been reset.');
+		break;
+	}
+	case 'delete-account': {
+		const id = process.argv[3]!;
+		await commandService.deleteAccount(id);
+		console.log('Account deletion initiated.');
 		break;
 	}
 	default: {
