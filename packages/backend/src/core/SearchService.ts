@@ -137,37 +137,9 @@ export class SearchService {
 
 	@bindThis
 	public async indexNote(note: MiNote): Promise<void> {
-		if (!this.meilisearch) return;
-		if (note.text == null && note.cw == null) return;
-		if (!['home', 'public'].includes(note.visibility)) return;
-
-		switch (this.meilisearchIndexScope) {
-			case 'global':
-				break;
-
-			case 'local':
-				if (note.userHost == null) break;
-				return;
-
-			default: {
-				if (note.userHost == null) break;
-				if (this.meilisearchIndexScope.includes(note.userHost)) break;
-				return;
-			}
-		}
-
-		await this.meilisearchNoteIndex?.addDocuments([{
-			id: note.id,
-			createdAt: this.idService.parse(note.id).date.getTime(),
-			userId: note.userId,
-			userHost: note.userHost,
-			channelId: note.channelId,
-			cw: note.cw,
-			text: note.text,
-			tags: note.tags,
-		}], {
-			primaryKey: 'id',
-		});
+		if (note.text == null) return;
+		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
+		this.searchPrefilterService.index(note.id, note.text);
 	}
 
 	@bindThis
@@ -184,7 +156,7 @@ export class SearchService {
 		me: MiUser | null,
 		opts: SearchOpts,
 		pagination: SearchPagination,
-	): Promise<MiNote[]> {
+	): MiNote[] {
 		switch (this.provider) {
 			case 'sqlLike':
 			case 'sqlPgroonga': {
@@ -193,7 +165,7 @@ export class SearchService {
 				return this.searchNoteByLike(q, me, opts, pagination);
 			}
 			case 'meilisearch': {
-				return this.searchNoteByMeiliSearch(q, me, opts, pagination);
+				return await this.searchNoteByMeiliSearch(q, me, opts, pagination);
 			}
 			default: {
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -209,53 +181,75 @@ export class SearchService {
 		me: MiUser | null,
 		opts: SearchOpts,
 		pagination: SearchPagination,
-	): Promise<MiNote[]> {
-		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
+	): MiNote[] {
+		const ascending = (pagination.sinceId && (pagination.untilId == null));
+		let result: MiNote[];
+		let lastId: MiNote['id'] | null = null;
 
-		if (opts.userId) {
-			query.andWhere('note.userId = :userId', { userId: opts.userId });
-		} else if (opts.channelId) {
-			query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
-		} else if (opts.timeline && me) {
-			const timeline = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
-			const ascending = (pagination.sinceId && (pagination.untilId == null));
-			const idCompare: (a: string, b: string) => number = ascending ? (a, b) => a < b ? -1 : 1 : (a, b) => a > b ? -1 : 1;
-			const redisResult = await this.fanoutTimelineService.get(timeline, pagination.sinceId, pagination.untilId);
-			const redisResultIds = Array.from(new Set(redisResult.flat(1))).sort(idCompare);
-			let noteIds = redisResultIds.slice(0, pagination.limit*100);
-			query.andWhere('note.id IN (:...noteIds)', { noteIds: noteIds })
-		} else if (opts.specified && me) {
-			query.andWhere('note.visibleUserIds @> ARRAY[:userId]::varchar[]', { userId: me.id });
-		} else {
-			const prefilterResult = await this.searchPrefilterService.filter(q, pagination.sinceId, pagination.untilId, pagination.limit*20);
-			query.andWhere('note.id IN (:...noteIds)', { noteIds: prefilterResult })
-		}
-
-		query
-			.innerJoinAndSelect('note.user', 'user')
-			.leftJoinAndSelect('note.reply', 'reply')
-			.leftJoinAndSelect('note.renote', 'renote')
-			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser');
-
-		if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
-			query.andWhere('note.text &@~ :q', { q });
-		} else {
-			query.andWhere('LOWER(note.text) LIKE :q', { q: `%${ sqlLikeEscape(q.toLowerCase()) }%` });
-		}
-
-		if (opts.host) {
-			if (opts.host === '.') {
-				query.andWhere('note.userHost IS NULL');
+		for (let i = 0; i < 10; i++) {
+			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
+			if (opts.userId) {
+				query.andWhere('note.userId = :userId', { userId: opts.userId });
+			} else if (opts.channelId) {
+				query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
+			} else if (opts.timeline && me) {
+				const timeline = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
+				const idCompare: (a: string, b: string) => number = ascending ? (a, b) => a < b ? -1 : 1 : (a, b) => a > b ? -1 : 1;
+				const redisResult = await this.fanoutTimelineService.get(timeline, pagination.sinceId, pagination.untilId);
+				if (redisResult.length === 0) {
+					return [];
+				}
+				const redisResultIds = Array.from(new Set(redisResult.flat(1))).sort(idCompare);
+				let noteIds = redisResultIds.slice(0, pagination.limit*100);
+				query.andWhere('note.id IN (:...noteIds)', { noteIds: noteIds })
+				lastId = noteIds[noteIds.length - 1];
+			} else if (opts.specified && me) {
+				query.andWhere('note.visibleUserIds @> ARRAY[:userId]::varchar[]', { userId: me.id });
 			} else {
-				query.andWhere('note.userHost = :host', { host: opts.host });
+				const prefilterResult = await this.searchPrefilterService.filter(q, pagination.sinceId, pagination.untilId, pagination.limit*20);
+				if (prefilterResult.length === 0) {
+					return [];
+				}
+				query.andWhere('note.id IN (:...noteIds)', { noteIds: prefilterResult })
+				lastId = prefilterResult[prefilterResult.length - 1];
+			}
+
+			query
+				.innerJoinAndSelect('note.user', 'user')
+				.leftJoinAndSelect('note.reply', 'reply')
+				.leftJoinAndSelect('note.renote', 'renote')
+				.leftJoinAndSelect('reply.user', 'replyUser')
+				.leftJoinAndSelect('renote.user', 'renoteUser');
+
+			if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
+				query.andWhere('note.text &@~ :q', { q });
+			} else {
+				query.andWhere('LOWER(note.text) LIKE :q', { q: `%${ sqlLikeEscape(q.toLowerCase()) }%` });
+			}
+
+			if (opts.host) {
+				if (opts.host === '.') {
+					query.andWhere('note.userHost IS NULL');
+				} else {
+					query.andWhere('note.userHost = :host', { host: opts.host });
+				}
+			}
+
+			this.queryService.generateVisibilityQuery(query, me);
+			this.queryService.generateBaseNoteFilteringQuery(query, me);
+
+			result = await query.limit(pagination.limit).getMany();
+			if (result.length !== 0 || lastId === null) {
+				return result;
+			}
+
+			if (ascending) {
+				pagination.sinceId = lastId;
+			} else {
+				pagination.untilId = lastId;
 			}
 		}
-
-		this.queryService.generateVisibilityQuery(query, me);
-		this.queryService.generateBaseNoteFilteringQuery(query, me);
-
-		return query.limit(pagination.limit).getMany();
+		return result;
 	}
 
 	@bindThis
