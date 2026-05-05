@@ -251,7 +251,7 @@ export class SignupApiService {
 		try {
 			const pendingUser = await this.userPendingsRepository.findOneByOrFail({ code });
 
-			if (this.idService.parse(pendingUser.id).date.getTime() + (1000 * 60 * 30) < Date.now()) {
+			if (this.idService.parse(pendingUser.id).date.getTime() + (1000 * 60 * 60 * 24) < Date.now()) {
 				throw new FastifyReplyError(400, 'EXPIRED');
 			}
 
