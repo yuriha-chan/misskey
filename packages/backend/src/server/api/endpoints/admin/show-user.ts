@@ -34,6 +34,10 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			mainAccountId: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			followedMessage: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -284,6 +288,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			return {
 				email: profile.email,
 				emailVerified: profile.emailVerified,
+				mainAccountId: profile.mainAccountId,
 				followedMessage: profile.followedMessage,
 				autoAcceptFollowed: profile.autoAcceptFollowed,
 				noCrawle: profile.noCrawle,
