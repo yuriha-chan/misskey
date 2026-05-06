@@ -300,6 +300,11 @@ export class MiUserProfile {
 	public userHost: string | null;
 	//#endregion
 
+	@Column('integer', {
+		default: 0,
+	})
+	public passwordResetDelay: number;
+
 	constructor(data: Partial<MiUserProfile>) {
 		if (data == null) return;
 

@@ -47,9 +47,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				token: ps.token,
 			});
 
-			// 発行してから30分以上経過していたら無効
-			if (Date.now() - this.idService.parse(req.id).date.getTime() > 1000 * 60 * 30) {
-				throw new Error(); // TODO
+			// 有効になってから24h以上経過していたら無効
+			if (Date.now() - (this.idService.parse(req.id).date.getTime() + req.delay) > 1000 * 60 * 60 * 24) {
+				throw new Error("The reset link has expired");
+			}
+			// まだ有効になっていない
+			if (Date.now() - (this.idService.parse(req.id).date.getTime() + req.delay) < 0) {
+				throw new Error("The reset link has not been activated yet");
 			}
 
 			// Generate hash of password

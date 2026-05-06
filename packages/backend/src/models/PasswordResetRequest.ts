@@ -29,4 +29,9 @@ export class MiPasswordResetRequest {
 	})
 	@JoinColumn()
 	public user: MiUser | null;
+
+	@Column('integer', {
+		default: 0,
+	})
+	public delay: number;
 }

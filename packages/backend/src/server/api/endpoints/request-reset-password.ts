@@ -83,17 +83,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const token = secureRndstr(64, { chars: L_CHARS });
 
+			const id = this.idService.gen();
+			const delay = profile.passwordResetDelay;
+			const validAfter = new Date(this.idService.parse(id).date.getTime() + delay);
+
 			await this.passwordResetRequestsRepository.insert({
-				id: this.idService.gen(),
+				id,
 				userId: profile.userId,
 				token,
+				delay,
 			});
+
+			this.notificationService.createNotification(user.id, 'request-password-reset', {});
 
 			const link = `${this.config.url}/reset-password/${token}`;
 
-			this.emailService.sendEmail(ps.email, 'Password reset requested',
-				`To reset password, please click this link:<br><a href="${link}">${link}</a>`,
-				`To reset password, please click this link: ${link}`);
+			this.emailService.sendEmail(ps.email, 'Password reset requested / パスワードのリセット',
+				`To reset password, please click this link after ${validAfter.toLocaleString("en-US", { timeZone: "UTC", timeZoneName: "short" })} / 以下のリンクをクリックしてパスワードをリセット（${validAfter.toLocaleString("ja-JP", { timeZone: "JST", timeZoneName: "short"})}以降に有効）:<br><a href="${link}">${link}</a>`,
+				`To reset password, please click this link after ${validAfter.toLocaleString("en-US", { timeZone: "UTC", timeZoneName: "short" })} / 以下のリンクをクリックしてパスワードをリセット（${validAfter.toLocaleString("ja-JP", { timeZone: "JST", timeZoneName: "short"})}以降に有効）: ${link}`);
 		});
 	}
 }

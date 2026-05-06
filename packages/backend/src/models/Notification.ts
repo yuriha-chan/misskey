@@ -98,6 +98,10 @@ export type MiNotification = {
 	id: string;
 	createdAt: string;
 } | {
+	type: 'reset-password';
+	id: string;
+	createdAt: string;
+} | {
 	type: 'createToken';
 	id: string;
 	createdAt: string;
