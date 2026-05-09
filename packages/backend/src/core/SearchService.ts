@@ -42,6 +42,7 @@ export type SearchOpts = {
 	host?: string | null;
 	timeline?: "homeTimeline" | "localTimeline" | null;
 	specified?: boolean;
+	excludeBot?: boolean;
 };
 
 export type SearchPagination = {
@@ -233,6 +234,10 @@ export class SearchService {
 				} else {
 					query.andWhere('note.userHost = :host', { host: opts.host });
 				}
+			}
+
+			if (opts.excludeBot) {
+				query.andWhere('user.isBot = FALSE');
 			}
 
 			this.queryService.generateVisibilityQuery(query, me);
