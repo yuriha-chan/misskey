@@ -216,28 +216,28 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			host: fixHostIfLocal(user.value.host),
 			userId: user.value.id,
-			excludeBot: !includeBot,
+			excludeBot: !includeBot.value,
 		};
 	}
 	if (searchScope.value === 'HTL') {
 		return {
 			query: trimmedQuery,
 			timeline: 'homeTimeline',
-			excludeBot: !includeBot,
+			excludeBot: !includeBot.value,
 		};
 	}
 	if (searchScope.value === 'LTL') {
 		return {
 			query: trimmedQuery,
 			timeline: 'localTimeline',
-			excludeBot: !includeBot,
+			excludeBot: !includeBot.value,
 		};
 	}
 	if (searchScope.value === 'specified') {
 		return {
 			query: trimmedQuery,
 			specified: true,
-			excludeBot: !includeBot,
+			excludeBot: !includeBot.value,
 		};
 	}
 
@@ -252,7 +252,7 @@ const searchParams = computed<SearchParams | null>(() => {
 		return {
 			query: trimmedQuery,
 			host: fixHostIfLocal(trimmedHost),
-			excludeBot: !includeBot,
+			excludeBot: !includeBot.value,
 		};
 	}
 
@@ -260,13 +260,13 @@ const searchParams = computed<SearchParams | null>(() => {
 		return {
 			query: trimmedQuery,
 			host: '.',
-			excludeBot: !includeBot,
+			excludeBot: !includeBot.value,
 		};
 	}
 
 	return {
 		query: trimmedQuery,
-		excludeBot: !includeBot,
+		excludeBot: !includeBot.value,
 	};
 });
 
