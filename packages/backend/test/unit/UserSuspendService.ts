@@ -5,7 +5,7 @@
 
 process.env.NODE_ENV = 'test';
 
-import { jest } from '@jest/globals';
+import { vi, expect, test, describe, beforeEach, beforeAll, afterEach, Mocked } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { setTimeout } from 'node:timers/promises';
 import type { TestingModule } from '@nestjs/testing';
@@ -43,12 +43,12 @@ describe('UserSuspendService', () => {
 	let usersRepository: UsersRepository;
 	let followingsRepository: FollowingsRepository;
 	let followRequestsRepository: FollowRequestsRepository;
-	let userEntityService: jest.Mocked<UserEntityService>;
-	let queueService: jest.Mocked<QueueService>;
-	let globalEventService: jest.Mocked<GlobalEventService>;
-	let apRendererService: jest.Mocked<ApRendererService>;
-	let moderationLogService: jest.Mocked<ModerationLogService>;
-	let userKeypairService: jest.Mocked<UserKeypairService>;
+	let userEntityService: Mocked<UserEntityService>;
+	let queueService: Mocked<QueueService>;
+	let globalEventService: Mocked<GlobalEventService>;
+	let apRendererService: Mocked<ApRendererService>;
+	let moderationLogService: Mocked<ModerationLogService>;
+	let userKeypairService: Mocked<UserKeypairService>;
 	let accountUpdateService: AccountUpdateService;
 	let apDeliverManagerService: ApDeliverManagerService;
 
@@ -107,52 +107,52 @@ describe('UserSuspendService', () => {
 				{
 					provide: UserEntityService,
 					useFactory: () => ({
-						isLocalUser: jest.fn(),
-						genLocalUserUri: jest.fn(),
-						isSuspendedEither: jest.fn(),
+						isLocalUser: vi.fn(),
+						genLocalUserUri: vi.fn(),
+						isSuspendedEither: vi.fn(),
 					}),
 				},
 				{
 					provide: QueueService,
 					useFactory: () => ({
-						deliverMany: jest.fn(),
-						deliver: jest.fn(),
+						deliverMany: vi.fn(),
+						deliver: vi.fn(),
 					}),
 				},
 				{
 					provide: GlobalEventService,
 					useFactory: () => ({
-						publishInternalEvent: jest.fn(),
+						publishInternalEvent: vi.fn(),
 					}),
 				},
 				{
 					provide: ModerationLogService,
 					useFactory: () => ({
-						log: jest.fn(),
+						log: vi.fn(),
 					}),
 				},
 				{
 					provide: RelayService,
 					useFactory: () => ({
-						deliverToRelays: jest.fn(),
+						deliverToRelays: vi.fn(),
 					}),
 				},
 				{
 					provide: ApRendererService,
 					useFactory: () => ({
-						renderDelete: jest.fn(),
-						renderUndo: jest.fn(),
-						renderPerson: jest.fn(),
-						renderUpdate: jest.fn(),
-						addContext: jest.fn(),
+						renderDelete: vi.fn(),
+						renderUndo: vi.fn(),
+						renderPerson: vi.fn(),
+						renderUpdate: vi.fn(),
+						addContext: vi.fn(),
 					}),
 				},
 				{
 					provide: ApLoggerService,
 					useFactory: () => ({
 						logger: {
-							createSubLogger: jest.fn().mockReturnValue({
-								info: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn(),
+							createSubLogger: vi.fn().mockReturnValue({
+								info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn(),
 							}),
 						},
 					}),
@@ -160,7 +160,7 @@ describe('UserSuspendService', () => {
 				{
 					provide: UserKeypairService,
 					useFactory: () => ({
-						refreshAndPrepareEd25519KeyPair: jest.fn(),
+						refreshAndPrepareEd25519KeyPair: vi.fn(),
 					}),
 				},
 			],
@@ -172,12 +172,12 @@ describe('UserSuspendService', () => {
 		usersRepository = app.get<UsersRepository>(DI.usersRepository);
 		followingsRepository = app.get<FollowingsRepository>(DI.followingsRepository);
 		followRequestsRepository = app.get<FollowRequestsRepository>(DI.followRequestsRepository);
-		userEntityService = app.get<UserEntityService>(UserEntityService) as jest.Mocked<UserEntityService>;
-		queueService = app.get<QueueService>(QueueService) as jest.Mocked<QueueService>;
-		globalEventService = app.get<GlobalEventService>(GlobalEventService) as jest.Mocked<GlobalEventService>;
-		apRendererService = app.get<ApRendererService>(ApRendererService) as jest.Mocked<ApRendererService>;
-		moderationLogService = app.get<ModerationLogService>(ModerationLogService) as jest.Mocked<ModerationLogService>;
-		userKeypairService = app.get<UserKeypairService>(UserKeypairService) as jest.Mocked<UserKeypairService>;
+		userEntityService = app.get<UserEntityService>(UserEntityService) as Mocked<UserEntityService>;
+		queueService = app.get<QueueService>(QueueService) as Mocked<QueueService>;
+		globalEventService = app.get<GlobalEventService>(GlobalEventService) as Mocked<GlobalEventService>;
+		apRendererService = app.get<ApRendererService>(ApRendererService) as Mocked<ApRendererService>;
+		moderationLogService = app.get<ModerationLogService>(ModerationLogService) as Mocked<ModerationLogService>;
+		userKeypairService = app.get<UserKeypairService>(UserKeypairService) as Mocked<UserKeypairService>;
 
 		apDeliverManagerService = app.get<ApDeliverManagerService>(ApDeliverManagerService);
 		await apDeliverManagerService.onModuleInit();
@@ -186,7 +186,7 @@ describe('UserSuspendService', () => {
 	});
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	describe('suspend', () => {
