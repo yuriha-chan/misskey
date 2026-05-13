@@ -12,6 +12,7 @@ import { i18n } from '@/i18n.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { waiting, popup, popupMenu, success, alert } from '@/os.js';
 import { unisonReload, reloadChannel } from '@/utility/unison-reload.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
 import { $i } from '@/i.js';
@@ -323,6 +324,15 @@ export async function openAccountMenu(opts: {
 						}
 					});
 				},
+			}, {
+				text: i18n.ts.createSubAccount,
+				action: () => {
+					getSubAccountWithSignupDialog().then(res => {
+						if (res != null) {
+							switchAccount(host, res.id);
+						}
+					});
+				},
 			}],
 		}, {
 			type: 'link',
@@ -361,6 +371,15 @@ export function getAccountWithSigninDialog(): Promise<{ id: string, token: strin
 	});
 }
 
+export async function addSubAccounts() {
+	const res = await misskeyApi('i/get-sub-account-tokens', {});
+	for (const entry of res) {
+		const user = await fetchAccount(entry.i, entry.id, true);
+		await addAccount(host, user, entry.i);
+	}
+	unisonReload();
+}
+
 export function getAccountWithSignupDialog(): Promise<{ id: string, token: string } | null> {
 	return new Promise((resolve) => {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSignupDialog.vue')), {}, {
@@ -369,6 +388,24 @@ export function getAccountWithSignupDialog(): Promise<{ id: string, token: strin
 				delete user.token;
 				await addAccount(host, user, res.token);
 				resolve({ id: res.id, token: res.token });
+			},
+			cancelled: () => {
+				resolve(null);
+			},
+			closed: () => {
+				dispose();
+			},
+		});
+	});
+}
+
+export function getSubAccountWithSignupDialog(): Promise<{ id: string, token: string } | null> {
+	return new Promise((resolve) => {
+		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSubAccountSignupDialog.vue')), {}, {
+			done: async (res) => {
+				const user = await fetchAccount(res.i, res.id, true);
+				await addAccount(host, user, res.i);
+				resolve({ id: res.id, token: res.i });
 			},
 			cancelled: () => {
 				resolve(null);
