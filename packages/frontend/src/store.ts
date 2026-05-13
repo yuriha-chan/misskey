@@ -218,6 +218,18 @@ export const store = markRaw(new Pizzax('base', {
 		where: 'device',
 		default: false,
 	},
+	hideNavFooter: {
+		where: 'device',
+		default: false,
+	},
+	reduceMargin: {
+		where: 'device',
+		default: true,
+	},
+	largeNoteText: {
+		where: 'device',
+		default: true,
+	},
 	animation: {
 		where: 'device',
 		default: !window.matchMedia('(prefers-reduced-motion)').matches,

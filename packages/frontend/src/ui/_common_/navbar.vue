@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="[$style.root, { [$style.iconOnly]: iconOnly }]">
-	<div :class="$style.body">
+	<div :class="$style.body" v-if="props.showContent">
 		<div :class="$style.top">
 			<button v-tooltip.noDelay.right="instance.name ?? i18n.ts.instance" class="_button" :class="$style.instance" @click="openInstanceMenu">
 				<img :src="instance.iconUrl || '/favicon.ico'" alt="" :class="$style.instanceIcon" style="viewTransitionName: navbar-serverIcon;"/>
@@ -115,6 +115,7 @@ import { $i } from '@/i.js';
 const router = useRouter();
 
 const props = defineProps<{
+	showContent?: boolean;
 	showWidgetButton?: boolean;
 	asDrawer?: boolean;
 }>();
@@ -193,7 +194,7 @@ function menuEdit() {
 
 <style lang="scss" module>
 .root {
-	--nav-width: 250px;
+  --nav-width: 250px;
 	--nav-icon-only-width: 80px;
 	--nav-bg-transparent: color(from var(--MI_THEME-navBg) srgb r g b / 0.5);
 
@@ -213,7 +214,6 @@ function menuEdit() {
 	overflow-x: clip;
 	overscroll-behavior: contain;
 	background: var(--MI_THEME-navBg);
-	contain: strict;
 
 	/* 画面が縦に長い、設置している項目数が少ないなどの環境においても確実にbottomを最下部に表示するため */
 	display: flex;
