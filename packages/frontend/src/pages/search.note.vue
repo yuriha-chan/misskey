@@ -24,6 +24,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:options="searchScopeDef"
 				>
 				</MkRadios>
+				<MkSwitch v-model="includeBot">{{ i18n.ts._search.includeBot }}</MkSwitch>
+
 
 				<div v-if="instance.federation !== 'none' && searchScope === 'server'" :class="$style.subOptionRoot">
 					<MkInput
@@ -125,6 +127,7 @@ import MkInput from '@/components/MkInput.vue';
 import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 import MkRadios from '@/components/MkRadios.vue';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
+import MkSwitch from '@/components/MkSwitch.vue';
 import { Paginator } from '@/utility/paginator.js';
 import type { MkRadiosOption } from '@/components/MkRadios.vue';
 
@@ -176,7 +179,7 @@ if (fetchedUser != null) {
 }
 //#endregion
 
-const searchScope = ref<'all' | 'local' | 'server' | 'user'>((() => {
+const searchScope = ref<'all' | 'local' | 'server' | 'LTL' | 'HTL' | 'specified' | 'user'>((() => {
 	if (user.value != null) return 'user';
 	if (noteSearchableScope === 'local') return 'local';
 	if (hostInput.value) return 'server';
@@ -197,6 +200,9 @@ const searchScopeDef = computed<MkRadiosOption[]>(() => {
 	}
 
 	options.push({ value: 'user', label: i18n.ts._search.searchScopeUser });
+	options.push({ value: 'LTL', label: i18n.ts._search.recentLocalTimeline });
+	options.push({ value: 'HTL', label: i18n.ts._search.recentHomeTimeline });
+	options.push({ value: 'specified', label: i18n.ts._search.specifiedToMe });
 
 	return options;
 });
@@ -205,7 +211,12 @@ type SearchParams = {
 	readonly query: string;
 	readonly host?: string;
 	readonly userId?: string;
+	readonly timeline?: string;
+	readonly specified?: boolean;
+	readonly excludeBot?: boolean;
 };
+
+const includeBot = ref<bool>(false);
 
 const fixHostIfLocal = (target: string | null | undefined) => {
 	if (!target || target === localHost) return '.';
@@ -222,6 +233,28 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			host: fixHostIfLocal(user.value.host),
 			userId: user.value.id,
+			excludeBot: !includeBot.value,
+		};
+	}
+	if (searchScope.value === 'HTL') {
+		return {
+			query: trimmedQuery,
+			timeline: 'homeTimeline',
+			excludeBot: !includeBot.value,
+		};
+	}
+	if (searchScope.value === 'LTL') {
+		return {
+			query: trimmedQuery,
+			timeline: 'localTimeline',
+			excludeBot: !includeBot.value,
+		};
+	}
+	if (searchScope.value === 'specified') {
+		return {
+			query: trimmedQuery,
+			specified: true,
+			excludeBot: !includeBot.value,
 		};
 	}
 
@@ -236,6 +269,7 @@ const searchParams = computed<SearchParams | null>(() => {
 		return {
 			query: trimmedQuery,
 			host: fixHostIfLocal(trimmedHost),
+			excludeBot: !includeBot.value,
 		};
 	}
 
@@ -243,11 +277,13 @@ const searchParams = computed<SearchParams | null>(() => {
 		return {
 			query: trimmedQuery,
 			host: '.',
+			excludeBot: !includeBot.value,
 		};
 	}
 
 	return {
 		query: trimmedQuery,
+		excludeBot: !includeBot.value,
 	};
 });
 
