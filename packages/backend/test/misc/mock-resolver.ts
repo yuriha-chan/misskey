@@ -11,6 +11,8 @@ import type { IObject } from '@/core/activitypub/type.js';
 import type { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { LoggerService } from '@/core/LoggerService.js';
 import type { UtilityService } from '@/core/UtilityService.js';
+import type { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
+import { bindThis } from '@/decorators.js';
 import type {
 	FollowRequestsRepository,
 	MiMeta,
@@ -20,7 +22,6 @@ import type {
 	UsersRepository,
 } from '@/models/_.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
-import { bindThis } from '@/decorators.js';
 import { Resolver } from '@/core/activitypub/ApResolverService.js';
 
 type MockResponse = {
@@ -47,6 +48,7 @@ export class MockResolver extends Resolver {
 			{} as HttpRequestService,
 			{} as ApRendererService,
 			{} as ApDbResolverService,
+			{} as FederatedInstanceService,
 			loggerService,
 		);
 	}

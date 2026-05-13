@@ -14,6 +14,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
+import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { isCollectionOrOrderedCollection } from './type.js';
@@ -42,6 +43,7 @@ export class Resolver {
 		private httpRequestService: HttpRequestService,
 		private apRendererService: ApRendererService,
 		private apDbResolverService: ApDbResolverService,
+		private federatedInstanceService: FederatedInstanceService,
 		private loggerService: LoggerService,
 		private recursionLimit = 256,
 	) {
@@ -108,8 +110,10 @@ export class Resolver {
 			this.user = await this.systemAccountService.fetch('actor');
 		}
 
+		const server = await this.federatedInstanceService.fetch(host);
+
 		const object = (this.user
-			? await this.apRequestService.signedGet(value, this.user, allowSoftfail) as IObject
+			? await this.apRequestService.signedGet(value, this.user, server?.httpMessageSignaturesImplementationLevel ?? '00', allowSoftfail) as IObject
 			: await this.httpRequestService.getActivityJson(value, undefined, allowSoftfail)) as IObject;
 
 		if (
@@ -207,6 +211,7 @@ export class ApResolverService {
 		private httpRequestService: HttpRequestService,
 		private apRendererService: ApRendererService,
 		private apDbResolverService: ApDbResolverService,
+		private federatedInstanceService: FederatedInstanceService,
 		private loggerService: LoggerService,
 	) {
 	}
@@ -227,6 +232,7 @@ export class ApResolverService {
 			this.httpRequestService,
 			this.apRendererService,
 			this.apDbResolverService,
+			this.federatedInstanceService,
 			this.loggerService,
 		);
 	}
