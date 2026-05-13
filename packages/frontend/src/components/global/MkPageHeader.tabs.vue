@@ -195,6 +195,18 @@ onUnmounted(() => {
 	white-space: nowrap;
 }
 
+@media (max-width: 450px) {
+	.tab {
+		padding: 0 5px;
+	}
+}
+
+@media (max-width: 550px) {
+	.tab {
+		padding: 0 8px;
+	}
+}
+
 .tab {
 	display: inline-block;
 	position: relative;

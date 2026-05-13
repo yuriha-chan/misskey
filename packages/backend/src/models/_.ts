@@ -34,6 +34,10 @@ import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiChatMessage } from '@/models/ChatMessage.js';
+import { MiChatSecret } from '@/models/ChatSecret.js';
+import { MiChatPoll } from '@/models/ChatPoll.js';
+import { MiChatPollVote } from '@/models/ChatPollVote.js';
+import { MiChatCard } from '@/models/ChatCard.js';
 import { MiChatRoom } from '@/models/ChatRoom.js';
 import { MiChatRoomInvitation } from '@/models/ChatRoomInvitation.js';
 import { MiChatRoomMembership } from '@/models/ChatRoomMembership.js';
@@ -228,6 +232,10 @@ export {
 	MiFlashLike,
 	MiUserMemo,
 	MiChatMessage,
+	MiChatPoll,
+	MiChatPollVote,
+	MiChatSecret,
+	MiChatCard,
 	MiChatRoom,
 	MiChatRoomMembership,
 	MiChatRoomInvitation,
@@ -307,6 +315,10 @@ export type FlashsRepository = Repository<MiFlash> & MiRepository<MiFlash>;
 export type FlashLikesRepository = Repository<MiFlashLike> & MiRepository<MiFlashLike>;
 export type UserMemoRepository = Repository<MiUserMemo> & MiRepository<MiUserMemo>;
 export type ChatMessagesRepository = Repository<MiChatMessage> & MiRepository<MiChatMessage>;
+export type ChatPollsRepository = Repository<MiChatPoll> & MiRepository<MiChatPoll>;
+export type ChatPollVotesRepository = Repository<MiChatPollVote> & MiRepository<MiChatPollVote>;
+export type ChatSecretsRepository = Repository<MiChatSecret> & MiRepository<MiChatSecret>;
+export type ChatCardsRepository = Repository<MiChatCard> & MiRepository<MiChatCard>;
 export type ChatRoomsRepository = Repository<MiChatRoom> & MiRepository<MiChatRoom>;
 export type ChatRoomMembershipsRepository = Repository<MiChatRoomMembership> & MiRepository<MiChatRoomMembership>;
 export type ChatRoomInvitationsRepository = Repository<MiChatRoomInvitation> & MiRepository<MiChatRoomInvitation>;

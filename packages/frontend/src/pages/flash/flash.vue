@@ -264,7 +264,7 @@ function showMenu(ev: MouseEvent) {
 		...($i && $i.id !== flash.value.userId ? [
 			{
 				icon: 'ti ti-exclamation-circle',
-				text: i18n.ts.reportAbuse,
+				text: i18n.ts.contactAdmin,
 				action: reportAbuse,
 			},
 			...($i.isModerator || $i.isAdmin ? [

@@ -16,6 +16,9 @@ import {
 	RelationshipJobData,
 	UserWebhookDeliverJobData,
 	SystemWebhookDeliverJobData,
+	CloseExpiredChatRoomJobData,
+	RevealChatSecretJobData,
+	EndChatPollJobData
 } from '../queue/types.js';
 import type { Provider } from '@nestjs/common';
 
@@ -28,6 +31,9 @@ export type RelationshipQueue = Bull.Queue<RelationshipJobData>;
 export type ObjectStorageQueue = Bull.Queue;
 export type UserWebhookDeliverQueue = Bull.Queue<UserWebhookDeliverJobData>;
 export type SystemWebhookDeliverQueue = Bull.Queue<SystemWebhookDeliverJobData>;
+export type CloseExpiredChatRoomQueue = Bull.Queue<CloseExpiredChatRoomJobData>;
+export type RevealChatSecretQueue = Bull.Queue<RevealChatSecretJobData>;
+export type EndChatPollQueue = Bull.Queue<EndChatPollJobData>;
 
 const $system: Provider = {
 	provide: 'queue:system',
@@ -38,6 +44,24 @@ const $system: Provider = {
 const $endedPollNotification: Provider = {
 	provide: 'queue:endedPollNotification',
 	useFactory: (config: Config) => new Bull.Queue(QUEUE.ENDED_POLL_NOTIFICATION, baseQueueOptions(config, QUEUE.ENDED_POLL_NOTIFICATION)),
+	inject: [DI.config],
+};
+
+const $closeExpiredChatRoom: Provider = {
+	provide: 'queue:closeExpiredChatRoom',
+	useFactory: (config: Config) => new Bull.Queue(QUEUE.CLOSE_EXPIRED_CHAT_ROOM, baseQueueOptions(config, QUEUE.CLOSE_EXPIRED_CHAT_ROOM)),
+	inject: [DI.config],
+};
+
+const $revealChatSecret: Provider = {
+	provide: 'queue:revealChatSecret',
+	useFactory: (config: Config) => new Bull.Queue(QUEUE.REVEAL_CHAT_SECRET, baseQueueOptions(config, QUEUE.REVEAL_CHAT_SECRET)),
+	inject: [DI.config],
+};
+
+const $endChatPoll: Provider = {
+	provide: 'queue:endChatPoll',
+	useFactory: (config: Config) => new Bull.Queue(QUEUE.END_CHAT_POLL, baseQueueOptions(config, QUEUE.END_CHAT_POLL)),
 	inject: [DI.config],
 };
 
@@ -89,6 +113,9 @@ const $systemWebhookDeliver: Provider = {
 	providers: [
 		$system,
 		$endedPollNotification,
+		$closeExpiredChatRoom,
+		$revealChatSecret,
+		$endChatPoll,
 		$deliver,
 		$inbox,
 		$db,
@@ -100,6 +127,9 @@ const $systemWebhookDeliver: Provider = {
 	exports: [
 		$system,
 		$endedPollNotification,
+		$closeExpiredChatRoom,
+		$revealChatSecret,
+		$endChatPoll,
 		$deliver,
 		$inbox,
 		$db,

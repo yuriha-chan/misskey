@@ -30,7 +30,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</template>
 		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="$style.buttonsRight">
 			<template v-for="action in actions">
-				<button v-tooltip.noDelay="action.text" class="_button" :class="[$style.button, { [$style.highlighted]: action.highlighted }]" @click.stop="action.handler" @touchstart="preventDrag"><i :class="action.icon"></i></button>
+				<button class="_button" :class="$style.buttonWithLabel" v-tooltip.noDelay="action.text" @click.stop="action.handler" @touchstart="preventDrag">
+					<div :class="[$style.button, { [$style.highlighted]: action.highlighted }]"><i :class="action.icon"></i></div>
+					<div v-if="action.showText" :class="$style.buttonLabel">{{ action.text }}</div>
+				</button>
 			</template>
 		</div>
 	</div>
@@ -223,6 +226,12 @@ onUnmounted(() => {
 	margin: 0 8px;
 }
 
+.buttonWithLabel {
+	display: flex;
+	align-items: center;
+	padding: 0;
+}
+
 .button {
 	display: flex;
 	align-items: center;
@@ -240,6 +249,10 @@ onUnmounted(() => {
 	&.highlighted {
 		color: var(--MI_THEME-accent);
 	}
+}
+
+.buttonLabel {
+	padding-right: 2px;
 }
 
 .fullButton {

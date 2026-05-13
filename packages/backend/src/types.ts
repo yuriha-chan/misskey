@@ -127,6 +127,7 @@ export const moderationLogTypes = [
 	'deleteFlash',
 	'deleteGalleryPost',
 	'deleteChatRoom',
+	'archiveChatRoom',
 	'updateProxyAccountDescription',
 ] as const;
 
@@ -383,6 +384,9 @@ export type ModerationLogPayloads = {
 	deleteChatRoom: {
 		roomId: string;
 		room: any;
+	};
+	archiveChatRoom: {
+		roomId: string;
 	};
 	updateProxyAccountDescription: {
 		before: string | null;
