@@ -15,19 +15,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<slot></slot>
 			</MkSwiper>
 			<slot v-else></slot>
+			<div :class="$style.spacer"/>
 		</div>
 		<template #footer>
-			<slot name="footer"></slot>
+			<div :class="$style.footer"><slot name="footer"></slot>
 			<div v-if="prefer.s.showPageTabBarBottom && (props.tabs?.length ?? 0) > 0" :class="$style.footerTabs">
 				<MkTabs v-model:tab="tab" :tabs="props.tabs" :centered="true" :tabHighlightUpper="true"/>
-			</div>
+			</div></div>
 		</template>
 	</MkStickyContainer>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, useTemplateRef } from 'vue';
+import { computed, useTemplateRef, onMounted, inject } from 'vue';
 import { scrollInContainer } from '@@/js/scroll.js';
 import type { PageHeaderProps } from './MkPageHeader.vue';
 import { useScrollPositionKeeper } from '@/composables/use-scroll-position-keeper.js';
@@ -72,11 +73,28 @@ function scrollToTop() {
 defineExpose({
 	scrollToTop,
 });
+
+onMounted(() => {
+  const onContentScroll = inject("onContentScroll");
+  if (onContentScroll) {
+    rootEl.value.addEventListener("scroll", onContentScroll);
+  }
+})
+
 </script>
 
 <style lang="scss" module>
 .body, .swiper {
 	min-height: calc(100cqh - (var(--MI-stickyTop, 0px) + var(--MI-stickyBottom, 0px)));
+}
+
+.spacer {
+	height: calc(var(--MI-minBottomSpacing));
+}
+
+.footer {
+  position: relative;
+	bottom: calc(var(--MI-minBottomSpacing));
 }
 
 .footerTabs {
