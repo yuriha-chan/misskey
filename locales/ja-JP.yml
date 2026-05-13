@@ -1490,14 +1490,10 @@ _chat:
   chatRoom: "チャットグループ"
   join: "参加"
   ignore: "無視"
-<<<<<<< HEAD
   leave: "グループから退出"
   userHasJoined: "{who}がグループに参加しました"
   userHasLeft: "{who}がグループから退出しました"
   userHasKicked: "{who}がグループから退出させられました"
-=======
-  leave: "グループから退出"
->>>>>>> 2026.5.1
   members: "メンバー"
   searchMessages: "メッセージを検索"
   home: "ホーム"
