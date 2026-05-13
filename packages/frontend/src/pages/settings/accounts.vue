@@ -8,37 +8,57 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_gaps">
 		<div class="_buttons">
 			<MkButton primary @click="addAccount"><i class="ti ti-plus"></i> {{ i18n.ts.addAccount }}</MkButton>
+			<MkButton primary @click="syncSubAccounts"><i class="ti ti-reload"></i> {{ i18n.ts.syncSubAccounts }}</MkButton>
 			<!--<MkButton @click="refreshAllAccounts"><i class="ti ti-refresh"></i></MkButton>-->
 		</div>
 
 		<template v-for="x in accounts" :key="x.host + x.id">
-			<MkUserCardMini v-if="x.user" :user="x.user" :class="$style.user" @click.prevent="showMenu(x.host, x.id, $event)"/>
+			<div :class="[subAccounts.includes(x.id) ? $style.subAccount : null, x.id === $i.id ? $style.currentAccount : null]">
+				<div :class="$style.label">{{ x.id === $i.id ? i18n.ts.currentAccount : subAccounts.includes(x.id) ? i18n.ts.subAccountOfCurrentAccount : ""}}</div>
+				<MkUserCardMini v-if="x.user" :user="x.user" :class="$style.user" @click.prevent="showMenu(x.host, x.id, x.user.username, $event)"/>
+			</div>
 		</template>
 	</div>
 </SearchMarker>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import * as Misskey from 'misskey-js';
 import type { MenuItem } from '@/types/menu.js';
 import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
+import { unisonReload } from '@/utility/unison-reload.js';
 import { $i } from '@/i.js';
-import { switchAccount, removeAccount, login, getAccountWithSigninDialog, getAccountWithSignupDialog, getAccounts } from '@/accounts.js';
+import { switchAccount, removeAccount, login, getAccountWithSigninDialog, getAccountWithSignupDialog, getSubAccountWithSignupDialog, getAccounts, addSubAccounts } from '@/accounts.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import { prefer } from '@/preferences.js';
 
 const accounts = await getAccounts();
+const subAccounts = ref([]);
+
+onMounted(() => {
+	misskeyApi('i/get-sub-account-tokens', {}).then((res) => {
+			subAccounts.value = res.map(r => r.id);
+		});
+});
 
 function refreshAllAccounts() {
 	// TODO
 }
 
-function showMenu(host: string, id: string, ev: PointerEvent) {
+async function syncSubAccounts() {
+	await addSubAccounts();
+	unisonReload();
+}
+
+function showMenu(host: string, id: string, username: string, ev: PointerEvent) {
+	if (id === $i.id) {
+		return;
+	}
 	let menu: MenuItem[];
 
 	menu = [{
@@ -51,6 +71,15 @@ function showMenu(host: string, id: string, ev: PointerEvent) {
 		action: () => removeAccount(host, id),
 	}];
 
+	if (subAccounts.value.includes(id)) {
+		menu.push({
+			text: i18n.ts.closeSubAccount,
+			icon: 'ti ti-x',
+			danger: true,
+			action: () => deleteSubAccount(host, { id, username }),
+		});
+	}
+
 	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
@@ -61,6 +90,9 @@ function addAccount(ev: PointerEvent) {
 	}, {
 		text: i18n.ts.createAccount,
 		action: () => { createAccount(); },
+	}, {
+		text: i18n.ts.createSubAccount,
+		action: () => { createSubAccount(); },
 	}], ev.currentTarget ?? ev.target);
 }
 
@@ -78,6 +110,37 @@ function createAccount() {
 			login(res.token);
 		}
 	});
+}
+
+function createSubAccount() {
+	getSubAccountWithSignupDialog().then((res) => {
+		unisonReload();
+	});
+}
+
+async function deleteSubAccount(host, user) {
+	{
+		const { canceled } = await os.confirm({
+			type: 'warning',
+			text: i18n.tsx.deleteNamedAccountConfirm({ username: user.username }),
+		});
+		if (canceled) return;
+	}
+
+	const auth = await os.authenticateDialog();
+	if (auth.canceled) return;
+
+	await os.apiWithDialog('i/delete-sub-account', {
+		subAccountId: user.id,
+		password: auth.result.password,
+		token: auth.result.token,
+	});
+
+	await os.alert({
+		title: i18n.ts._accountDelete.started,
+	});
+	
+	await removeAccount(host, user.id);
 }
 
 const headerActions = computed(() => []);
@@ -136,5 +199,25 @@ definePage(() => ({
 	overflow: hidden;
 	text-overflow: ellipsis;
 	line-height: 16px;
+}
+
+.currentAccount {
+	> .label {
+		color: var(--MI_THEME-fgOnAccent);
+	}
+	padding: 0;
+	background-color: var(--MI_THEME-accent);
+	border: 2px solid var(--MI_THEME-accent);
+	border-radius: 8px;
+}
+
+.subAccount {
+	> .label {
+		color: var(--MI_THEME-infoFg);
+	}
+	padding: 0;
+	background-color: var(--MI_THEME-infoBg);
+	border-radius: 8px;
+	border: 2px solid var(--MI_THEME-infoBg);
 }
 </style>

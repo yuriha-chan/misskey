@@ -1788,6 +1788,8 @@ declare namespace entities {
         ChartsUserReactionsResponse,
         ChartsUsersRequest,
         ChartsUsersResponse,
+        ChatCardsListRequest,
+        ChatCardsRevealRequest,
         ChatHistoryRequest,
         ChatHistoryResponse,
         ChatMessagesCreateToRoomRequest,
@@ -1985,7 +1987,9 @@ declare namespace entities {
         IAuthorizedAppsResponse,
         IChangePasswordRequest,
         IClaimAchievementRequest,
+        ICreateSubAccountRequest,
         IDeleteAccountRequest,
+        IDeleteSubAccountRequest,
         IExportFollowingRequest,
         IFavoritesRequest,
         IFavoritesResponse,
@@ -2116,6 +2120,7 @@ declare namespace entities {
         NotesTranslateRequest,
         NotesTranslateResponse,
         NotesUnrenoteRequest,
+        NotesUpdateVisibilityRequest,
         NotesUserListTimelineRequest,
         NotesUserListTimelineResponse,
         NotificationsCreateRequest,
@@ -2652,10 +2657,16 @@ export interface IChannelConnection<Channel extends AnyOf<Channels> = AnyOf<Chan
 type IClaimAchievementRequest = operations['i___claim-achievement']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ICreateSubAccountRequest = operations['i___create-sub-account']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ID = string;
 
 // @public (undocumented)
 type IDeleteAccountRequest = operations['i___delete-account']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IDeleteSubAccountRequest = operations['i___delete-sub-account']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type IExportFollowingRequest = operations['i___export-following']['requestBody']['content']['application/json'];
@@ -3305,6 +3316,9 @@ type NotesTranslateResponse = operations['notes___translate']['responses']['200'
 
 // @public (undocumented)
 type NotesUnrenoteRequest = operations['notes___unrenote']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesUpdateVisibilityRequest = operations['notes___update-visibility']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesUserListTimelineRequest = operations['notes___user-list-timeline']['requestBody']['content']['application/json'];
