@@ -24,7 +24,7 @@ export class MiChatRoom {
 	})
 	public ownerId: MiUser['id'];
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()

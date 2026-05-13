@@ -187,7 +187,7 @@ async function revealSecret(secretId: string) {
 	}
 }
 
-function react(ev: MouseEvent) {
+function react(ev: PointerEvent) {
 	if ($i.policies.chatAvailability !== 'available' || props.item.type !== 'message') return;
 
 	const targetEl = getHTMLElementOrNull(ev.currentTarget ?? ev.target);
@@ -221,7 +221,7 @@ function onReactionClick(record: Misskey.entities.ChatMessage['reactions'][0]) {
 	}
 }
 
-function onContextmenu(ev: MouseEvent) {
+function onContextmenu(ev: PointerEvent) {
 	if (ev.target && isLink(ev.target as HTMLElement)) return;
 	if (window.getSelection()?.toString() !== '') return;
 	if (props.item.type !== 'message') return;
@@ -229,7 +229,7 @@ function onContextmenu(ev: MouseEvent) {
 	showMenu(ev, true);
 }
 
-function showMenu(ev: MouseEvent, contextmenu = false) {
+function showMenu(ev: PointerEvent, contextmenu = false) {
 	if (props.item.type !== 'message') return;
 
 	const menu: MenuItem[] = [];

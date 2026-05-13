@@ -6,7 +6,6 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { MetricsTime, type JobType } from 'bullmq';
-import { parse as parseRedisInfo } from 'redis-info';
 import type { IActivity } from '@/core/activitypub/type.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiWebhook, WebhookEventTypes } from '@/models/Webhook.js';
@@ -34,6 +33,7 @@ import type {
 	CloseExpiredChatRoomQueue,
 	RevealChatSecretQueue,
 	EndChatPollQueue,
+	PostScheduledNoteQueue,
 	InboxQueue,
 	ObjectStorageQueue,
 	RelationshipQueue,
@@ -50,6 +50,7 @@ export const QUEUE_TYPES = [
 	'closeExpiredChatRoom',
 	'revealChatSecret',
 	'endChatPoll',
+	'postScheduledNote',
 	'deliver',
 	'inbox',
 	'db',
@@ -90,6 +91,19 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	pattern: '0 4 * * *',
 }];
 
+function parseRedisInfo(infoText: string): Record<string, string> {
+	const fields = infoText
+		.split('\n')
+		.filter(line => line.length > 0 && !line.startsWith('#'))
+		.map(line => line.trim().split(':'));
+
+	const result: Record<string, string> = {};
+	for (const [key, value] of fields) {
+		result[key] = value;
+	}
+	return result;
+}
+
 @Injectable()
 export class QueueService {
 	constructor(
@@ -101,6 +115,7 @@ export class QueueService {
 		@Inject('queue:closeExpiredChatRoom') public closeExpiredChatRoomQueue: CloseExpiredChatRoomQueue,
 		@Inject('queue:revealChatSecret') public revealChatSecretQueue: RevealChatSecretQueue,
 		@Inject('queue:endChatPoll') public endChatPollQueue: EndChatPollQueue,
+		@Inject('queue:postScheduledNote') public postScheduledNoteQueue: PostScheduledNoteQueue,
 		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
 		@Inject('queue:inbox') public inboxQueue: InboxQueue,
 		@Inject('queue:db') public dbQueue: DbQueue,
@@ -729,6 +744,7 @@ export class QueueService {
 			case 'closeExpiredChatRoom': return this.closeExpiredChatRoomQueue;
 			case 'revealChatSecret': return this.revealChatSecretQueue;
 			case 'endChatPoll': return this.endChatPollQueue;
+			case 'postScheduledNote': return this.postScheduledNoteQueue;
 			case 'deliver': return this.deliverQueue;
 			case 'inbox': return this.inboxQueue;
 			case 'db': return this.dbQueue;
@@ -898,7 +914,7 @@ export class QueueService {
 			},
 			db: {
 				version: db.redis_version,
-				mode: db.redis_mode,
+				mode: db.redis_mode as 'cluster' | 'standalone' | 'sentinel',
 				runId: db.run_id,
 				processId: db.process_id,
 				port: parseInt(db.tcp_port),

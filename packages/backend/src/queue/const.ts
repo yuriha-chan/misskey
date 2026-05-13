@@ -15,6 +15,7 @@ export const QUEUE = {
 	CLOSE_EXPIRED_CHAT_ROOM: 'closeExpiredChatRoom',
 	REVEAL_CHAT_SECRET: 'revealChatSecret',
 	END_CHAT_POLL: 'endChatPoll',
+	POST_SCHEDULED_NOTE: 'postScheduledNote',
 	DB: 'db',
 	RELATIONSHIP: 'relationship',
 	OBJECT_STORAGE: 'objectStorage',

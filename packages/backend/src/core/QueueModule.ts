@@ -19,11 +19,13 @@ import {
 	CloseExpiredChatRoomJobData,
 	RevealChatSecretJobData,
 	EndChatPollJobData
+	PostScheduledNoteJobData,
 } from '../queue/types.js';
 import type { Provider } from '@nestjs/common';
 
 export type SystemQueue = Bull.Queue<Record<string, unknown>>;
 export type EndedPollNotificationQueue = Bull.Queue<EndedPollNotificationJobData>;
+export type PostScheduledNoteQueue = Bull.Queue<PostScheduledNoteJobData>;
 export type DeliverQueue = Bull.Queue<DeliverJobData>;
 export type InboxQueue = Bull.Queue<InboxJobData>;
 export type DbQueue = Bull.Queue;
@@ -62,6 +64,12 @@ const $revealChatSecret: Provider = {
 const $endChatPoll: Provider = {
 	provide: 'queue:endChatPoll',
 	useFactory: (config: Config) => new Bull.Queue(QUEUE.END_CHAT_POLL, baseQueueOptions(config, QUEUE.END_CHAT_POLL)),
+	inject: [DI.config],
+};
+
+const $postScheduledNote: Provider = {
+	provide: 'queue:postScheduledNote',
+	useFactory: (config: Config) => new Bull.Queue(QUEUE.POST_SCHEDULED_NOTE, baseQueueOptions(config, QUEUE.POST_SCHEDULED_NOTE)),
 	inject: [DI.config],
 };
 
@@ -116,6 +124,7 @@ const $systemWebhookDeliver: Provider = {
 		$closeExpiredChatRoom,
 		$revealChatSecret,
 		$endChatPoll,
+		$postScheduledNote,
 		$deliver,
 		$inbox,
 		$db,
@@ -130,6 +139,7 @@ const $systemWebhookDeliver: Provider = {
 		$closeExpiredChatRoom,
 		$revealChatSecret,
 		$endChatPoll,
+		$postScheduledNote,
 		$deliver,
 		$inbox,
 		$db,
@@ -143,6 +153,7 @@ export class QueueModule implements OnApplicationShutdown {
 	constructor(
 		@Inject('queue:system') public systemQueue: SystemQueue,
 		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
+		@Inject('queue:postScheduledNote') public postScheduledNoteQueue: PostScheduledNoteQueue,
 		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
 		@Inject('queue:inbox') public inboxQueue: InboxQueue,
 		@Inject('queue:db') public dbQueue: DbQueue,
@@ -159,6 +170,7 @@ export class QueueModule implements OnApplicationShutdown {
 		await Promise.all([
 			this.systemQueue.close(),
 			this.endedPollNotificationQueue.close(),
+			this.postScheduledNoteQueue.close(),
 			this.deliverQueue.close(),
 			this.inboxQueue.close(),
 			this.dbQueue.close(),
