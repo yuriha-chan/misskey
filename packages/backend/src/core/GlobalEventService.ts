@@ -20,7 +20,7 @@ import type { MiPage } from '@/models/Page.js';
 import type { MiWebhook } from '@/models/Webhook.js';
 import type { MiSystemWebhook } from '@/models/SystemWebhook.js';
 import type { MiMeta } from '@/models/Meta.js';
-import { MiAvatarDecoration, MiChatMessage, MiChatRoom, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
+import { MiAvatarDecoration, MiChatMessage, MiChatPoll, MiChatSecret, MiChatRoom, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -171,6 +171,25 @@ export interface ChatEventTypes {
 		user?: Packed<'UserLite'>;
 		messageId: MiChatMessage['id'];
 	};
+	leave: {
+		userId: MiUser['id'];
+		kicked: boolean;
+		createdAt: string;
+	};
+	join: {
+		userId: MiUser['id'];
+		createdAt: string;
+	};
+	close: {};
+	roomArchived: { archiverId?: MiUser['id'] };
+	pollScheduled: Packed<'ChatPollScheduled'>;
+	pollStarted: Packed<'ChatPollStarted'>;
+	pollFinished: Packed<'ChatPollFinished'>;
+	cardDelivered: Packed<'ChatCard'>;
+	cardRevealed: Packed<'ChatCardRevealed'>;
+	secretCommitted: Packed<'ChatSecret'>;
+	secretRevealed: Packed<'ChatSecretRevealed'>;
+	membershipUpdated: Packed<'ChatRoomMembership'>;
 }
 
 export interface ReversiEventTypes {
@@ -316,6 +335,10 @@ export type GlobalEvents = {
 		name: `chatRoomStream:${MiChatRoom['id']}`;
 		payload: EventTypesToEventPayload<ChatEventTypes>;
 	};
+	chatRoomUser: {
+		name: `chatRoomUserStream:${MiChatRoom['id']}-${MiUser['id']}`;
+		payload: EventTypesToEventPayload<ChatEventTypes>;
+	};
 	reversi: {
 		name: `reversiStream:${MiUser['id']}`;
 		payload: EventTypesToEventPayload<ReversiEventTypes>;
@@ -425,6 +448,11 @@ export class GlobalEventService {
 	@bindThis
 	public publishChatRoomStream<K extends keyof ChatEventTypes>(toRoomId: MiChatRoom['id'], type: K, value?: ChatEventTypes[K]): void {
 		this.publish(`chatRoomStream:${toRoomId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishChatRoomUserStream<K extends keyof ChatEventTypes>(toRoomId: MiChatRoom['id'], toUserId: MiUser['id'], type: K, value?: ChatEventTypes[K]): void {
+		this.publish(`chatRoomUserStream:${toRoomId}-${toUserId}`, type, typeof value === 'undefined' ? null : value);
 	}
 
 	@bindThis

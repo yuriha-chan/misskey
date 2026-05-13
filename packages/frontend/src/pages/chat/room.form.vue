@@ -9,22 +9,42 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@dragover.stop="onDragover"
 	@drop.stop="onDrop"
 >
-	<textarea
-		ref="textareaEl"
-		v-model="text"
-		:class="$style.textarea"
-		class="_acrylic"
-		:placeholder="i18n.ts.inputMessageHere"
-		:readonly="textareaReadOnly"
-		@keydown="onKeydown"
-		@paste="onPaste"
-	></textarea>
 	<footer :class="$style.footer">
-		<div v-if="file" :class="$style.file" @click="file = null">{{ file.name }}</div>
-		<div :class="$style.buttons">
-			<button class="_button" :class="$style.button" @click="chooseFile"><i class="ti ti-photo-plus"></i></button>
+		<div v-if="file" :class="$style.previewItem" @click="file = null">
+			<i class="ti ti-paperclip"></i>
+			<span>{{ file.name }}</span>
+			<button class="_button"><i class="ti ti-x"></i></button>
+		</div>
+		<div v-if="poll" :class="$style.previewItem">
+			<i class="ti ti-chart-bar"></i>
+			<span>{{ poll.title }}</span>
+			<button class="_button" @click="poll = null"><i class="ti ti-x"></i></button>
+		</div>
+		<div v-if="secret" :class="$style.previewItem">
+			<i class="ti ti-spy"></i>
+			<span>{{ i18n.ts._chat.secretAttached }}</span> - {{ secret.title }} ⇒ {{ secret.plaintext }}
+			<button class="_button" @click="secret = null"><i class="ti ti-x"></i></button>
+		</div>
+		<div v-if="cards" :class="$style.previewItem">
+			<i class="ti ti-cards"></i>
+			<span>{{ cards.title }}</span>
+			<button class="_button" @click="card = null"><i class="ti ti-x"></i></button>
+		</div>
+
+		<div :class="$style.input">
+			<button class="_button" :class="$style.button" :title="i18n.ts.attach" @click="openAttachmentMenu"><i class="ti ti-plus"></i></button>
 			<button class="_button" :class="$style.button" @click="insertEmoji"><i class="ti ti-mood-happy"></i></button>
-			<button class="_button" :class="[$style.button, $style.send]" :disabled="!canSend || sending" :title="i18n.ts.send" @click="send">
+			<textarea
+				ref="textareaEl"
+				v-model="text"
+				:class="$style.textarea"
+				class="_acrylic"
+				:placeholder="props.isArchived ? i18n.ts._chat.thisRoomIsArchived : i18n.ts.inputMessageHere"
+				:readonly="textareaReadOnly"
+				@keydown="onKeydown"
+				@paste="onPaste"
+			></textarea>
+			<button class="_button" :class="[$style.button, $style.send]" :disabled="props.isArchived || !canSend || sending" :title="i18n.ts.send" @click="send">
 				<template v-if="!sending"><i class="ti ti-send"></i></template><template v-if="sending"><MkLoading :em="true"/></template>
 			</button>
 		</div>
@@ -34,7 +54,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, watch, ref, shallowRef, computed, nextTick, readonly, onBeforeUnmount } from 'vue';
+import { onMounted, watch, ref, shallowRef, computed, nextTick, onBeforeUnmount, reactive } from 'vue';
 import * as Misskey from 'misskey-js';
 //import insertTextAtCursor from 'insert-text-at-cursor';
 import { formatTimeString } from '@/utility/format-time-string.js';
@@ -47,10 +67,16 @@ import { prefer } from '@/preferences.js';
 import { Autocomplete } from '@/utility/autocomplete.js';
 import { emojiPicker } from '@/utility/emoji-picker.js';
 import { checkDragDataType, getDragData } from '@/drag-and-drop.js';
+import MkInput from '@/components/MkInput.vue';
+import MkTextarea from '@/components/MkTextarea.vue';
+import MkSwitch from '@/components/MkSwitch.vue';
+import MkButton from '@/components/MkButton.vue';
 
 const props = defineProps<{
 	user?: Misskey.entities.UserDetailed | null;
 	room?: Misskey.entities.ChatRoom | null;
+	members: Record<string, Misskey.entities.ChatRoomMembership>;
+	isArchived: boolean;
 }>();
 
 const textareaEl = shallowRef<HTMLTextAreaElement>();
@@ -58,11 +84,63 @@ const fileEl = shallowRef<HTMLInputElement>();
 
 const text = ref<string>('');
 const file = ref<Misskey.entities.DriveFile | null>(null);
+const poll = ref<{ title: string; choices: string[]; startsIn: number; duration: number; anonymous: boolean; } | null>(null);
+const secret = ref<{ title: string; plaintext: string; revealsIn: number; } | null>(null);
+const cards = ref<{ title: string; cards: string[]; deliver: { user: string, count: number }[]} | null>(null);
 const sending = ref(false);
 const textareaReadOnly = ref(false);
 let autocompleteInstance: Autocomplete | null = null;
 
-const canSend = computed(() => (text.value != null && text.value !== '') || file.value != null);
+const canSend = computed(() => (text.value.trim() !== '') || file.value != null || poll.value != null || secret.value != null || cards.value != null);
+
+function openAttachmentMenu(ev: MouseEvent) {
+	os.popupMenu([
+		{ text: i18n.ts.attachFile, icon: 'ti ti-photo-plus', action: () => chooseFile(ev) },
+		{ type: 'divider' },
+		{ text: i18n.ts._chat.startPoll, icon: 'ti ti-chart-bar', action: openPollDialog },
+		{ text: i18n.ts._chat.attachSecret, icon: 'ti ti-spy', action: openSecretDialog },
+		{ text: i18n.ts._chat.deliverCards, icon: 'ti ti-cards', action: openCardsDialog },
+	], ev.currentTarget ?? ev.target);
+}
+
+async function openPollDialog() {
+	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-poll.vue').then(x => x.default), {
+		poll: poll.value,
+		members: props.members,
+	}, {
+		done: result => {
+			if (result.created) {
+				poll.value = result.created;
+			}
+		},
+		closed: () => dispose(),
+	});
+}
+async function openSecretDialog(): Promise {
+	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-secret.vue').then(x => x.default), {
+		secret: secret.value,
+	}, {
+		done: result => {
+			if (result.created) {
+				secret.value = result.created;
+			}
+		},
+		closed: () => dispose(),
+	});
+}
+async function openCardsDialog() {
+	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-cards.vue').then(x => x.default), {
+		cards: cards.value,
+		members: props.members,
+	}, {
+		done: result => {
+			if (result.created) {
+				cards.value = result.created;
+			}
+		},
+		closed: () => dispose(),
+	});
+}
 
 function getDraftKey() {
 	return props.user ? 'user:' + props.user.id : 'room:' + props.room?.id;
@@ -187,41 +265,48 @@ function onChangeFile() {
 	}
 }
 
+function packDeliverCards(cards) {
+	return {...cards, deliver: cards.deliver.map(d => ({ count: d.count, userId: d.user.id }))};
+}
+function packPoll(poll) {
+	return {...poll, choices: poll.voteForUsers ? poll.choices.map(u => u.id) : poll.choices };
+}
+
 function send() {
 	if (!canSend.value) return;
-
 	sending.value = true;
 
-	if (props.user) {
-		misskeyApi('chat/messages/create-to-user', {
-			toUserId: props.user.id,
-			text: text.value ? text.value : undefined,
-			fileId: file.value ? file.value.id : undefined,
-		}).then(message => {
-			clear();
-		}).catch(err => {
-			console.error(err);
-		}).then(() => {
-			sending.value = false;
-		});
-	} else if (props.room) {
-		misskeyApi('chat/messages/create-to-room', {
-			toRoomId: props.room.id,
-			text: text.value ? text.value : undefined,
-			fileId: file.value ? file.value.id : undefined,
-		}).then(message => {
-			clear();
-		}).catch(err => {
-			console.error(err);
-		}).then(() => {
-			sending.value = false;
-		});
-	}
+	const createMessage = (params: any) => props.user
+		? misskeyApi('chat/messages/create-to-user', { toUserId: props.user.id, ...params })
+		: misskeyApi('chat/messages/create-to-room', { toRoomId: props.room!.id, ...params });
+
+	const createEvent = (endpoint: string, params: any) => props.user
+		? misskeyApi(endpoint as any, { toUserId: props.user.id, ...params })
+		: misskeyApi(endpoint as any, { toRoomId: props.room!.id, ...params });
+
+	const params: any = {};
+	if (text.value.trim()) params.text = text.value;
+	if (file.value) params.fileId = file.value.id;
+	if (poll.value) params.poll = packPoll(poll.value);
+	if (secret.value) params.commitSecret = secret.value;
+	if (cards.value) params.deliverCards = packDeliverCards(cards.value);
+
+	createMessage(params).then(() => {
+		clear();
+	}).catch(err => {
+		console.error(err);
+		os.alert({ type: 'error', text: i18n.ts.somethingHappened });
+	}).finally(() => {
+		sending.value = false;
+	});
 }
 
 function clear() {
 	text.value = '';
 	file.value = null;
+	poll.value = null;
+	secret.value = null;
+	cards.value = null;
 	deleteDraft();
 }
 
@@ -271,7 +356,7 @@ async function insertEmoji(ev: MouseEvent) {
 		},
 		() => {
 			textareaReadOnly.value = false;
-			nextTick(() => focus());
+			nextTick(() => textareaEl.value?.focus());
 		},
 	);
 }
@@ -309,11 +394,8 @@ onBeforeUnmount(() => {
 	cursor: auto;
 	display: block;
 	width: 100%;
-	min-width: 100%;
-	max-width: 100%;
-	min-height: 80px;
 	margin: 0;
-	padding: 16px 16px 0 16px;
+	padding: 4px 8px 0;
 	resize: none;
 	font-size: 1em;
 	font-family: inherit;
@@ -323,6 +405,8 @@ onBeforeUnmount(() => {
 	box-shadow: none;
 	box-sizing: border-box;
 	color: var(--MI_THEME-fg);
+	background: transparent;
+	flex-grow: 3;
 	field-sizing: content;
 }
 
@@ -332,17 +416,37 @@ onBeforeUnmount(() => {
 	background: var(--MI_THEME-panel);
 }
 
-.file {
+.previewItem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	padding: 8px;
-	cursor: pointer;
+	font-size: 0.9em;
+	border-bottom: solid 1px var(--MI_THEME-divider);
+
+	> i {
+		font-size: 1.2em;
+	}
+
+	> span {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	> button {
+		margin-left: auto;
+	}
 }
 
-.buttons {
+.input {
 	display: flex;
+	align-items: center;
+	padding: 8px;
 }
 
 .button {
-	height: 50px;
+	height: 40px;
 	aspect-ratio: 1;
 
 	&:hover {
