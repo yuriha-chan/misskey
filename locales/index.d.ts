@@ -1907,6 +1907,18 @@ export interface Locale extends ILocale {
      */
     "newPasswordIs": ParameterizedString<"password">;
     /**
+     * モバイルデバイスのとき下のボタンを自動で隠す
+     */
+    "hideNavFooter": string;
+    /**
+     * モバイルデバイスのときUIの余白を減らす
+     */
+    "reduceUiMargin": string;
+    /**
+     * ノートの文字を少し大きくする
+     */
+    "largeNoteText": string;
+    /**
      * UIのアニメーションを減らす
      */
     "reduceUiAnimation": string;
