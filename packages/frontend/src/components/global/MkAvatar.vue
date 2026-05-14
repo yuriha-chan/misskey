@@ -160,6 +160,7 @@ function getDecorationAnimation(decoration: Decoration | DecorationEditorDecorat
 	if (prefer.s.disableShowingAnimatedImages) { return "none"; }
 	const animation = (slot === "bg") ? decoration.bgAnimation : decoration.animation;
 	return animation ? animation : "none";
+}
 
 function getDecorationIsBrink(decoration: Decoration | DecorationEditorDecoration) {
 	return 'blink' in decoration && decoration.blink === true;

@@ -28,11 +28,11 @@ export class GlobalTimelineChannel extends Channel {
 	private excludeFiles: boolean;
 
 	constructor(
+		@Inject(DI.meta)
 		private meta: MiMeta,
 		@Inject(REQUEST)
 		request: ChannelRequest,
 
-		private metaService: MetaService,
 		private roleService: RoleService,
 		private noteEntityService: NoteEntityService,
 		private noteStreamingHidingService: NoteStreamingHidingService,
