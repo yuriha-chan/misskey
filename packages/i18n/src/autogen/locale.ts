@@ -31,6 +31,10 @@ export interface Locale extends ILocale {
      */
     "search": string;
     /**
+     * 類似画像を検索
+     */
+    "searchSimilarImage": string;
+    /**
      * リセット
      */
     "reset": string;
@@ -153,6 +157,18 @@ export interface Locale extends ILocale {
      */
     "signup": string;
     /**
+     * サブアカウントを新規登録
+     */
+    "signupSubAccount": string;
+    /**
+     * メインアカウント
+     */
+    "mainAccount": string;
+    /**
+     * サブアカウントにログインするためには、このメインアカウントにまずログインする必要があります。
+     */
+    "mainAccountInfo": string;
+    /**
      * アップロード中
      */
     "uploading": string;
@@ -228,6 +244,38 @@ export interface Locale extends ILocale {
      * このノートを削除してもう一度編集しますか？このノートへのリアクション、リノート、返信も全て削除されます。
      */
     "deleteAndEditConfirm": string;
+    /**
+     * 公開範囲をホームに制限
+     */
+    "limitToHome": string;
+    /**
+     * このノートの公開範囲を「ホーム」に変更しますか？この操作は取り消せません。
+     */
+    "limitToHomeConfirm": string;
+    /**
+     * 公開範囲を「フォロワー」に制限
+     */
+    "limitToFollowers": string;
+    /**
+     * このノートの公開範囲を「フォロワー」に変更しますか？この操作は取り消せません。
+     */
+    "limitToFollowersConfirm": string;
+    /**
+     * 公開範囲を「ローカルのみ」に制限
+     */
+    "limitToLocalOnly": string;
+    /**
+     * このノートの公開範囲を「ローカルのみ」に変更しますか？連合先サーバーへはノートが削除されたと通知します。この操作は取り消せません。
+     */
+    "limitToLocalOnlyConfirm": string;
+    /**
+     * リアクションの受け入れを「いいね」のみに制限
+     */
+    "limitToLikeOnly": string;
+    /**
+     * このノートが受け付けるリアクションを「いいね」のみに制限しますか？この操作は取り消せません。
+     */
+    "limitToLikeOnlyConfirm": string;
     /**
      * リストに追加
      */
@@ -977,7 +1025,7 @@ export interface Locale extends ILocale {
      */
     "silencedInstances": string;
     /**
-     * サイレンスしたいサーバーのホストを改行で区切って設定します。サイレンスされたサーバーに所属するアカウントはすべて「サイレンス」として扱われ、フォローがすべてリクエストになります。ブロックしたインスタンスには影響しません。
+     * サイレンスしたいサーバーのホストを改行で区切って設定します。サイレンスされたサーバーに所属するアカウントはすべて「サイレンス」として扱われ、フォローがすべてリクエストになり、フォロワーでないローカルアカウントにはメンションできなくなります。ブロックしたインスタンスには影響しません。
      */
     "silencedInstancesDescription": string;
     /**
@@ -996,6 +1044,14 @@ export interface Locale extends ILocale {
      * 連合を許可するサーバーのホストを改行で区切って設定します。
      */
     "federationAllowedHostsDescription": string;
+    /**
+     * GTLミュートしたサーバー
+     */
+    "gtlMutedInstances": string;
+    /**
+     * GTLミュートしたいサーバーのホストを改行で区切って設定します。GTLミュートされたサーバーに所属するアカウントに関連する投稿がグローバルタイムラインに表示されなくなります。
+     */
+    "gtlMutedInstancesDescription": string;
     /**
      * ミュートとブロック
      */
@@ -1125,6 +1181,10 @@ export interface Locale extends ILocale {
      */
     "attachFile": string;
     /**
+     * すべての添付ファイルをノートから取り外す
+     */
+    "removeAllFiles": string;
+    /**
      * もっと！
      */
     "more": string;
@@ -1161,6 +1221,10 @@ export interface Locale extends ILocale {
      */
     "removed": string;
     /**
+     * この操作は元に戻せません。
+     */
+    "thisOperationCannotBeUndone": string;
+    /**
      * 「{x}」を削除しますか？
      */
     "removeAreYouSure": ParameterizedString<"x">;
@@ -1168,6 +1232,10 @@ export interface Locale extends ILocale {
      * 「{x}」を削除しますか？
      */
     "deleteAreYouSure": ParameterizedString<"x">;
+    /**
+     * 「{x}」をアーカイブしますか？
+     */
+    "archiveAreYouSure": ParameterizedString<"x">;
     /**
      * リセットしますか？
      */
@@ -1288,6 +1356,10 @@ export interface Locale extends ILocale {
      * 画像
      */
     "image": string;
+    /**
+     * 以下に正確な個人情報を入力する必要はありません。架空の居住地や誕生日を入力してもよいですし、空欄のままでもかまいません。
+     */
+    "personalInfo": string;
     /**
      * 誕生日
      */
@@ -1597,6 +1669,10 @@ export interface Locale extends ILocale {
      */
     "bannerUrl": string;
     /**
+     * 背景
+     */
+    "background": string;
+    /**
      * 背景画像のURL
      */
     "backgroundImageUrl": string;
@@ -1761,6 +1837,10 @@ export interface Locale extends ILocale {
      */
     "withReplies": string;
     /**
+     * ハッシュタグ付きを含む
+     */
+    "withHashtags": string;
+    /**
      * 次のアカウントに接続されています
      */
     "connectedTo": string;
@@ -1788,6 +1868,10 @@ export interface Locale extends ILocale {
      * サイレンス解除しますか？
      */
     "unsilenceConfirm": string;
+    /**
+     * GTLミュート
+     */
+    "gtlMuted": string;
     /**
      * 人気のユーザー
      */
@@ -1916,6 +2000,18 @@ export interface Locale extends ILocale {
      * 新しいパスワードは「{password}」です
      */
     "newPasswordIs": ParameterizedString<"password">;
+    /**
+     * モバイルデバイスのとき下のボタンを自動で隠す
+     */
+    "hideNavFooter": string;
+    /**
+     * モバイルデバイスのときUIの余白を減らす
+     */
+    "reduceUiMargin": string;
+    /**
+     * ノートの文字を少し大きくする
+     */
+    "largeNoteText": string;
     /**
      * UIのアニメーションを減らす
      */
@@ -2164,6 +2260,10 @@ export interface Locale extends ILocale {
      * アカウントを作成
      */
     "createAccount": string;
+    /**
+     * 現在のアカウントのサブアカウントを作成
+     */
+    "createSubAccount": string;
     /**
      * 既存のアカウント
      */
@@ -2921,31 +3021,89 @@ export interface Locale extends ILocale {
      */
     "sample": string;
     /**
-     * 通報
+     * 管理者に連絡
      */
-    "abuseReports": string;
+    "contactAdmin": string;
     /**
-     * 通報
+     * 理由を選択
      */
-    "reportAbuse": string;
+    "contactAdminReason": string;
     /**
-     * リノートを通報
+     * 報告対象のアカウント
+     */
+    "reportOf": string;
+    "_contactAdminReason": {
+        /**
+         * 不適切な投稿
+         */
+        "abuse": string;
+        /**
+         * スパムを投稿しています
+         */
+        "spam": string;
+        /**
+         * プライバシーを侵害しています
+         */
+        "privacy": string;
+        /**
+         * 暴言や個人攻撃をしています
+         */
+        "attack": string;
+        /**
+         * 適切な閲覧注意タグがついていません
+         */
+        "obscene": string;
+        /**
+         * そのほかの理由で不適切です
+         */
+        "abuseOther": string;
+        /**
+         * 助けが必要
+         */
+        "help": string;
+        /**
+         * 技術的な助けが必要です
+         */
+        "technical": string;
+        /**
+         * 精神的な助けが必要です
+         */
+        "mental": string;
+        /**
+         * フィルターに誤検知されています
+         */
+        "falsePositive": string;
+        /**
+         * そのほかの助けが必要です
+         */
+        "helpOther": string;
+        /**
+         * 素晴らしい投稿
+         */
+        "good": string;
+        /**
+         * 善い行いをしています
+         */
+        "ethical": string;
+    };
+    /**
+     * ユーザーの報告を確認
+     */
+    "reviewReports": string;
+    /**
+     * 管理者に伝えたい情報の詳細を入力してください
+     */
+    "fillReportDescription": string;
+    /**
+     * 報告が送信されました。ありがとうございますby 管理者
+     */
+    "reportCompleted": string;
+    /**
+     * リノート行為について管理者に連絡
      */
     "reportAbuseRenote": string;
     /**
-     * {name}を通報する
-     */
-    "reportAbuseOf": ParameterizedString<"name">;
-    /**
-     * 通報理由の詳細を記入してください。対象のノートやページなどがある場合はそのURLも記入してください。
-     */
-    "fillAbuseReportDescription": string;
-    /**
-     * 内容が送信されました。ご報告ありがとうございました。
-     */
-    "abuseReported": string;
-    /**
-     * 通報者
+     * 報告者
      */
     "reporter": string;
     /**
@@ -2956,6 +3114,10 @@ export interface Locale extends ILocale {
      * 通報元
      */
     "reporterOrigin": string;
+    /**
+     * このユーザーの投稿したノートや、受け取ったダイレクト投稿について管理者に伝えたいことがある場合は、この画面を閉じて、該当するノートの「…」から「管理者に連絡」を選択して連絡してください。ノート投稿以外について連絡したいことがある場合は、このまま送信してください。
+     */
+    "guideReportNote": string;
     /**
      * 送信
      */
@@ -3765,6 +3927,26 @@ export interface Locale extends ILocale {
      */
     "deleteAccountConfirm": string;
     /**
+     * アカウント@{username}がサーバーから完全に削除されます。このアカウントの作成したノート、ドライブのファイルなどもサーバーからすべて削除され、元に戻せません。よろしいですか？
+     */
+    "deleteNamedAccountConfirm": ParameterizedString<"username">;
+    /**
+     * サブアカウントを閉鎖する
+     */
+    "closeSubAccount": string;
+    /**
+     * サブアカウントを読み込む
+     */
+    "syncSubAccounts": string;
+    /**
+     * 現在ログイン中のアカウント
+     */
+    "currentAccount": string;
+    /**
+     * 現在ログイン中のアカウントのサブアカウント
+     */
+    "subAccountOfCurrentAccount": string;
+    /**
      * パスワードが間違っています。
      */
     "incorrectPassword": string;
@@ -3861,9 +4043,17 @@ export interface Locale extends ILocale {
      */
     "oneDay": string;
     /**
+     * 3日
+     */
+    "threeDays": string;
+    /**
      * 1週間
      */
     "oneWeek": string;
+    /**
+     * 2週間
+     */
+    "twoWeeks": string;
     /**
      * 1ヶ月
      */
@@ -3877,9 +4067,9 @@ export interface Locale extends ILocale {
      */
     "oneYear": string;
     /**
-     * 3日
+     * 3年
      */
-    "threeDays": string;
+    "threeYears": string;
     /**
      * 反映されるまで時間がかかる場合があります。
      */
@@ -4249,9 +4439,21 @@ export interface Locale extends ILocale {
      */
     "cannotPerformTemporaryDescription": string;
     /**
+     * 投稿速度が速すぎます
+     */
+    "cannotNoteTemporary": string;
+    /**
+     * 短時間に多くの投稿を行ったため、投稿速度制限(レートリミット)を超えました。しばらく時間を置いてから投稿してください。
+     */
+    "cannotNoteTemporaryDescription": string;
+    /**
      * パラメータエラー
      */
     "invalidParamError": string;
+    /**
+     * 以下の情報をサポートや管理者に見せると解決するかもしれません。
+     */
+    "invalidParamErrorInfoDescription": string;
     /**
      * リクエストパラメータに問題があります。通常これはバグですが、入力した文字数が多すぎる・許可されていない文字を入力している等の可能性もあります。
      */
@@ -4508,6 +4710,10 @@ export interface Locale extends ILocale {
      * データセーバー
      */
     "dataSaver": string;
+    /**
+     * 埋め込みコードをコピー
+     */
+    "copyEmbedCode": string;
     /**
      * アカウントの移行
      */
@@ -4917,6 +5123,10 @@ export interface Locale extends ILocale {
      */
     "fileAttachedOnly": string;
     /**
+     * ファイル付きを除外
+     */
+    "excludeFileAttached": string;
+    /**
      * TLに他の人への返信を含める
      */
     "showRepliesToOthersInTimeline": string;
@@ -5076,6 +5286,14 @@ export interface Locale extends ILocale {
      * デコる
      */
     "decorate": string;
+    /**
+     * アニメーション (CSS)
+     */
+    "animationCSS": string;
+    /**
+     * ブレンドモード
+     */
+    "mixBlendMode": string;
     /**
      * 装飾を追加
      */
@@ -5920,6 +6138,10 @@ export interface Locale extends ILocale {
          */
         "sentInvitations": string;
         /**
+         * チャットグループ
+         */
+        "chatRoom": string;
+        /**
          * 参加
          */
         "join": string;
@@ -5931,6 +6153,18 @@ export interface Locale extends ILocale {
          * グループから退出
          */
         "leave": string;
+        /**
+         * {who}がグループに参加しました
+         */
+        "userHasJoined": ParameterizedString<"who">;
+        /**
+         * {who}がグループから退出しました
+         */
+        "userHasLeft": ParameterizedString<"who">;
+        /**
+         * {who}がグループから退出させられました
+         */
+        "userHasKicked": ParameterizedString<"who">;
         /**
          * メンバー
          */
@@ -6037,6 +6271,270 @@ export interface Locale extends ILocale {
              */
             "none": string;
         };
+        /**
+         * 公開グループとして作成
+         */
+        "isPublicRoom": string;
+        /**
+         * 公開グループはありません
+         */
+        "noPublicRoom": string;
+        /**
+         * 退出させる
+         */
+        "kickUser": string;
+        /**
+         * 自動で解散
+         */
+        "expires": string;
+        /**
+         * 時間経過で解散
+         */
+        "expiresIn": string;
+        /**
+         * グループを解散してアーカイブする
+         */
+        "archiveRoom": string;
+        /**
+         * このグループはアーカイブされています。
+         */
+        "thisRoomIsArchived": string;
+        /**
+         * グループの定員
+         */
+        "capacity": string;
+        /**
+         * 公開グループ
+         */
+        "publicRooms": string;
+        /**
+         * 公開グループは6時間以内に自動解散する必要があります
+         */
+        "publicRoomMustExpire": string;
+        /**
+         * 秘密を伏せる
+         */
+        "attachSecret": string;
+        /**
+         * 秘密が添付されています
+         */
+        "secretAttached": string;
+        /**
+         * 秘密を編集
+         */
+        "editSecret": string;
+        /**
+         * が秘密「{title}」を伏せました
+         */
+        "secretCommited": ParameterizedString<"title">;
+        /**
+         * の秘密が公開されました
+         */
+        "secretRevealed": string;
+        /**
+         * 秘密の内容
+         */
+        "secretContent": string;
+        /**
+         * タイトル(公開)
+         */
+        "secretTitle": string;
+        /**
+         * 秘密を公開する
+         */
+        "revealSecret": string;
+        /**
+         * 公開
+         */
+        "revealCard": string;
+        /**
+         * 自動で秘密を公開する
+         */
+        "autoReveal": string;
+        /**
+         * 時間経過で公開:
+         */
+        "revealsAfter": string;
+        /**
+         * 秘密「{what}」が伏せられています
+         */
+        "hasCommittedSecret": ParameterizedString<"what">;
+        /**
+         * 秘密「{what}」を公開しますか？
+         */
+        "secretRevealConfirm": ParameterizedString<"what">;
+        /**
+         * カード「{what}」を公開しますか？
+         */
+        "cardRevealConfirm": ParameterizedString<"what">;
+        /**
+         * がカードを公開しました
+         */
+        "cardRevealed": string;
+        /**
+         * カードの名前を入力 (例: スペードのエース)
+         */
+        "cardPlaceHolder": string;
+        /**
+         * 枚
+         */
+        "cardSuffix": string;
+        /**
+         * 投票済み
+         */
+        "voted": string;
+        /**
+         * 投票者
+         */
+        "voters": string;
+        /**
+         * 票
+         */
+        "gotVotes": string;
+        /**
+         * 公開まで
+         */
+        "revealsIn": string;
+        /**
+         * 開始まで
+         */
+        "startsIn": string;
+        /**
+         * 終了まで
+         */
+        "finishesIn": string;
+        /**
+         * 投票を編集
+         */
+        "editPoll": string;
+        /**
+         * 投票を開始する
+         */
+        "startPoll": string;
+        /**
+         * 投票を終了
+         */
+        "finishPoll": string;
+        /**
+         * が投票「{what}」が予定しました
+         */
+        "pollScheduled": ParameterizedString<"what">;
+        /**
+         * が投票「{what}」を開始しました
+         */
+        "pollStarted": ParameterizedString<"what">;
+        /**
+         * 投票「{what}」が終了しました
+         */
+        "pollFinished": ParameterizedString<"what">;
+        /**
+         * 匿名投票 (開票時に投票者が表示されない)
+         */
+        "anonymousPoll": string;
+        /**
+         * グループ参加者に投票
+         */
+        "voteForRoomMembers": string;
+        /**
+         * 自分以外のグループ参加者に投票
+         */
+        "voteForRoomMembersNotMe": string;
+        /**
+         * ユーザーに投票
+         */
+        "voteForUsers": string;
+        /**
+         * 投票
+         */
+        "poll": string;
+        /**
+         * 投票
+         */
+        "vote": string;
+        /**
+         * 投票先を選択
+         */
+        "selectVote": string;
+        /**
+         * 投票選択肢
+         */
+        "pollChoices": string;
+        /**
+         * 投票時間
+         */
+        "pollDuration": string;
+        /**
+         * 投票開始まで
+         */
+        "pollStartsIn": string;
+        /**
+         * 投票のタイトル
+         */
+        "pollTitle": string;
+        /**
+         * 予定時刻前に投票「{what}」を締め切ります。まだ全員が投票していないようですが、よろしいですか？
+         */
+        "pollFinishConfirm": ParameterizedString<"what">;
+        /**
+         * 予定時刻前に投票「{what}」を開始します。よろしいですか？
+         */
+        "pollStartConfirm": ParameterizedString<"what">;
+        /**
+         * カードの一覧
+         */
+        "cardsList": string;
+        /**
+         * カードのタイトル
+         */
+        "cardsTitle": string;
+        /**
+         * 配布カードを編集
+         */
+        "editCards": string;
+        /**
+         * 参加設定を編集
+         */
+        "editParticipation": string;
+        /**
+         * 退出済みグループを含む
+         */
+        "includeLeftRooms": string;
+        /**
+         * 解散されたグループを含む
+         */
+        "includeArchivedRooms": string;
+        /**
+         * 公開グループがありません
+         */
+        "noPublicRooms": string;
+        /**
+         * あなたのカード
+         */
+        "yourCard": string;
+        /**
+         * カードを配る
+         */
+        "deliverCards": string;
+        /**
+         * ユーザーごとの配布数
+         */
+        "cardCountsByUser": string;
+        /**
+         * 全員に配る枚数を設定
+         */
+        "setCardCountsAll": string;
+        /**
+         * カードが配られました
+         */
+        "cardDelivered": string;
+        /**
+         * 匿名発言
+         */
+        "anonymousSpeech": string;
+        /**
+         * 自分の発言の吹き出しの色を選択
+         */
+        "selectBubbleColor": string;
     };
     "_emojiPalette": {
         /**
@@ -8754,6 +9252,14 @@ export interface Locale extends ILocale {
          * チャンネル外へのリノートと引用リノートを許可する
          */
         "allowRenoteToExternal": string;
+        /**
+         * チャンネルを見つけやすくする
+         */
+        "makeExplorable": string;
+        /**
+         * チャンネルが「トレンド一覧」に表示されるようになります。身内用のチャンネルではオフにしてください。
+         */
+        "makeExplorableDescription": string;
     };
     "_menuDisplay": {
         /**
@@ -8802,6 +9308,24 @@ export interface Locale extends ILocale {
         "title": string;
         /**
          * ミュートするサーバー
+         */
+        "heading": string;
+    };
+    "_instanceGtlMute": {
+        /**
+         * ミュートしたサーバーからの投稿をグローバルタイムラインに表示しません。その他のタイムラインでは表示されます。
+         */
+        "instanceMuteDescription": string;
+        /**
+         * 改行で区切って設定します
+         */
+        "instanceMuteDescription2": string;
+        /**
+         * 設定したサーバーのノートをグローバルタイムラインから隠します。
+         */
+        "title": string;
+        /**
+         * GTLミュートするサーバー
          */
         "heading": string;
     };
@@ -10517,6 +11041,10 @@ export interface Locale extends ILocale {
          */
         "global": string;
     };
+    /**
+     * フォロー中ユーザーの投稿
+     */
+    "followingsUpdates": string;
     "_play": {
         /**
          * Playの作成
@@ -12529,6 +13057,22 @@ export interface Locale extends ILocale {
          * 例: misskey.example.com
          */
         "serverHostPlaceholder": string;
+        /**
+         * 最近のローカルタイムライン
+         */
+        "recentLocalTimeline": string;
+        /**
+         * 最近のホームタイムライン
+         */
+        "recentHomeTimeline": string;
+        /**
+         * 自分宛ての指名投稿
+         */
+        "specifiedToMe": string;
+        /**
+         * ボットの投稿を含める
+         */
+        "includeBot": string;
     };
     "_serverSetupWizard": {
         /**

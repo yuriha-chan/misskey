@@ -4500,6 +4500,17 @@ declare module '../api.js' {
     ): Promise<SwitchCaseResponseType<E, P>>;
 
     /**
+     * Revoke the password reset that was previously requested.
+     * 
+     * **Credential required**: *Yes*
+     */
+    request<E extends 'revoke-reset-password', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
      * No description provided.
      * 
      * **Credential required**: *Yes* / **Permission**: *read:account*

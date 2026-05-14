@@ -3690,6 +3690,15 @@ export type paths = {
          */
         post: operations['reversi___verify'];
     };
+    '/revoke-reset-password': {
+        /**
+         * revoke-reset-password
+         * @description Revoke the password reset that was previously requested.
+         *
+         *     **Credential required**: *Yes*
+         */
+        post: operations['revoke-reset-password'];
+    };
     '/roles/list': {
         /**
          * roles/list
@@ -10030,11 +10039,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     /** @enum {string} */
                     state: '*' | 'completed' | 'wait' | 'active' | 'paused' | 'prioritized' | 'delayed' | 'failed';
                 };
@@ -10221,11 +10226,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     state: ('active' | 'wait' | 'delayed' | 'completed' | 'failed' | 'paused')[];
                     search?: string;
                 };
@@ -10293,11 +10294,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                 };
             };
         };
@@ -10360,11 +10357,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                 };
             };
         };
@@ -10377,11 +10370,7 @@ export interface operations {
                 content: {
                     'application/json': {
                         /** @enum {string} */
-<<<<<<< HEAD
-                        name: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                        name: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                        name: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                         qualifiedName: string;
                         counts: {
                             [key: string]: number;
@@ -10471,11 +10460,7 @@ export interface operations {
                 content: {
                     'application/json': {
                         /** @enum {string} */
-<<<<<<< HEAD
-                        name: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                        name: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                        name: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                         counts: {
                             [key: string]: number;
                         };
@@ -10539,11 +10524,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -10607,11 +10588,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -10675,11 +10652,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -10746,11 +10719,7 @@ export interface operations {
             content: {
                 'application/json': {
                     /** @enum {string} */
-<<<<<<< HEAD
-                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
-=======
-                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
->>>>>>> 2026.5.1-feats-combined
+                    queue: 'system' | 'endedPollNotification' | 'closeExpiredChatRoom' | 'revealChatSecret' | 'endChatPoll' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
                 };
             };
@@ -12086,6 +12055,7 @@ export interface operations {
                     'application/json': {
                         email: string | null;
                         emailVerified: boolean;
+                        mainAccountId: string | null;
                         followedMessage: string | null;
                         autoAcceptFollowed: boolean;
                         noCrawle: boolean;
@@ -12255,6 +12225,7 @@ export interface operations {
                         isModerator: boolean;
                         isSilenced: boolean;
                         isSuspended: boolean;
+                        isRemoteSuspended: boolean;
                         isHibernated: boolean;
                         lastActiveDate: string | null;
                         moderationNote: string;
@@ -32351,6 +32322,12 @@ export interface operations {
                      * @default null
                      */
                     channelId?: string | null;
+                    /** @default null */
+                    timeline?: string | null;
+                    /** @default null */
+                    specified?: boolean | null;
+                    /** @default null */
+                    excludeBot?: boolean | null;
                 };
             };
         };
@@ -35121,6 +35098,61 @@ export interface operations {
                         desynced: boolean;
                         game?: components['schemas']['ReversiGameDetailed'] | null;
                     };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'revoke-reset-password': {
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
                 };
             };
             /** @description Client error */
