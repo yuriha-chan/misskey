@@ -73,8 +73,6 @@
 			return;
 		}
 	}
-
-	localStorage.setItem('lang', lang);
 	//#endregion
 
 	//#region Script
