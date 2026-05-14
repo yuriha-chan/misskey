@@ -99,7 +99,7 @@ export class MiUser {
 	})
 	public avatarId: MiDriveFile['id'] | null;
 
-	@OneToOne(type => MiDriveFile, {
+	@OneToOne(() => MiDriveFile, {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
@@ -112,7 +112,7 @@ export class MiUser {
 	})
 	public bannerId: MiDriveFile['id'] | null;
 
-	@OneToOne(type => MiDriveFile, {
+	@OneToOne(() => MiDriveFile, {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
@@ -166,9 +166,15 @@ export class MiUser {
 
 	@Column('boolean', {
 		default: false,
-		comment: 'Whether the User is suspended.',
+		comment: 'Whether the User is suspended by the local moderators.',
 	})
 	public isSuspended: boolean;
+
+	@Column('boolean', {
+		default: false,
+		comment: 'Whether the User is suspended by the remote moderators.',
+	})
+	public isRemoteSuspended: boolean;
 
 	@Column('boolean', {
 		default: false,

@@ -31,9 +31,9 @@ import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import Logger from '@/logger.js';
 import * as Acct from '@/misc/acct.js';
+import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
 import type { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginOptions, FastifyBodyParser } from 'fastify';
 import type { FindOptionsWhere } from 'typeorm';
-import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
 
 const ACTIVITY_JSON = 'application/activity+json; charset=utf-8';
 const LD_JSON = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"; charset=utf-8';
@@ -80,8 +80,8 @@ export class ActivityPubServerService {
 		private queueService: QueueService,
 		private userKeypairService: UserKeypairService,
 		private queryService: QueryService,
-		private loggerService: LoggerService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
+		private loggerService: LoggerService,
 	) {
 		//this.createServer = this.createServer.bind(this);
 		this.logger = this.loggerService.getLogger('server-ap', 'gray');
@@ -115,6 +115,7 @@ export class ActivityPubServerService {
 	@bindThis
 	private async inbox(request: FastifyRequest, reply: FastifyReply) {
 		if (this.meta.federation === 'none') {
+			this.inboxLogger.debug('federation is disabled');
 			reply.code(403);
 			return;
 		}
@@ -126,10 +127,12 @@ export class ActivityPubServerService {
 		}
 
 		let signature: ReturnType<typeof parseRequestSignature>;
-		// cast Buffer<ArrayBufferLike> into Buffer<ArrayBuffer>, because it's not likely a Buffer<SharedArrayBuffer>
-		const rawBody = (request.rawBody || '') as (string | Buffer<ArrayBuffer>);
 
-		const verifyDigest = await verifyDigestHeader(request.raw, rawBody, true);
+		const verifyDigest = await verifyDigestHeader(
+			request.raw,
+			typeof request.rawBody === 'string' ? request.rawBody : (request.rawBody ? request.rawBody.toString('utf8') : ''),
+			true
+		);
 		if (verifyDigest !== true) {
 			this.inboxLogger.warn('digest verification failed');
 			reply.code(401);
@@ -146,17 +149,18 @@ export class ActivityPubServerService {
 					delay: 300_000,
 				},
 			});
-		} catch (err) {
-			this.inboxLogger.warn('signature header parsing failed', { err });
 
+			this.inboxLogger.debug('signature header parsed', { signature, body: request.body });
+		} catch (err) {
 			if (typeof request.body === 'object' && 'signature' in request.body) {
 				// LD SignatureがあればOK
 				this.queueService.inbox(request.body as IActivity, null);
+				this.inboxLogger.debug('LD Signature found in request body', { err, body: request.body });
 				reply.code(202);
 				return;
 			}
 
-			this.inboxLogger.warn('signature header parsing failed and LD signature not found');
+			this.inboxLogger.warn('signature header parsing failed and LD signature not found', { err });
 			reply.code(401);
 			return;
 		}

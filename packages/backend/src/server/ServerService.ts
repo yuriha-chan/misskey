@@ -75,7 +75,7 @@ export class ServerService implements OnApplicationShutdown {
 	@bindThis
 	public async launch(): Promise<void> {
 		const fastify = Fastify({
-			trustProxy: true,
+			trustProxy: this.config.trustProxy,
 			logger: false,
 		});
 		this.#fastify = fastify;
@@ -215,6 +215,7 @@ export class ServerService implements OnApplicationShutdown {
 					usernameLower: username.toLowerCase(),
 					host: (host == null) || (host === this.config.host) ? IsNull() : host,
 					isSuspended: false,
+					isRemoteSuspended: false,
 				},
 			});
 

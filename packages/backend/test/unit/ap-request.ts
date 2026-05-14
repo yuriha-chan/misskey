@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { describe, test, expect } from 'vitest';
 import * as assert from 'assert';
-import { verifyDraftSignature, parseRequestSignature, genEd25519KeyPair, genRsaKeyPair, importPrivateKey } from '@misskey-dev/node-http-message-signatures';
-import { createSignedGet, createSignedPost } from '@/core/activitypub/ApRequestService.js';
+
 import { assertActivityMatchesUrl, FetchAllowSoftFailMask } from '@/core/activitypub/misc/check-against-url.js';
 import { IObject } from '@/core/activitypub/type.js';
+import { verifyDraftSignature, parseRequestSignature, genRsaKeyPair, genEd25519KeyPair, importPrivateKey } from '@misskey-dev/node-http-message-signatures';
+import { createSignedGet, createSignedPost } from '@/core/activitypub/ApRequestService.js';
 
 export const buildParsedSignature = (signingString: string, signature: string, algorithm: string) => {
 	return {
@@ -24,6 +26,10 @@ export const buildParsedSignature = (signingString: string, signature: string, a
 	};
 };
 
+function cartesianProduct<T, U>(a: T[], b: U[]): [T, U][] {
+	return a.flatMap(a => b.map(b => [a, b] as [T, U]));
+}
+
 async function getKeyPair(level: string) {
 	if (level === '00') {
 		return await genRsaKeyPair();
@@ -31,10 +37,6 @@ async function getKeyPair(level: string) {
 		return await genEd25519KeyPair();
 	}
 	throw new Error('Invalid level');
-}
-
-function cartesianProduct<T, U>(a: T[], b: U[]): [T, U][] {
-	return a.flatMap(a => b.map(b => [a, b] as [T, U]));
 }
 
 describe('ap-request post', () => {
@@ -92,7 +94,9 @@ describe('ap-request get', () => {
 			assert.deepStrictEqual(verify, true);
 		});
 	});
+});
 
+describe('assertActivityMatchesUrl', () => {
 	test('rejects non matching domain', () => {
 		assert.doesNotThrow(() => assertActivityMatchesUrl(
 			'https://alice.example.com/abc',
@@ -106,7 +110,7 @@ describe('ap-request get', () => {
 			'https://alice.example.com/abc',
 			FetchAllowSoftFailMask.Any,
 		), 'validation should fail no matter what if the response URL is inconsistent with the object ID');
-		
+
 		assert.doesNotThrow(() => assertActivityMatchesUrl(
 			'https://alice.example.com/abc#test',
 			{ id: 'https://alice.example.com/abc' } as IObject,

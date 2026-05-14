@@ -44,6 +44,7 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		avatarDecorations: [],
 		tags: [],
 		isSuspended: false,
+		isRemoteSuspended: false,
 		isLocked: false,
 		isBot: false,
 		isCat: true,
@@ -106,6 +107,7 @@ function generateDummyNote(override?: Partial<MiNote>): MiNote {
 		replyUserHost: null,
 		renoteUserId: null,
 		renoteUserHost: null,
+		renoteChannelId: null,
 		...override,
 	};
 }

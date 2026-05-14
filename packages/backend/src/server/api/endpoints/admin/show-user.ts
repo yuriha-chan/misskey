@@ -110,6 +110,8 @@ export const meta = {
 					quote: { optional: true, ...notificationRecieveConfig },
 					reaction: { optional: true, ...notificationRecieveConfig },
 					pollEnded: { optional: true, ...notificationRecieveConfig },
+					scheduledNotePosted: { optional: true, ...notificationRecieveConfig },
+					scheduledNotePostFailed: { optional: true, ...notificationRecieveConfig },
 					receiveFollowRequest: { optional: true, ...notificationRecieveConfig },
 					followRequestAccepted: { optional: true, ...notificationRecieveConfig },
 					roleAssigned: { optional: true, ...notificationRecieveConfig },
@@ -128,6 +130,10 @@ export const meta = {
 				optional: false, nullable: false,
 			},
 			isSuspended: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			isRemoteSuspended: {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
@@ -304,6 +310,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				isModerator: isModerator,
 				isSilenced: isSilenced,
 				isSuspended: user.isSuspended,
+				isRemoteSuspended: user.isRemoteSuspended,
 				isHibernated: user.isHibernated,
 				lastActiveDate: user.lastActiveDate ? user.lastActiveDate.toISOString() : null,
 				moderationNote: profile.moderationNote ?? '',

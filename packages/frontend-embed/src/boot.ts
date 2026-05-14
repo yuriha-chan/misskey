@@ -32,7 +32,7 @@ import type { Theme } from '@/theme.js';
 console.log('Misskey Embed');
 
 //#region Embedパラメータの取得・パース
-const params = new URLSearchParams(location.search);
+const params = new URLSearchParams(window.location.search);
 const embedParams = parseEmbedParams(params);
 if (_DEV_) console.log(embedParams);
 //#endregion
@@ -92,7 +92,7 @@ if (localeOutdated) {
 //#endregion
 
 // サイズの制限
-document.documentElement.style.maxWidth = '500px';
+window.document.documentElement.style.maxWidth = '500px';
 
 // iframeIdの設定
 function setIframeIdHandler(event: MessageEvent) {
@@ -125,16 +125,16 @@ app.provide(DI.embedParams, embedParams);
 const rootEl = ((): HTMLElement => {
 	const MISSKEY_MOUNT_DIV_ID = 'misskey_app';
 
-	const currentRoot = document.getElementById(MISSKEY_MOUNT_DIV_ID);
+	const currentRoot = window.document.getElementById(MISSKEY_MOUNT_DIV_ID);
 
 	if (currentRoot) {
 		console.warn('multiple import detected');
 		return currentRoot;
 	}
 
-	const root = document.createElement('div');
+	const root = window.document.createElement('div');
 	root.id = MISSKEY_MOUNT_DIV_ID;
-	document.body.appendChild(root);
+	window.document.body.appendChild(root);
 	return root;
 })();
 
@@ -170,7 +170,7 @@ console.log(i18n.tsx._selfXssPrevention.description3({ link: 'https://misskey-hu
 //#endregion
 
 function removeSplash() {
-	const splash = document.getElementById('splash');
+	const splash = window.document.getElementById('splash');
 	if (splash) {
 		splash.style.opacity = '0';
 		splash.style.pointerEvents = 'none';

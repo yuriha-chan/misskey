@@ -148,11 +148,8 @@ export class SystemAccountService implements OnApplicationShutdown {
 			}).then(x => transactionalEntityManager.findOneByOrFail(MiUser, x.identifiers[0]));
 
 			await transactionalEntityManager.insert(MiUserKeypair, {
-				publicKey: keyPair.publicKey,
-				privateKey: keyPair.privateKey,
-				ed25519PublicKey: keyPair.ed25519PublicKey,
-				ed25519PrivateKey: keyPair.ed25519PrivateKey,
 				userId: account.id,
+				...keyPair,
 			});
 
 			await transactionalEntityManager.insert(MiUserProfile, {

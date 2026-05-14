@@ -6,7 +6,7 @@
 import { URL } from 'node:url';
 import { Inject, Injectable } from '@nestjs/common';
 import { genRFC3230DigestHeader, signAsDraftToRequest } from '@misskey-dev/node-http-message-signatures';
-import { Window } from 'happy-dom';
+import * as htmlParser from 'node-html-parser';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiUser } from '@/models/User.js';
@@ -17,7 +17,7 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import type Logger from '@/logger.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
-import { assertActivityMatchesUrl, FetchAllowSoftFailMask as FetchAllowSoftFailMask } from '@/core/activitypub/misc/check-against-url.js';
+import { assertActivityMatchesUrl, FetchAllowSoftFailMask } from '@/core/activitypub/misc/check-against-url.js';
 import type { IObject } from './type.js';
 import type { PrivateKeyWithPem, PrivateKey } from '@misskey-dev/node-http-message-signatures';
 
@@ -131,7 +131,7 @@ export class ApRequestService {
 	 * @param url URL to fetch
 	 */
 	@bindThis
-	public async signedGet(url: string, user: { id: MiUser['id'] }, level: string, allowSoftfail: FetchAllowSoftFailMask = FetchAllowSoftFailMask.Strict, followAlternate?: boolean): Promise<unknown> {
+	public async signedGet(url: string, user: { id: MiUser['id'] }, allowSoftfail: FetchAllowSoftFailMask = FetchAllowSoftFailMask.Strict, level: string, followAlternate?: boolean): Promise<unknown> {
 		const _followAlternate = followAlternate ?? true;
 
 		const key = await this.userKeypairService.getLocalUserPrivateKey(user.id, level);
@@ -170,41 +170,19 @@ export class ApRequestService {
 			_followAlternate === true
 		) {
 			const html = await res.text();
-			const { window, happyDOM } = new Window({
-				settings: {
-					disableJavaScriptEvaluation: true,
-					disableJavaScriptFileLoading: true,
-					disableCSSFileLoading: true,
-					disableComputedStyleRendering: true,
-					handleDisabledFileLoadingAsSuccess: true,
-					navigation: {
-						disableMainFrameNavigation: true,
-						disableChildFrameNavigation: true,
-						disableChildPageNavigation: true,
-						disableFallbackToSetURL: true,
-					},
-					timer: {
-						maxTimeout: 0,
-						maxIntervalTime: 0,
-						maxIntervalIterations: 0,
-					},
-				},
-			});
-			const document = window.document;
+
 			try {
-				document.documentElement.innerHTML = html;
+				const document = htmlParser.parse(html);
 
 				const alternate = document.querySelector('head > link[rel="alternate"][type="application/activity+json"]');
 				if (alternate) {
 					const href = alternate.getAttribute('href');
 					if (href && this.utilityService.punyHost(url) === this.utilityService.punyHost(href)) {
-						return await this.signedGet(href, user, level, allowSoftfail, false);
+						return await this.signedGet(href, user, allowSoftfail, level, false);
 					}
 				}
-			} catch (e) {
+			} catch (_) {
 				// something went wrong parsing the HTML, ignore the whole thing
-			} finally {
-				happyDOM.close().catch(err => {});
 			}
 		}
 		//#endregion

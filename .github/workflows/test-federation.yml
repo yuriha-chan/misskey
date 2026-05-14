@@ -32,17 +32,17 @@ jobs:
           - .node-version
           - .github/min.node-version
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4.1.0
+        uses: pnpm/action-setup@v6.0.3
       - name: Get current date
         id: current-date
         run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Setup and Restore ffmpeg/ffprobe Cache
         id: cache-ffmpeg
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             /usr/local/bin/ffmpeg
@@ -68,7 +68,7 @@ jobs:
             fi
           done
       - name: Use Node.js
-        uses: actions/setup-node@v4.4.0
+        uses: actions/setup-node@v6.4.0
         with:
           node-version-file: ${{ matrix.node-version-file }}
           cache: 'pnpm'
@@ -99,11 +99,51 @@ jobs:
         run: |
           cd packages/backend/test-federation
           docker compose run --no-deps tester
-      - name: Log
+      - name: 'Redis Log'
         if: always()
         run: |
           cd packages/backend/test-federation
-          docker compose logs
+          docker compose logs -t redis.test
+      - name: 'Setup Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t setup
+      - name: 'DB A Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t db.a.test
+      - name: 'DB B Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t db.b.test
+      - name: 'Daemon Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t daemon
+      - name: 'Misskey A Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t misskey.a.test
+      - name: 'Misskey B Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t misskey.b.test
+      - name: 'Nginx A Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t a.test
+      - name: 'Nginx B Log'
+        if: always()
+        run: |
+          cd packages/backend/test-federation
+          docker compose logs -t b.test
       - name: Stop servers
         if: always()
         run: |

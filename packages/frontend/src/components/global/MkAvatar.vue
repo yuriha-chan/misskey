@@ -26,23 +26,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div v-if="user.isCat" :class="[$style.ears]">
 		<div :class="$style.earLeft">
 			<div v-if="false" :class="$style.layer">
-				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"/>
-				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"/>
-				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"/>
+				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"></div>
+				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"></div>
+				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"></div>
 			</div>
 		</div>
 		<div :class="$style.earRight">
 			<div v-if="false" :class="$style.layer">
-				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"/>
-				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"/>
-				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"/>
+				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"></div>
+				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"></div>
+				<div :class="$style.plot" :style="{ backgroundImage: `url(${JSON.stringify(url)})` }"></div>
 			</div>
 		</div>
 	</div>
 	<template v-if="showDecoration">
 		<img
 			v-for="decoration in foregroundDecorations"
-			:class="[$style.decoration, { [$style.decorationBlink]: decoration.blink }]"
+			:class="[$style.decoration, { [$style.decorationBlink]: getDecorationIsBrink(decoration) }]"
 			:src="getDecorationUrl(decoration, 'fg')"
 			:style="{
 				rotate: getDecorationAngle(decoration),
@@ -73,13 +73,16 @@ import { prefer } from '@/preferences.js';
 const animation = ref(prefer.s.animation);
 const squareAvatars = ref(prefer.s.squareAvatars);
 
+type Decoration = Misskey.entities.UserDetailed['avatarDecorations'][number];
+type DecorationEditorDecoration = Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'> & { blink?: boolean; };
+
 const props = withDefaults(defineProps<{
 	user: Misskey.entities.User;
 	target?: string | null;
 	link?: boolean;
 	preview?: boolean;
 	indicator?: boolean;
-	decorations?: (Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'> & { blink?: boolean; })[];
+	decorations?: DecorationEditorDecoration[];
 	forceShowDecoration?: boolean;
 }>(), {
 	target: null,
@@ -91,7 +94,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-	(ev: 'click', v: MouseEvent): void;
+	(ev: 'click', v: PointerEvent): void;
 }>();
 
 const showDecoration = props.forceShowDecoration || prefer.s.showAvatarDecorations;
@@ -121,42 +124,45 @@ const imgAnimations = computed(() => {
 	return decorations.filter((deco) => (deco.imgAnimation !== '' && deco.imgAnimation !== 'none')).map((deco) => deco.imgAnimation);
 });
 
-function onClick(ev: MouseEvent): void {
+function onClick(ev: PointerEvent): void {
 	if (props.link) return;
 	emit('click', ev);
 }
 
-function getDecorationUrl(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+function getDecorationUrl(decoration: Decoration | DecorationEditorDecoration, slot: string) {
 	const url = (slot === "bg") ? decoration.bgUrl : decoration.url;
 	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar) return getStaticImageUrl(url);
 	return url;
 }
 
-function getDecorationAngle(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>) {
+function getDecorationAngle(decoration: Decoration | DecorationEditorDecoration) {
 	const angle = decoration.angle ?? 0;
 	return angle === 0 ? undefined : `${angle * 360}deg`;
 }
 
-function getDecorationScale(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>) {
+function getDecorationScale(decoration: Decoration | DecorationEditorDecoration) {
 	const scaleX = decoration.flipH ? -1 : 1;
 	return scaleX === 1 ? undefined : `${scaleX} 1`;
 }
 
-function getDecorationOffset(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>) {
+function getDecorationOffset(decoration: Decoration | DecorationEditorDecoration) {
 	const offsetX = decoration.offsetX ?? 0;
 	const offsetY = decoration.offsetY ?? 0;
 	return offsetX === 0 && offsetY === 0 ? undefined : `${offsetX * 100}% ${offsetY * 100}%`;
 }
 
-function getDecorationMixBlendMode(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+function getDecorationMixBlendMode(decoration: Decoration | DecorationEditorDecoration, slot: string) {
 	const animation = (slot === "bg") ? decoration.bgMixBlendMode : decoration.mixBlendMode;
 	return animation ? animation : "normal";
 }
 
-function getDecorationAnimation(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>, slot: string) {
+function getDecorationAnimation(decoration: Decoration | DecorationEditorDecoration, slot: string) {
 	if (prefer.s.disableShowingAnimatedImages) { return "none"; }
 	const animation = (slot === "bg") ? decoration.bgAnimation : decoration.animation;
 	return animation ? animation : "none";
+
+function getDecorationIsBrink(decoration: Decoration | DecorationEditorDecoration) {
+	return 'blink' in decoration && decoration.blink === true;
 }
 
 const color = ref<string | undefined>();

@@ -55,7 +55,7 @@ async function syncSubAccounts() {
 	unisonReload();
 }
 
-function showMenu(host: string, id: string, username: string, ev: MouseEvent) {
+function showMenu(host: string, id: string, username: string, ev: PointerEvent) {
 	if (id === $i.id) {
 		return;
 	}
@@ -83,7 +83,7 @@ function showMenu(host: string, id: string, username: string, ev: MouseEvent) {
 	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
-function addAccount(ev: MouseEvent) {
+function addAccount(ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts.existingAccount,
 		action: () => { addExistingAccount(); },

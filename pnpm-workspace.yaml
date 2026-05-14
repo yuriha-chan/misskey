@@ -2,7 +2,9 @@ packages:
   - packages/backend
   - packages/frontend-shared
   - packages/frontend
+  - packages/frontend-builder
   - packages/frontend-embed
+  - packages/i18n
   - packages/icons-subsetter
   - packages/sw
   - packages/misskey-js
@@ -13,7 +15,7 @@ onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
   - '@sentry/profiling-node'
-  - '@swc/core'
+  - '@sentry-internal/node-cpu-profiler'
   - '@tensorflow/tfjs-node'
   - bufferutil
   - canvas
@@ -29,3 +31,8 @@ onlyBuiltDependencies:
   - v-code-diff
   - vue-demi
 ignorePatchFailures: false
+minimumReleaseAge: 10080 # delay 7days to mitigate supply-chain attack
+minimumReleaseAgeExclude:
+  - '@syuilo/aiscript'
+  - '@misskey-dev/*'
+  - '@typescript/native-preview*'

@@ -33,6 +33,7 @@ export function channel(id = 'somechannelid', name = 'Some Channel', bannerUrl: 
 		description: null,
 		userId: null,
 		bannerUrl,
+		bannerId: null,
 		pinnedNoteIds: [],
 		color: '#000',
 		isArchived: false,
@@ -221,6 +222,7 @@ export function federationInstance(): entities.FederationInstance {
 		themeColor: '',
 		infoUpdatedAt: '',
 		latestRequestReceivedAt: '',
+		httpMessageSignaturesImplementationLevel: '00',
 	};
 }
 

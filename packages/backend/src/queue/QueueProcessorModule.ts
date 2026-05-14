@@ -13,6 +13,7 @@ import { EndedPollNotificationProcessorService } from './processors/EndedPollNot
 import { CloseExpiredChatRoomProcessorService } from './processors/CloseExpiredChatRoomProcessorService.js';
 import { RevealChatSecretProcessorService } from './processors/RevealChatSecretProcessorService.js';
 import { EndChatPollProcessorService } from './processors/EndChatPollProcessorService.js';
+import { PostScheduledNoteProcessorService } from './processors/PostScheduledNoteProcessorService.js';
 import { InboxProcessorService } from './processors/InboxProcessorService.js';
 import { UserWebhookDeliverProcessorService } from './processors/UserWebhookDeliverProcessorService.js';
 import { SystemWebhookDeliverProcessorService } from './processors/SystemWebhookDeliverProcessorService.js';
@@ -85,6 +86,7 @@ import { RelationshipProcessorService } from './processors/RelationshipProcessor
 		CloseExpiredChatRoomProcessorService,
 		RevealChatSecretProcessorService,
 		EndChatPollProcessorService,
+		PostScheduledNoteProcessorService,
 		DeliverProcessorService,
 		InboxProcessorService,
 		AggregateRetentionProcessorService,

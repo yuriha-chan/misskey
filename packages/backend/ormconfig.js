@@ -1,10 +1,10 @@
 import { DataSource } from 'typeorm';
-import { path, loadConfig } from './built/config.js';
+import { loadConfig } from './built/config.js';
 import { entities } from './built/postgres.js';
-import { isConcurrentIndexMigrationEnabled } from "./migration/js/migration-config.js";
+
+const isConcurrentIndexMigrationEnabled = process.env.MISSKEY_MIGRATION_CREATE_INDEX_CONCURRENTLY === '1';
 
 const config = loadConfig();
-console.debug(path)
 
 export default new DataSource({
 	type: 'postgres',
@@ -16,5 +16,5 @@ export default new DataSource({
 	extra: config.db.extra,
 	entities: entities,
 	migrations: ['migration/*.js'],
-	migrationsTransactionMode: isConcurrentIndexMigrationEnabled() ? 'each' : 'all',
+	migrationsTransactionMode: isConcurrentIndexMigrationEnabled ? 'each' : 'all',
 });

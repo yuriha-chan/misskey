@@ -13,7 +13,7 @@ import { FetchInstanceMetadataService } from '@/core/FetchInstanceMetadataServic
 import InstanceChart from '@/core/chart/charts/instance.js';
 import ApRequestChart from '@/core/chart/charts/ap-request.js';
 import FederationChart from '@/core/chart/charts/federation.js';
-import { getApId } from '@/core/activitypub/type.js';
+import { getApId, isActor, isDelete } from '@/core/activitypub/type.js';
 import type { IActivity } from '@/core/activitypub/type.js';
 import { ApDbResolverService } from '@/core/activitypub/ApDbResolverService.js';
 import { StatusError } from '@/misc/status-error.js';
@@ -83,6 +83,23 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			return `Blocked request: ${host}`;
 		}
 
+		{
+			let userExistenceCheckApId: string | null = null;
+
+			// 存在しないActorに対するActorのDeleteアクティビティは無視する。
+			// actorとobjectが同じならばそれはActorに違いない
+			if (isDelete(activity) && typeof activity.object === 'object' && (isActor(activity.object) || getApId(activity.actor) === getApId(activity.object))) {
+				userExistenceCheckApId = getApId(activity.object);
+			}
+
+			if (userExistenceCheckApId != null) {
+				const user = await this.apDbResolverService.getUserFromApId(userExistenceCheckApId);
+				if (user == null) {
+					return `skip: user not found for delete activity. ${getApId(userExistenceCheckApId)}`;
+				}
+			}
+		}
+
 		// HTTP-Signature keyIdを元にDBから取得
 		let authUser: Awaited<ReturnType<typeof this.apDbResolverService.getAuthUserFromApId>> = null;
 		let httpSignatureIsValid = null as boolean | null;
@@ -93,15 +110,15 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			// 対象が4xxならスキップ
 			if (err instanceof StatusError) {
 				if (!err.isRetryable) {
-					throw new Bull.UnrecoverableError(`skip: Ignored deleted actors on both ends ${activity.actor} - ${err.statusCode}`);
+					throw new Bull.UnrecoverableError(`skip: Ignored deleted actors on both ends ${getApId(activity.actor)} - ${err.statusCode}`);
 				}
-				throw new Error(`Error in actor ${activity.actor} - ${err.statusCode}`);
+				throw new Error(`Error in actor ${getApId(activity.actor)} - ${err.statusCode}`);
 			}
 		}
 
 		// authUser.userがnullならスキップ
 		if (authUser != null && authUser.user == null) {
-			throw new Bull.UnrecoverableError('skip: failed to resolve user');
+			throw new Bull.UnrecoverableError(`skip: failed to resolve user ${getApId(activity.actor)}`);
 		}
 
 		if (signature != null && authUser != null) {
@@ -234,6 +251,7 @@ export class InboxProcessorService implements OnApplicationShutdown {
 
 		// アクティビティを処理
 		try {
+			this.logger.debug('performing activity', { activityId: activity.id, actorUri: authUser.user.uri, actorId: authUser.user.id, actorAcct: Acct.toString(authUser.user), activity });
 			const result = await this.apInboxService.performActivity(authUser.user, activity);
 			if (result && !result.startsWith('ok')) {
 				this.logger.warn(`inbox activity ignored (maybe): id=${activity.id} reason=${result}`);
@@ -241,14 +259,17 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			}
 		} catch (e) {
 			if (e instanceof IdentifiableError) {
-				if (e.id === '689ee33f-f97c-479a-ac49-1b9f8140af99') {
-					return 'blocked notes with prohibited words';
-				}
-				if (e.id === '85ab9bd7-3a41-4530-959d-f07073900109') {
-					return 'actor has been suspended';
-				}
-				if (e.id === 'd450b8a9-48e4-4dab-ae36-f4db763fda7c') { // invalid Note
-					return e.message;
+				switch (e.id) {
+					case '689ee33f-f97c-479a-ac49-1b9f8140af99':
+						return 'blocked notes with prohibited words';
+					case '85ab9bd7-3a41-4530-959d-f07073900109':
+						return 'actor has been suspended';
+					case 'd450b8a9-48e4-4dab-ae36-f4db763fda7c': // invalid Note
+						return e.message;
+					case '9f466dab-c856-48cd-9e65-ff90ff750580':
+						return 'note contains too many mentions';
+					case '09d79f9e-64f1-4316-9cfa-e75c4d091574': // Instance is blocked
+						return 'skip: blocked instance';
 				}
 			}
 			throw e;

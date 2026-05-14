@@ -32,6 +32,7 @@ export const paramDef = {
 	properties: {
 		tag: { type: 'string' },
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+		offset: { type: 'integer', default: 0 },
 		sort: { type: 'string', enum: ['+follower', '-follower', '+createdAt', '-createdAt', '+updatedAt', '-updatedAt'] },
 		state: { type: 'string', enum: ['all', 'alive'], default: 'all' },
 		origin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'local' },
@@ -51,7 +52,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (!safeForSql(normalizeForSearch(ps.tag))) throw new Error('Injection');
 			const query = this.usersRepository.createQueryBuilder('user')
 				.where(':tag <@ user.tags', { tag: [normalizeForSearch(ps.tag)] })
-				.andWhere('user.isSuspended = FALSE');
+				.andWhere('user.isSuspended = FALSE')
+				.andWhere('user.isRemoteSuspended = FALSE');
 
 			const recent = new Date(Date.now() - (1000 * 60 * 60 * 24 * 5));
 
@@ -74,7 +76,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				case '-updatedAt': query.orderBy('user.updatedAt', 'ASC'); break;
 			}
 
-			const users = await query.limit(ps.limit).getMany();
+			const users = await query
+				.limit(ps.limit)
+				.offset(ps.offset)
+				.getMany();
 
 			return await this.userEntityService.packMany(users, me, { schema: 'UserDetailed' });
 		});

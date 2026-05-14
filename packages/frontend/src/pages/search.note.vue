@@ -19,14 +19,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template #header>{{ i18n.ts.options }}</template>
 
 			<div class="_gaps_m">
-				<MkRadios v-model="searchScope">
-					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="all">{{ i18n.ts._search.searchScopeAll }}</option>
-					<option value="local">{{ instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal }}</option>
-					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="server">{{ i18n.ts._search.searchScopeServer }}</option>
-					<option value="user">{{ i18n.ts._search.searchScopeUser }}</option>
-					<option value="LTL">{{ i18n.ts._search.recentLocalTimeline }}</option>
-					<option value="HTL">{{ i18n.ts._search.recentHomeTimeline }}</option>
-					<option value="specified">{{ i18n.ts._search.specifiedToMe }}</option>
+				<MkRadios
+					v-model="searchScope"
+					:options="searchScopeDef"
+				>
 				</MkRadios>
 				<MkSwitch v-model="includeBot">{{ i18n.ts._search.includeBot }}</MkSwitch>
 
@@ -76,7 +72,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkUserCardMini
 									:user="user"
 									:withChart="false"
-									:class="$style.userSelectedCard"
 								/>
 							</div>
 							<div>
@@ -134,6 +129,7 @@ import MkRadios from '@/components/MkRadios.vue';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import { Paginator } from '@/utility/paginator.js';
+import type { MkRadiosOption } from '@/components/MkRadios.vue';
 
 const props = withDefaults(defineProps<{
 	query?: string;
@@ -189,6 +185,27 @@ const searchScope = ref<'all' | 'local' | 'server' | 'LTL' | 'HTL' | 'specified'
 	if (hostInput.value) return 'server';
 	return 'all';
 })());
+
+const searchScopeDef = computed<MkRadiosOption[]>(() => {
+	const options: MkRadiosOption[] = [];
+
+	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
+		options.push({ value: 'all', label: i18n.ts._search.searchScopeAll });
+	}
+
+	options.push({ value: 'local', label: instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal });
+
+	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
+		options.push({ value: 'server', label: i18n.ts._search.searchScopeServer });
+	}
+
+	options.push({ value: 'user', label: i18n.ts._search.searchScopeUser });
+	options.push({ value: 'LTL', label: i18n.ts._search.recentLocalTimeline });
+	options.push({ value: 'HTL', label: i18n.ts._search.recentHomeTimeline });
+	options.push({ value: 'specified', label: i18n.ts._search.specifiedToMe });
+
+	return options;
+});
 
 type SearchParams = {
 	readonly query: string;
