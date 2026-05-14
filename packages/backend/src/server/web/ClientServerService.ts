@@ -837,7 +837,7 @@ export class ClientServerService {
 				embedCtxJson: htmlSafeJsonStringify({
 					note: _note,
 				}),
-			});
+			}));
 		};
 
 		fastify.get<{ Params: { note: string; } }>('/embed/notes/:note', embedNote);
