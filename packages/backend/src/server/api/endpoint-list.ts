@@ -367,7 +367,7 @@ export * as 'renote-mute/create' from './endpoints/renote-mute/create.js';
 export * as 'renote-mute/delete' from './endpoints/renote-mute/delete.js';
 export * as 'renote-mute/list' from './endpoints/renote-mute/list.js';
 export * as 'request-reset-password' from './endpoints/request-reset-password.js';
-export * as 'revoke-reset-password' from './endpoints/revoke-reset-password.js';
+export * as 'revoke-reset-password' from './endpoints/i/revoke-reset-password.js';
 export * as 'reset-db' from './endpoints/reset-db.js';
 export * as 'reset-password' from './endpoints/reset-password.js';
 export * as 'retention' from './endpoints/retention.js';
