@@ -1146,6 +1146,7 @@ export class ChatService {
 	public async joinToRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], params?: { bubbleColor?: string, bubbleStyle?: string }) {
 		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, isArchived: false });
 		const invitation = await this.chatRoomInvitationsRepository.findOneBy({ roomId, userId });
+
 		if (!room.isPublic && !invitation && room.ownerId != userId) {
 			throw new Error('cannot join to private room without invitation');
 		}
@@ -1180,9 +1181,9 @@ export class ChatService {
 
 			// TODO: transaction
 			await this.chatRoomMembershipsRepository.insertOne(membership!);
-			if (invitation) {
-			  await this.chatRoomInvitationsRepository.delete(invitation.id);
-			}
+		}
+		if (invitation) {
+		  await this.chatRoomInvitationsRepository.delete(invitation.id);
 		}
 
 		const packedMembership = await this.chatEntityService.packRoomMembership(membership!, { id: userId }, { populateUser: true, populateRoom: false });
