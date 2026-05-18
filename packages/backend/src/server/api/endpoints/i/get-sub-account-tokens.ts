@@ -57,7 +57,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const profiles = await this.userProfilesRepository.find({ where: { mainAccountId: me.id }, relations: ["user"] });
-			return profiles.filter((profile) => profile.user !== null && profile.user.isDeleted === false).map((profile) => ({ id: profile.userId, i: profile.user!.token }));
+			return profiles.filter((profile) => profile.user !== null && profile.user.isDeleted === false).map((profile) => ({ id: profile.userId, i: profile.user!.token! }));
 		});
 	}
 }
