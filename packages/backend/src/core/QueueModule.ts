@@ -18,7 +18,7 @@ import {
 	SystemWebhookDeliverJobData,
 	CloseExpiredChatRoomJobData,
 	RevealChatSecretJobData,
-	EndChatPollJobData
+	EndChatPollJobData,
 	PostScheduledNoteJobData,
 } from '../queue/types.js';
 import type { Provider } from '@nestjs/common';

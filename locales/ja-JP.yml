@@ -1589,7 +1589,7 @@ _chat:
   cardsTitle: "カードのタイトル"
   editCards: "配布カードを編集"
   editParticipation: "参加設定を編集"
-  includeLeftRooms: "退出積みグループを含む"
+  includeLeftRooms: "退出済みグループを含む"
   includeArchivedRooms: "解散されたグループを含む"
   noPublicRooms: "公開グループがありません"
   yourCard: "あなたのカード"
