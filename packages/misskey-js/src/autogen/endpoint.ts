@@ -241,6 +241,10 @@ import type {
 	ChatMessagesUnreactRequest,
 	ChatMessagesUserTimelineRequest,
 	ChatMessagesUserTimelineResponse,
+	ChatPollsFinishRequest,
+	ChatPollsListRequest,
+	ChatPollsStartRequest,
+	ChatPollsVoteRequest,
 	ChatRoomsArchiveRequest,
 	ChatRoomsCreateRequest,
 	ChatRoomsCreateResponse,
@@ -268,6 +272,7 @@ import type {
 	ChatRoomsShowResponse,
 	ChatRoomsUpdateRequest,
 	ChatRoomsUpdateResponse,
+	ChatRoomsUpdateMembershipRequest,
 	ChatSecretsListRequest,
 	ChatSecretsRevealRequest,
 	ClipsAddNoteRequest,
@@ -433,6 +438,7 @@ import type {
 	IGalleryLikesResponse,
 	IGalleryPostsRequest,
 	IGalleryPostsResponse,
+	IGetSubAccountTokensResponse,
 	IImportAntennasRequest,
 	IImportBlockingRequest,
 	IImportFollowingRequest,
@@ -556,7 +562,6 @@ import type {
 	NotesTranslateRequest,
 	NotesTranslateResponse,
 	NotesUnrenoteRequest,
-	NotesUpdateVisibilityRequest,
 	NotesUserListTimelineRequest,
 	NotesUserListTimelineResponse,
 	NotificationsCreateRequest,
@@ -855,6 +860,7 @@ export type Endpoints = {
 	'chat/rooms/owned': { req: ChatRoomsOwnedRequest; res: ChatRoomsOwnedResponse };
 	'chat/rooms/show': { req: ChatRoomsShowRequest; res: ChatRoomsShowResponse };
 	'chat/rooms/update': { req: ChatRoomsUpdateRequest; res: ChatRoomsUpdateResponse };
+	'chat/rooms/update-membership': { req: ChatRoomsUpdateMembershipRequest; res: EmptyResponse };
 	'chat/secrets/list': { req: ChatSecretsListRequest; res: EmptyResponse };
 	'chat/secrets/reveal': { req: ChatSecretsRevealRequest; res: EmptyResponse };
 	'clips/add-note': { req: ClipsAddNoteRequest; res: EmptyResponse };
@@ -966,7 +972,7 @@ export type Endpoints = {
 	'i/favorites': { req: IFavoritesRequest; res: IFavoritesResponse };
 	'i/gallery/likes': { req: IGalleryLikesRequest; res: IGalleryLikesResponse };
 	'i/gallery/posts': { req: IGalleryPostsRequest; res: IGalleryPostsResponse };
-	'i/get-sub-account-tokens': { req: EmptyRequest; res: EmptyResponse };
+	'i/get-sub-account-tokens': { req: EmptyRequest; res: IGetSubAccountTokensResponse };
 	'i/import-antennas': { req: IImportAntennasRequest; res: EmptyResponse };
 	'i/import-blocking': { req: IImportBlockingRequest; res: EmptyResponse };
 	'i/import-following': { req: IImportFollowingRequest; res: EmptyResponse };
@@ -1044,7 +1050,6 @@ export type Endpoints = {
 	'notes/timeline': { req: NotesTimelineRequest; res: NotesTimelineResponse };
 	'notes/translate': { req: NotesTranslateRequest; res: NotesTranslateResponse };
 	'notes/unrenote': { req: NotesUnrenoteRequest; res: EmptyResponse };
-	'notes/update-visibility': { req: NotesUpdateVisibilityRequest; res: EmptyResponse };
 	'notes/user-list-timeline': { req: NotesUserListTimelineRequest; res: NotesUserListTimelineResponse };
 	'notifications/create': { req: NotificationsCreateRequest; res: EmptyResponse };
 	'notifications/flush': { req: EmptyRequest; res: EmptyResponse };

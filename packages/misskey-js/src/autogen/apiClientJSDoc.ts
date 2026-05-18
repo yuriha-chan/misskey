@@ -2021,6 +2021,17 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/rooms/update-membership', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
      * **Credential required**: *Yes* / **Permission**: *read:chat*
      */
     request<E extends 'chat/secrets/list', P extends Endpoints[E]['req']>(
@@ -4130,17 +4141,6 @@ declare module '../api.js' {
      * **Credential required**: *Yes* / **Permission**: *write:notes*
      */
     request<E extends 'notes/unrenote', P extends Endpoints[E]['req']>(
-      endpoint: E,
-      params: P,
-      credential?: string | null,
-    ): Promise<SwitchCaseResponseType<E, P>>;
-
-    /**
-     * No description provided.
-     * 
-     * **Credential required**: *Yes* / **Permission**: *write:notes*
-     */
-    request<E extends 'notes/update-visibility', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,

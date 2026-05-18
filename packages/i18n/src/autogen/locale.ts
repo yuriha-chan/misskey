@@ -3917,17 +3917,9 @@ export interface Locale extends ILocale {
      */
     "oneDay": string;
     /**
-     * 3日
-     */
-    "threeDays": string;
-    /**
      * 1週間
      */
     "oneWeek": string;
-    /**
-     * 2週間
-     */
-    "twoWeeks": string;
     /**
      * 1ヶ月
      */
@@ -3941,9 +3933,9 @@ export interface Locale extends ILocale {
      */
     "oneYear": string;
     /**
-     * 3年
+     * 3日
      */
-    "threeYears": string;
+    "threeDays": string;
     /**
      * 反映されるまで時間がかかる場合があります。
      */
@@ -5984,7 +5976,7 @@ export interface Locale extends ILocale {
          */
         "sentInvitations": string;
         /**
-         * チャットルーム
+         * チャットグループ
          */
         "chatRoom": string;
         /**
@@ -6000,15 +5992,15 @@ export interface Locale extends ILocale {
          */
         "leave": string;
         /**
-         * {who}がルームに参加しました
+         * {who}がグループに参加しました
          */
         "userHasJoined": ParameterizedString<"who">;
         /**
-         * {who}がルームから退出しました
+         * {who}がグループから退出しました
          */
         "userHasLeft": ParameterizedString<"who">;
         /**
-         * {who}がルームから退出させられました
+         * {who}がグループから退出させられました
          */
         "userHasKicked": ParameterizedString<"who">;
         /**
@@ -6118,11 +6110,11 @@ export interface Locale extends ILocale {
             "none": string;
         };
         /**
-         * 公開ルームとして作成
+         * 公開グループとして作成
          */
         "isPublicRoom": string;
         /**
-         * 公開ルームはありません
+         * 公開グループはありません
          */
         "noPublicRoom": string;
         /**
@@ -6138,23 +6130,23 @@ export interface Locale extends ILocale {
          */
         "expiresIn": string;
         /**
-         * ルームを解散してアーカイブする
+         * グループを解散してアーカイブする
          */
         "archiveRoom": string;
         /**
-         * このルームはアーカイブされています。
+         * このグループはアーカイブされています。
          */
         "thisRoomIsArchived": string;
         /**
-         * ルームの定員
+         * グループの定員
          */
         "capacity": string;
         /**
-         * 公開ルーム
+         * 公開グループ
          */
         "publicRooms": string;
         /**
-         * 公開ルームは6時間以内に自動解散する必要があります
+         * 公開グループは6時間以内に自動解散する必要があります
          */
         "publicRoomMustExpire": string;
         /**
@@ -6278,11 +6270,11 @@ export interface Locale extends ILocale {
          */
         "anonymousPoll": string;
         /**
-         * ルーム参加者に投票
+         * グループ参加者に投票
          */
         "voteForRoomMembers": string;
         /**
-         * 自分以外のルーム参加者に投票
+         * 自分以外のグループ参加者に投票
          */
         "voteForRoomMembersNotMe": string;
         /**
@@ -6342,15 +6334,15 @@ export interface Locale extends ILocale {
          */
         "editParticipation": string;
         /**
-         * 退出積みルームを含む
+         * 退出済みグループを含む
          */
         "includeLeftRooms": string;
         /**
-         * 解散されたルームを含む
+         * 解散されたグループを含む
          */
         "includeArchivedRooms": string;
         /**
-         * 公開ルームがありません
+         * 公開グループがありません
          */
         "noPublicRooms": string;
         /**
@@ -12873,6 +12865,22 @@ export interface Locale extends ILocale {
          * 例: misskey.example.com
          */
         "serverHostPlaceholder": string;
+        /**
+         * 最近のローカルタイムライン
+         */
+        "recentLocalTimeline": string;
+        /**
+         * 最近のホームタイムライン
+         */
+        "recentHomeTimeline": string;
+        /**
+         * 自分宛ての指名投稿
+         */
+        "specifiedToMe": string;
+        /**
+         * ボットの投稿を含める
+         */
+        "includeBot": string;
     };
     "_serverSetupWizard": {
         /**
