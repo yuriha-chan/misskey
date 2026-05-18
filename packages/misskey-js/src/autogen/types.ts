@@ -27148,10 +27148,20 @@ export interface operations {
     };
     'i___get-sub-account-tokens': {
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        /**
+                         * Format: id
+                         * @example xxxxxxxxxx
+                         */
+                        id: string;
+                        i: string;
+                    }[];
                 };
             };
             /** @description Client error */

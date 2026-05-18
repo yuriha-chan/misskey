@@ -2027,6 +2027,7 @@ declare namespace entities {
         IGalleryLikesResponse,
         IGalleryPostsRequest,
         IGalleryPostsResponse,
+        IGetSubAccountTokensResponse,
         IImportAntennasRequest,
         IImportBlockingRequest,
         IImportFollowingRequest,
@@ -2720,6 +2721,9 @@ type IGalleryPostsRequest = operations['i___gallery___posts']['requestBody']['co
 
 // @public (undocumented)
 type IGalleryPostsResponse = operations['i___gallery___posts']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type IGetSubAccountTokensResponse = operations['i___get-sub-account-tokens']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type IImportAntennasRequest = operations['i___import-antennas']['requestBody']['content']['application/json'];

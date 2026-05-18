@@ -15,6 +15,27 @@ export const meta = {
 	requireCredential: true,
 
 	secure: true,
+
+	res: {
+		type: 'array',
+		optional: false, nullable: false,
+		items: {
+			type: 'object',
+			optional: false, nullable: false,
+			properties: {
+				id: {
+					type: 'string',
+					optional: false, nullable: false,
+					format: 'id',
+					example: 'xxxxxxxxxx',
+				},
+				i: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+			},
+		},
+	},
 } as const;
 
 export const paramDef = {
@@ -36,7 +57,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const profiles = await this.userProfilesRepository.find({ where: { mainAccountId: me.id }, relations: ["user"] });
-			return profiles.filter((profile) => profile.user !== null && profile.user.isDeleted === false).map((profile) => ({ id: profile.userId, i: profile.user!.token }));
+			return profiles.filter((profile) => profile.user !== null && profile.user.isDeleted === false).map((profile) => ({ id: profile.userId, i: profile.user!.token! }));
 		});
 	}
 }

@@ -442,6 +442,7 @@ export type IGalleryLikesRequest = operations['i___gallery___likes']['requestBod
 export type IGalleryLikesResponse = operations['i___gallery___likes']['responses']['200']['content']['application/json'];
 export type IGalleryPostsRequest = operations['i___gallery___posts']['requestBody']['content']['application/json'];
 export type IGalleryPostsResponse = operations['i___gallery___posts']['responses']['200']['content']['application/json'];
+export type IGetSubAccountTokensResponse = operations['i___get-sub-account-tokens']['responses']['200']['content']['application/json'];
 export type IImportAntennasRequest = operations['i___import-antennas']['requestBody']['content']['application/json'];
 export type IImportBlockingRequest = operations['i___import-blocking']['requestBody']['content']['application/json'];
 export type IImportFollowingRequest = operations['i___import-following']['requestBody']['content']['application/json'];
