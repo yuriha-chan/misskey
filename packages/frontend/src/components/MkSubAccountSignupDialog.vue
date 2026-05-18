@@ -55,7 +55,7 @@ import { useTemplateRef, ref, computed } from 'vue';
 import { toUnicode } from 'punycode.js';
 import * as Misskey from 'misskey-js';
 import * as config from '@@/js/config.js';
-import { $i } from '@/i.js';
+import { ensureSignin } from '@/i.js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkButton from './MkButton.vue';
 import MkInput from './MkInput.vue';
@@ -66,6 +66,8 @@ import { instance } from '@/instance.js';
 import { login } from '@/accounts.js';
 
 import { i18n } from '@/i18n.js';
+
+const $i = ensureSignin();
 
 const emit = defineEmits<{
 	(ev: 'done', res: any): void;

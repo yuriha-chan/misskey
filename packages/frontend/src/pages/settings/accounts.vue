@@ -13,8 +13,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 
 		<template v-for="x in accounts" :key="x.host + x.id">
-			<div :class="[subAccounts.includes(x.id) ? $style.subAccount : null, x.id === $i.id ? $style.currentAccount : null]">
-				<div :class="$style.label">{{ x.id === $i.id ? i18n.ts.currentAccount : subAccounts.includes(x.id) ? i18n.ts.subAccountOfCurrentAccount : ""}}</div>
+			<div :class="[subAccounts.includes(x.id) ? $style.subAccount : null, $i && (x.id === $i.id) ? $style.currentAccount : null]">
+				<div :class="$style.label">{{ ($i && x.id === $i.id) ? i18n.ts.currentAccount : subAccounts.includes(x.id) ? i18n.ts.subAccountOfCurrentAccount : ""}}</div>
 				<MkUserCardMini v-if="x.user" :user="x.user" :class="$style.user" @click.prevent="showMenu(x.host, x.id, x.user.username, $event)"/>
 			</div>
 		</template>
@@ -38,10 +38,10 @@ import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import { prefer } from '@/preferences.js';
 
 const accounts = await getAccounts();
-const subAccounts = ref([]);
+const subAccounts = ref<string[]>([]);
 
 onMounted(() => {
-	misskeyApi('i/get-sub-account-tokens', {}).then((res) => {
+	addSubAccounts().then((res) => {
 			subAccounts.value = res.map(r => r.id);
 		});
 });
@@ -56,7 +56,7 @@ async function syncSubAccounts() {
 }
 
 function showMenu(host: string, id: string, username: string, ev: PointerEvent) {
-	if (id === $i.id) {
+	if ($i && id === $i.id) {
 		return;
 	}
 	let menu: MenuItem[];
@@ -118,7 +118,7 @@ function createSubAccount() {
 	});
 }
 
-async function deleteSubAccount(host, user) {
+async function deleteSubAccount(host: string, user: Pick<Misskey.entities.User, "id" | "username">) {
 	{
 		const { canceled } = await os.confirm({
 			type: 'warning',
