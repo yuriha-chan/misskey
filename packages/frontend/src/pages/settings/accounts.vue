@@ -37,13 +37,14 @@ import { definePage } from '@/page.js';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import { prefer } from '@/preferences.js';
 
-const accounts = await getAccounts();
+const accounts = ref(await getAccounts());
 const subAccounts = ref<string[]>([]);
 
-onMounted(() => {
-	addSubAccounts().then((res) => {
+onMounted(async () => {
+	await addSubAccounts().then((res) => {
 			subAccounts.value = res.map(r => r.id);
 		});
+	accounts.value = await getAccounts();
 });
 
 function refreshAllAccounts() {
@@ -68,7 +69,7 @@ function showMenu(host: string, id: string, username: string, ev: PointerEvent) 
 	}, {
 		text: i18n.ts.remove,
 		icon: 'ti ti-trash',
-		action: () => removeAccount(host, id),
+		action: async () => { await removeAccount(host, id); unisonReload(); },
 	}];
 
 	if (subAccounts.value.includes(id)) {
@@ -99,7 +100,7 @@ function addAccount(ev: PointerEvent) {
 function addExistingAccount() {
 	getAccountWithSigninDialog().then((res) => {
 		if (res != null) {
-			os.success();
+			unisonReload();
 		}
 	});
 }
@@ -141,6 +142,7 @@ async function deleteSubAccount(host: string, user: Pick<Misskey.entities.User, 
 	});
 	
 	await removeAccount(host, user.id);
+	unisonReload();
 }
 
 const headerActions = computed(() => []);

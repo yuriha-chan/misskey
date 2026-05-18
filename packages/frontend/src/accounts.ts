@@ -40,9 +40,12 @@ export async function getAccounts(): Promise<{
 }
 
 async function addAccount(host: string, user: Misskey.entities.MeDetailed, token: AccountWithToken['token']) {
+	const key = host + '/' + user.id;
+	if (!store.s.accountTokens[key]) {
+		await store.set('accountTokens', { ...store.s.accountTokens, [key]: token });
+		await store.set('accountInfos', { ...store.s.accountInfos, [key]: user });
+	}
 	if (!prefer.s.accounts.some(x => x[0] === host && x[1].id === user.id)) {
-		await store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + user.id]: token });
-		await store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + user.id]: user });
 		prefer.commit('accounts', [...prefer.s.accounts, [host, { id: user.id, username: user.username }]]);
 	}
 }
@@ -50,10 +53,10 @@ async function addAccount(host: string, user: Misskey.entities.MeDetailed, token
 export async function removeAccount(host: string, id: AccountWithToken['id']) {
 	const tokens = JSON.parse(JSON.stringify(store.s.accountTokens));
 	delete tokens[host + '/' + id];
-	store.set('accountTokens', tokens);
+	await store.set('accountTokens', tokens);
 	const accountInfos = JSON.parse(JSON.stringify(store.s.accountInfos));
 	delete accountInfos[host + '/' + id];
-	store.set('accountInfos', accountInfos);
+	await store.set('accountInfos', accountInfos);
 
 	prefer.commit('accounts', prefer.s.accounts.filter(x => x[0] !== host || x[1].id !== id));
 }
@@ -172,6 +175,11 @@ export async function login(token: AccountWithToken['token'], redirect?: string)
 		closed: () => dispose(),
 	});
 
+	if ($i) {
+    const previousToken = $i.token;
+		await fetchAccount(previousToken, undefined, true).then((previous) => addAccount(host, previous, previousToken)).catch(reason => {});
+  }
+
 	const me = await fetchAccount(token, undefined, true).catch(reason => {
 		showing.value = false;
 		throw reason;
@@ -196,21 +204,30 @@ export async function login(token: AccountWithToken['token'], redirect?: string)
 	unisonReload();
 }
 
-export async function switchAccount(host: string, id: string) {
+export async function switchAccount(host: string, id: string, callback?: ((account: Misskey.entities.MeDetailed) => void) | null | undefined, username?: string | undefined) {
+	async function next(token: string) {
+		if (!callback) {
+			await login(token);
+		} else {
+			const me = await fetchAccount(token, undefined, true);
+			await addAccount(host, me, token);
+			await addSubAccounts(token);
+			callback(me);
+		}
+	}
 	const token = store.s.accountTokens[host + '/' + id];
 	if (token) {
-		login(token);
+		await next(token);
 	} else {
 		const subAccounts = await addSubAccounts();
 		for (const account of subAccounts) {
 			if (account.id === id) {
-				return login(account.i);
+				return await next(account.i);
 			}
 		}
-		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
+		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), { initialUsername: username }, {
 			done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
-				store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + res.id]: res.i });
-				login(res.i);
+				await next(res.i);
 			},
 			closed: () => {
 				dispose();
@@ -236,54 +253,14 @@ export async function getAccountMenu(opts: {
 				type: 'user' as const,
 				user: account,
 				active: opts.active != null ? opts.active === id : false,
-				action: async () => {
-					if (callback) {
-						callback(account);
-					} else {
-						switchAccount(host, id);
-					}
-				},
+				action: async () => { switchAccount(host, id, callback, username); },
 			};
-		} else if (token != null) {
+		} else {
 			return {
 				type: 'button' as const,
 				text: username,
 				active: opts.active != null ? opts.active === id : false,
-				action: async () => {
-					if (callback) {
-						fetchAccount(token, id).then(account => {
-							callback(account);
-						});
-					} else {
-						switchAccount(host, id);
-					}
-				},
-			};
-		} else { // プロファイルを復元した場合などはアカウントのトークンや詳細情報はstoreにキャッシュされていない
-			return {
-				type: 'button' as const,
-				text: username,
-				active: opts.active != null ? opts.active === id : false,
-				action: async () => {
-					const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {
-						initialUsername: username,
-					}, {
-						done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
-							store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + res.id]: res.i });
-
-							if (callback) {
-								fetchAccount(res.i, id).then(account => {
-									callback(account);
-								});
-							} else {
-								switchAccount(host, id);
-							}
-						},
-						closed: () => {
-							dispose();
-						},
-					});
-				},
+				action: async () => { switchAccount(host, id, callback, username); },
 			};
 		}
 	}
