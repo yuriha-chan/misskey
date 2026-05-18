@@ -222,8 +222,6 @@ import type {
 	ChartsUserReactionsResponse,
 	ChartsUsersRequest,
 	ChartsUsersResponse,
-	ChatCardsListRequest,
-	ChatCardsRevealRequest,
 	ChatHistoryRequest,
 	ChatHistoryResponse,
 	ChatMessagesCreateToRoomRequest,
@@ -427,6 +425,7 @@ import type {
 	IGalleryLikesResponse,
 	IGalleryPostsRequest,
 	IGalleryPostsResponse,
+	IGetSubAccountTokensResponse,
 	IImportAntennasRequest,
 	IImportBlockingRequest,
 	IImportFollowingRequest,
@@ -550,7 +549,6 @@ import type {
 	NotesTranslateRequest,
 	NotesTranslateResponse,
 	NotesUnrenoteRequest,
-	NotesUpdateVisibilityRequest,
 	NotesUserListTimelineRequest,
 	NotesUserListTimelineResponse,
 	NotificationsCreateRequest,
@@ -815,8 +813,6 @@ export type Endpoints = {
 	'charts/user/pv': { req: ChartsUserPvRequest; res: ChartsUserPvResponse };
 	'charts/user/reactions': { req: ChartsUserReactionsRequest; res: ChartsUserReactionsResponse };
 	'charts/users': { req: ChartsUsersRequest; res: ChartsUsersResponse };
-	'chat/cards/list': { req: ChatCardsListRequest; res: EmptyResponse };
-	'chat/cards/reveal': { req: ChatCardsRevealRequest; res: EmptyResponse };
 	'chat/history': { req: ChatHistoryRequest; res: ChatHistoryResponse };
 	'chat/messages/create-to-room': { req: ChatMessagesCreateToRoomRequest; res: ChatMessagesCreateToRoomResponse };
 	'chat/messages/create-to-user': { req: ChatMessagesCreateToUserRequest; res: ChatMessagesCreateToUserResponse };
@@ -827,10 +823,6 @@ export type Endpoints = {
 	'chat/messages/show': { req: ChatMessagesShowRequest; res: ChatMessagesShowResponse };
 	'chat/messages/unreact': { req: ChatMessagesUnreactRequest; res: EmptyResponse };
 	'chat/messages/user-timeline': { req: ChatMessagesUserTimelineRequest; res: ChatMessagesUserTimelineResponse };
-	'chat/polls/finish': { req: ChatPollsFinishRequest; res: EmptyResponse };
-	'chat/polls/list': { req: ChatPollsListRequest; res: EmptyResponse };
-	'chat/polls/start': { req: ChatPollsStartRequest; res: EmptyResponse };
-	'chat/polls/vote': { req: ChatPollsVoteRequest; res: EmptyResponse };
 	'chat/read-all': { req: EmptyRequest; res: EmptyResponse };
 	'chat/rooms/create': { req: ChatRoomsCreateRequest; res: ChatRoomsCreateResponse };
 	'chat/rooms/delete': { req: ChatRoomsDeleteRequest; res: EmptyResponse };
@@ -955,7 +947,7 @@ export type Endpoints = {
 	'i/favorites': { req: IFavoritesRequest; res: IFavoritesResponse };
 	'i/gallery/likes': { req: IGalleryLikesRequest; res: IGalleryLikesResponse };
 	'i/gallery/posts': { req: IGalleryPostsRequest; res: IGalleryPostsResponse };
-	'i/get-sub-account-tokens': { req: EmptyRequest; res: EmptyResponse };
+	'i/get-sub-account-tokens': { req: EmptyRequest; res: IGetSubAccountTokensResponse };
 	'i/import-antennas': { req: IImportAntennasRequest; res: EmptyResponse };
 	'i/import-blocking': { req: IImportBlockingRequest; res: EmptyResponse };
 	'i/import-following': { req: IImportFollowingRequest; res: EmptyResponse };
@@ -1033,7 +1025,6 @@ export type Endpoints = {
 	'notes/timeline': { req: NotesTimelineRequest; res: NotesTimelineResponse };
 	'notes/translate': { req: NotesTranslateRequest; res: NotesTranslateResponse };
 	'notes/unrenote': { req: NotesUnrenoteRequest; res: EmptyResponse };
-	'notes/update-visibility': { req: NotesUpdateVisibilityRequest; res: EmptyResponse };
 	'notes/user-list-timeline': { req: NotesUserListTimelineRequest; res: NotesUserListTimelineResponse };
 	'notifications/create': { req: NotificationsCreateRequest; res: EmptyResponse };
 	'notifications/flush': { req: EmptyRequest; res: EmptyResponse };

@@ -1746,8 +1746,6 @@ declare namespace entities {
         ChartsUserReactionsResponse,
         ChartsUsersRequest,
         ChartsUsersResponse,
-        ChatCardsListRequest,
-        ChatCardsRevealRequest,
         ChatHistoryRequest,
         ChatHistoryResponse,
         ChatMessagesCreateToRoomRequest,
@@ -1949,6 +1947,7 @@ declare namespace entities {
         IGalleryLikesResponse,
         IGalleryPostsRequest,
         IGalleryPostsResponse,
+        IGetSubAccountTokensResponse,
         IImportAntennasRequest,
         IImportBlockingRequest,
         IImportFollowingRequest,
@@ -2072,7 +2071,6 @@ declare namespace entities {
         NotesTranslateRequest,
         NotesTranslateResponse,
         NotesUnrenoteRequest,
-        NotesUpdateVisibilityRequest,
         NotesUserListTimelineRequest,
         NotesUserListTimelineResponse,
         NotificationsCreateRequest,
@@ -2632,6 +2630,9 @@ type IGalleryPostsRequest = operations['i___gallery___posts']['requestBody']['co
 
 // @public (undocumented)
 type IGalleryPostsResponse = operations['i___gallery___posts']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type IGetSubAccountTokensResponse = operations['i___get-sub-account-tokens']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type IImportAntennasRequest = operations['i___import-antennas']['requestBody']['content']['application/json'];
@@ -3260,9 +3261,6 @@ type NotesTranslateResponse = operations['notes___translate']['responses']['200'
 
 // @public (undocumented)
 type NotesUnrenoteRequest = operations['notes___unrenote']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type NotesUpdateVisibilityRequest = operations['notes___update-visibility']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesUserListTimelineRequest = operations['notes___user-list-timeline']['requestBody']['content']['application/json'];
