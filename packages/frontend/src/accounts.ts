@@ -41,8 +41,8 @@ export async function getAccounts(): Promise<{
 
 async function addAccount(host: string, user: Misskey.entities.MeDetailed, token: AccountWithToken['token']) {
 	if (!prefer.s.accounts.some(x => x[0] === host && x[1].id === user.id)) {
-		store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + user.id]: token });
-		store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + user.id]: user });
+		await store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + user.id]: token });
+		await store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + user.id]: user });
 		prefer.commit('accounts', [...prefer.s.accounts, [host, { id: user.id, username: user.username }]]);
 	}
 }
@@ -183,6 +183,7 @@ export async function login(token: AccountWithToken['token'], redirect?: string)
 	}));
 
 	await addAccount(host, me, token);
+	await addSubAccounts(token);
 
 	if (redirect) {
 		// 他のタブは再読み込みするだけ
@@ -200,6 +201,12 @@ export async function switchAccount(host: string, id: string) {
 	if (token) {
 		login(token);
 	} else {
+		const subAccounts = await addSubAccounts();
+		for (const account of subAccounts) {
+			if (account.id === id) {
+				return login(account.i);
+			}
+		}
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
 			done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
 				store.set('accountTokens', { ...store.s.accountTokens, [host + '/' + res.id]: res.i });
@@ -369,13 +376,13 @@ export function getAccountWithSigninDialog(): Promise<{ id: string, token: strin
 	});
 }
 
-export async function addSubAccounts() {
-	const res = await misskeyApi('i/get-sub-account-tokens', {});
+export async function addSubAccounts(token?: string | null | undefined) {
+	const res = await misskeyApi('i/get-sub-account-tokens', {}, token);
 	for (const entry of res) {
 		const user = await fetchAccount(entry.i, entry.id, true);
 		await addAccount(host, user, entry.i);
 	}
-	unisonReload();
+	return res;
 }
 
 export function getAccountWithSignupDialog(): Promise<{ id: string, token: string } | null> {
