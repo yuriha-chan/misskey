@@ -865,7 +865,7 @@ export class ChatService {
 
 	@bindThis
 	public async roomHistory(meId: MiUser['id'], limit: number): Promise<MiChatMessage[]> {
-		const roomIds = await this.chatRoomMembershipsRepository.findBy({ userId: meId }).then(xs => xs.map(x => x.roomId))
+		const roomIds = await this.chatRoomMembershipsRepository.findBy({ userId: meId, hasLeft: false }).then(xs => xs.map(x => x.roomId))
 
 		if (roomIds.length === 0) {
 			return [];
