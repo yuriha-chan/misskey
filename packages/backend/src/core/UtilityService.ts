@@ -13,6 +13,8 @@ import { bindThis } from '@/decorators.js';
 import { MiMeta, SoftwareSuspension } from '@/models/Meta.js';
 import { MiInstance } from '@/models/Instance.js';
 
+import { parseFilter } from '@/misc/parse-filter.js';
+
 @Injectable()
 export class UtilityService {
 	constructor(
@@ -81,30 +83,57 @@ export class UtilityService {
 	}
 
 	@bindThis
-	public isKeyWordIncluded(text: string, keyWords: string[]): boolean {
+	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string | '', files: string[] | []): boolean {
 		if (keyWords.length === 0) return false;
-		if (text === '') return false;
+		if (text === '' && cw === '' && files.length === 0) {
+			return false;
+		}
 
-		const regexpregexp = /^\/(.+)\/(.*)$/;
+		const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
+		
+		const coerceFloat = (v: any) =>
+		  (typeof v === 'number') ? v :
+		  (typeof v === 'string') ? parseFloat(v) :
+		  v ? 1 : 0;
 
-		const matched = keyWords.some(filter => {
-			// represents RegExp
-			const regexp = filter.match(regexpregexp);
-			// This should never happen due to input sanitisation.
-			if (!regexp) {
-				const words = filter.split(' ');
-				return words.every(keyword => text.includes(keyword));
-			}
+		const apply = function(node: any[], testText: string): any {
 			try {
-				// TODO: RE2インスタンスをキャッシュ
-				return new RE2(regexp[1], regexp[2]).test(text);
-			} catch (_) {
-				// This should never happen due to input sanitisation.
+				switch (node[0]) {
+					case "keyword": return testText.includes && testText.includes(node[1]);
+					case "regexp":  return new RE2(node[1], node[2]).test(testText);
+					case "slowRegexp": return new RegExp(node[1], node[2]).test(testText);
+					case "and": return node.slice(1).every(n => apply(n, testText));
+					case "or": return node.slice(1).some(n => apply(n, testText));
+					case "not": return !apply(node[1], testText);
+					case "poll": return (node[2].reduce((acc: number, v: any) => acc + apply(v, testText) === true ? 1 : 0) >= coerceFloat(node[1]));
+					case "weighted": return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]);
+					case "average": return node[1].reduce((acc: number, v: any) => acc + coerceFloat(apply(v, testText)));
+					case "shorterThan": return testText.length < coerceFloat(node[1]);
+					case "longerThan": return testText.length > coerceFloat(node[1]);
+					case "hasFile": return files.length > 0;
+					case "cw": return node.slice(1).every((n: any) => apply(n, cw));
+					case "text": return node.slice(1).every((n: any) => apply(n, text));
+					case "pollChoices": return node.slice(1).every((n: any) => apply(n, pollChoices));
+					case "textAndChoices": return node.slice(1).every((n: any) => apply(n, textAndChoices));
+					default: return false;
+				}
+			} catch (err) {
 				return false;
 			}
+		}
+		const nodes = keyWords.map(filter => {
+			try {
+				return parseFilter(filter, {});
+			} catch (err) {
+				// empty filter
+				return ["or"];
+			}
 		});
-
-		return matched;
+		try {
+			return nodes.some(n => apply(n, cw === '' ? textAndChoices : cw));
+		} catch (err) {
+			return false;
+		}
 	}
 
 	@bindThis
