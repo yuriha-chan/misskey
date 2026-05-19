@@ -41,11 +41,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		roomId: { type: 'string', format: 'misskey:id' },
-		limit: { type: 'integer', minimum: 1, maximum: 100, default: 30 },
-		sinceId: { type: 'string', format: 'misskey:id' },
-		untilId: { type: 'string', format: 'misskey:id' },
-		sinceDate: { type: 'integer' },
-		untilDate: { type: 'integer' },
+		includeLeftMembers: { type: 'boolean', nullable: true },
 	},
 	required: ['roomId'],
 } as const;
@@ -58,12 +54,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const untilId = ps.untilId ?? (ps.untilDate ? this.idService.gen(ps.untilDate!) : null);
-			const sinceId = ps.sinceId ?? (ps.sinceDate ? this.idService.gen(ps.sinceDate!) : null);
-
 			await this.chatService.checkChatAvailability(me.id, 'read');
 
-			const room = await this.chatService.findRoomById(ps.roomId);
+			const room = await this.chatService.findRoomById(ps.roomId, true);
 			if (room == null) {
 				throw new ApiError(meta.errors.noSuchRoom);
 			}
@@ -72,7 +65,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.noSuchRoom);
 			}
 
-			const memberships = await this.chatService.getRoomMembershipsWithPagination(room.id, ps.limit, sinceId, untilId);
+			const memberships = await this.chatService.getRoomMemberships(room.id, ps.includeLeftMembers ?? true);
 
 			return this.chatEntityService.packRoomMemberships(memberships, me, {
 				populateUser: true,

@@ -29,6 +29,8 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		roomId: { type: 'string', format: 'misskey:id' },
+		bubbleColor: { type: 'string', nullable: true },
+		bubbleStyle: { type: 'string', nullable: true }
 	},
 	required: ['roomId'],
 } as const;
@@ -38,10 +40,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		private chatService: ChatService,
 	) {
-		super(meta, paramDef, async (ps, me) => {
+		super(meta, paramDef, async ({ roomId, bubbleColor, bubbleStyle }, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
-
-			await this.chatService.joinToRoom(me.id, ps.roomId);
+			await this.chatService.joinToRoom(me.id, roomId, { ...bubbleColor == null ? {} : { bubbleColor }, ...bubbleStyle == null ? {} : { bubbleStyle } });
 		});
 	}
 }
