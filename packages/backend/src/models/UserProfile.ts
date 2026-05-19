@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Entity, Column, Index, OneToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, Column, Index, OneToOne, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { obsoleteNotificationTypes, followingVisibilities, followersVisibilities, notificationTypes } from '@/types.js';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
@@ -22,6 +22,13 @@ export class MiUserProfile {
 	})
 	@JoinColumn()
 	public user: MiUser | null;
+
+	@Column({...id(), nullable: true})
+	public mainAccountId: MiUser['id'];
+
+	@ManyToOne(type => MiUser)
+	@JoinColumn()
+	public mainAccount: MiUser | null;
 
 	@Column('varchar', {
 		length: 128, nullable: true,

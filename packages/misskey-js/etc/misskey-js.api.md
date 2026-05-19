@@ -1987,7 +1987,9 @@ declare namespace entities {
         IAuthorizedAppsResponse,
         IChangePasswordRequest,
         IClaimAchievementRequest,
+        ICreateSubAccountRequest,
         IDeleteAccountRequest,
+        IDeleteSubAccountRequest,
         IExportFollowingRequest,
         IFavoritesRequest,
         IFavoritesResponse,
@@ -1995,6 +1997,7 @@ declare namespace entities {
         IGalleryLikesResponse,
         IGalleryPostsRequest,
         IGalleryPostsResponse,
+        IGetSubAccountTokensResponse,
         IImportAntennasRequest,
         IImportBlockingRequest,
         IImportFollowingRequest,
@@ -2660,10 +2663,16 @@ export interface IChannelConnection<Channel extends AnyOf<Channels> = AnyOf<Chan
 type IClaimAchievementRequest = operations['i___claim-achievement']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ICreateSubAccountRequest = operations['i___create-sub-account']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ID = string;
 
 // @public (undocumented)
 type IDeleteAccountRequest = operations['i___delete-account']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type IDeleteSubAccountRequest = operations['i___delete-sub-account']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type IExportFollowingRequest = operations['i___export-following']['requestBody']['content']['application/json'];
@@ -2685,6 +2694,9 @@ type IGalleryPostsRequest = operations['i___gallery___posts']['requestBody']['co
 
 // @public (undocumented)
 type IGalleryPostsResponse = operations['i___gallery___posts']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type IGetSubAccountTokensResponse = operations['i___get-sub-account-tokens']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type IImportAntennasRequest = operations['i___import-antennas']['requestBody']['content']['application/json'];
