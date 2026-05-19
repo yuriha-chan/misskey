@@ -542,7 +542,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		//#region close expired chat rooms
 		{
 			this.closeExpiredChatRoomQueueWorker = new Bull.Worker(QUEUE.CLOSE_EXPIRED_CHAT_ROOM, (job) => {
-				if (this.config.sentryForBackend) {
+				if (Sentry != null) {
 					return Sentry.startSpan({ name: 'Queue: ' }, () => this.closeExpiredChatRoomProcessorService.process(job));
 				} else {
 					return this.closeExpiredChatRoomProcessorService.process(job);
@@ -557,7 +557,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		//#region reveal chat secret
 		{
 			this.revealChatSecretQueueWorker = new Bull.Worker(QUEUE.REVEAL_CHAT_SECRET, (job) => {
-				if (this.config.sentryForBackend) {
+				if (Sentry != null) {
 					return Sentry.startSpan({ name: 'Queue: revealChatSecret' }, () => this.revealChatSecretProcessorService.process(job));
 				} else {
 					return this.revealChatSecretProcessorService.process(job);
@@ -572,7 +572,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		//#region end chat poll
 		{
 			this.endChatPollQueueWorker = new Bull.Worker(QUEUE.END_CHAT_POLL, (job) => {
-				if (this.config.sentryForBackend) {
+				if (Sentry != null) {
 					return Sentry.startSpan({ name: 'Queue: endChatPoll' }, () => this.endChatPollProcessorService.process(job));
 				} else {
 					return this.endChatPollProcessorService.process(job);
