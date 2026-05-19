@@ -16948,10 +16948,19 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        deliverId: string;
+                        cardId: number;
+                        cardKind: string;
+                        roomId: string;
+                        createdAt: string;
+                    }[];
                 };
             };
             /** @description Client error */
@@ -17012,10 +17021,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -17473,7 +17485,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': Record<string, never>[];
+                    'application/json': components['schemas']['ChatEvent'][];
                 };
             };
             /** @description Client error */
@@ -17808,10 +17820,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -17871,10 +17886,33 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        scheduledPolls: {
+                            id: string;
+                            title: string;
+                            fromUserId: string;
+                            roomId: string;
+                            createdAt: string;
+                            startsAt: string | null;
+                        }[];
+                        startedPolls: {
+                            id: string;
+                            title: string;
+                            voteForUsers: boolean;
+                            userChoices: Record<string, never>[] | null;
+                            textChoices: string[] | null;
+                            fromUserId: string;
+                            roomId: string;
+                            createdAt: string;
+                            finishesAt: string | null;
+                        }[];
+                    };
                 };
             };
             /** @description Client error */
@@ -17934,10 +17972,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -17998,10 +18039,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -18116,10 +18160,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -18747,10 +18794,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -19288,10 +19338,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */
@@ -19351,10 +19404,20 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        id: string;
+                        title: string;
+                        roomId: string;
+                        fromUserId: string;
+                        revealsAt: string | null;
+                        createdAt: string;
+                    }[];
                 };
             };
             /** @description Client error */
@@ -19414,10 +19477,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': Record<string, never>;
                 };
             };
             /** @description Client error */

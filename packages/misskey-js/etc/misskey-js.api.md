@@ -1077,7 +1077,13 @@ type ChatCardRevealed = components['schemas']['ChatCardRevealed'];
 type ChatCardsListRequest = operations['chat___cards___list']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatCardsListResponse = operations['chat___cards___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatCardsRevealRequest = operations['chat___cards___reveal']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatCardsRevealResponse = operations['chat___cards___reveal']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatEvent = components['schemas']['ChatEvent'];
@@ -1155,16 +1161,28 @@ type ChatPollScheduled = components['schemas']['ChatPollScheduled'];
 type ChatPollsFinishRequest = operations['chat___polls___finish']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatPollsFinishResponse = operations['chat___polls___finish']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatPollsListRequest = operations['chat___polls___list']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatPollsListResponse = operations['chat___polls___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatPollsStartRequest = operations['chat___polls___start']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsStartResponse = operations['chat___polls___start']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatPollStarted = components['schemas']['ChatPollStarted'];
 
 // @public (undocumented)
 type ChatPollsVoteRequest = operations['chat___polls___vote']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsVoteResponse = operations['chat___polls___vote']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoom = components['schemas']['ChatRoom'];
@@ -1177,6 +1195,9 @@ type ChatRoomMembership = components['schemas']['ChatRoomMembership'];
 
 // @public (undocumented)
 type ChatRoomsArchiveRequest = operations['chat___rooms___archive']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatRoomsArchiveResponse = operations['chat___rooms___archive']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoomsCreateRequest = operations['chat___rooms___create']['requestBody']['content']['application/json'];
@@ -1221,6 +1242,9 @@ type ChatRoomsJoinRequest = operations['chat___rooms___join']['requestBody']['co
 type ChatRoomsKickRequest = operations['chat___rooms___kick']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatRoomsKickResponse = operations['chat___rooms___kick']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatRoomsLeaveRequest = operations['chat___rooms___leave']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1254,6 +1278,9 @@ type ChatRoomsShowResponse = operations['chat___rooms___show']['responses']['200
 type ChatRoomsUpdateMembershipRequest = operations['chat___rooms___update-membership']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatRoomsUpdateMembershipResponse = operations['chat___rooms___update-membership']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatRoomsUpdateRequest = operations['chat___rooms___update']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1269,7 +1296,13 @@ type ChatSecretRevealed = components['schemas']['ChatSecretRevealed'];
 type ChatSecretsListRequest = operations['chat___secrets___list']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatSecretsListResponse = operations['chat___secrets___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatSecretsRevealRequest = operations['chat___secrets___reveal']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatSecretsRevealResponse = operations['chat___secrets___reveal']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type Clip = components['schemas']['Clip'];
@@ -1810,7 +1843,9 @@ declare namespace entities {
         ChartsUsersRequest,
         ChartsUsersResponse,
         ChatCardsListRequest,
+        ChatCardsListResponse,
         ChatCardsRevealRequest,
+        ChatCardsRevealResponse,
         ChatHistoryRequest,
         ChatHistoryResponse,
         ChatMessagesCreateToRoomRequest,
@@ -1829,10 +1864,15 @@ declare namespace entities {
         ChatMessagesUserTimelineRequest,
         ChatMessagesUserTimelineResponse,
         ChatPollsFinishRequest,
+        ChatPollsFinishResponse,
         ChatPollsListRequest,
+        ChatPollsListResponse,
         ChatPollsStartRequest,
+        ChatPollsStartResponse,
         ChatPollsVoteRequest,
+        ChatPollsVoteResponse,
         ChatRoomsArchiveRequest,
+        ChatRoomsArchiveResponse,
         ChatRoomsCreateRequest,
         ChatRoomsCreateResponse,
         ChatRoomsDeleteRequest,
@@ -1847,6 +1887,7 @@ declare namespace entities {
         ChatRoomsJoiningRequest,
         ChatRoomsJoiningResponse,
         ChatRoomsKickRequest,
+        ChatRoomsKickResponse,
         ChatRoomsLeaveRequest,
         ChatRoomsListPublicRequest,
         ChatRoomsListPublicResponse,
@@ -1860,8 +1901,11 @@ declare namespace entities {
         ChatRoomsUpdateRequest,
         ChatRoomsUpdateResponse,
         ChatRoomsUpdateMembershipRequest,
+        ChatRoomsUpdateMembershipResponse,
         ChatSecretsListRequest,
+        ChatSecretsListResponse,
         ChatSecretsRevealRequest,
+        ChatSecretsRevealResponse,
         ClipsAddNoteRequest,
         ClipsCreateRequest,
         ClipsCreateResponse,
