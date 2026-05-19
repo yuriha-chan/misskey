@@ -55,6 +55,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.passwordResetRequestsRepository)
 		private passwordResetRequestsRepository: PasswordResetRequestsRepository,
 
+		private notificationService: NotificationService,
+
 		private idService: IdService,
 		private emailService: EmailService,
 	) {

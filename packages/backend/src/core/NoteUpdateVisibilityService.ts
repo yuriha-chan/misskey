@@ -60,7 +60,7 @@ export class NoteUpdateVisibilityService {
 		const updatedAt = new Date();
 
 		if (!quiet) {
-			this.globalEventService.publishNoteStream(note.id, 'visibilityUpdated', {
+			this.globalEventService.publishNoteStream(note, 'visibilityUpdated', {
 				updatedAt: updatedAt,
 			});
 

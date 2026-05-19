@@ -59,7 +59,11 @@ export class CommandService {
 	}
 
 	@bindThis
-	public async deleteAccount(id) {
+	public async deleteAccount(id: string) {
+		if (!this.meta.rootUserId) {
+			console.log('root user not set');
+			return;
+		}
 		const root = await this.usersRepository.findOneByOrFail({ id: this.meta.rootUserId });
 		await this.deleteAccountService.deleteAccount({ id, host: null }, root);
 	}
