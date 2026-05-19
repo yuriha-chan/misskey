@@ -95,7 +95,7 @@ export class SignupService {
 				throw new Error('USED_USERNAME');
 			}
 
-			const hasProhibitedWords = this.utilityService.isKeyWordIncluded(username.toLowerCase(), this.meta.prohibitedWordsForNameOfUser);
+			const hasProhibitedWords = this.utilityService.isKeyWordIncluded(this.meta.prohibitedWordsForNameOfUser, username.toLowerCase(), '', '', []);
 			if (hasProhibitedWords) {
 				throw new Error('USED_USERNAME');
 			}

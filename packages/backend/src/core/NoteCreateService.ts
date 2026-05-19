@@ -466,20 +466,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && data.channel == null) {
 			const sensitiveWords = this.meta.sensitiveWords;
-			if (this.utilityService.isKeyWordIncluded(data.cw ?? data.text ?? '', sensitiveWords)) {
+			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map((file: MiDriveFile) => file.id) : [])) {
 				data.visibility = 'home';
 			} else if ((await this.roleService.getUserPolicies(user.id)).canPublicNote === false) {
 				data.visibility = 'home';
 			}
 		}
 
-		const hasProhibitedWords = this.checkProhibitedWordsContain({
-			cw: data.cw,
-			text: data.text,
-			pollChoices: data.poll?.choices,
-		}, this.meta.prohibitedWords);
-
-		if (hasProhibitedWords) {
+		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map((file: MiDriveFile) => file.id) : [])) {
 			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
 		}
 
@@ -1203,20 +1197,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 	}
 
-	public checkProhibitedWordsContain(content: Parameters<UtilityService['concatNoteContentsForKeyWordCheck']>[0], prohibitedWords?: string[]) {
-		if (prohibitedWords == null) {
-			prohibitedWords = this.meta.prohibitedWords;
-		}
-
-		if (
-			this.utilityService.isKeyWordIncluded(
-				this.utilityService.concatNoteContentsForKeyWordCheck(content),
-				prohibitedWords,
-			)
-		) {
+	public checkProhibitedWordsContain(content: Parameters<UtilityService['concatNoteContentsForKeyWordCheck']>[0]) {
+		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, content.text ?? '', content.cw ?? '', content.pollChoices ? content.pollChoices.join("\n") : '', [])) {
 			return true;
 		}
-
 		return false;
 	}
 
