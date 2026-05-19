@@ -3430,6 +3430,10 @@ _search:
   pleaseEnterServerHost: "サーバーのホストを入力してください"
   pleaseSelectUser: "ユーザーを選択してください"
   serverHostPlaceholder: "例: misskey.example.com"
+  recentLocalTimeline: "最近のローカルタイムライン"
+  recentHomeTimeline: "最近のホームタイムライン"
+  specifiedToMe: "自分宛ての指名投稿"
+  includeBot: "ボットの投稿を含める"
 
 _serverSetupWizard:
   installCompleted: "Misskeyのインストールが完了しました！"

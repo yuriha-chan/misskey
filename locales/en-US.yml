@@ -3252,6 +3252,10 @@ _search:
   pleaseEnterServerHost: "Enter the server host"
   pleaseSelectUser: "Select user"
   serverHostPlaceholder: "Example: misskey.example.com"
+  recentLocalTimeline: "Recent local timeline"
+  recentHomeTimeline: "Recent home timeline"
+  specifiedToMe: "Direct (specified visibility) notes addressed to me"
+  includeBot: "Include notes posted by bot accounts"
 _serverSetupWizard:
   installCompleted: "Misskey installation is now complete!"
   firstCreateAccount: "To begin, create an administrator account."
