@@ -12,6 +12,21 @@ export const meta = {
 	tags: ['chat'],
 	requireCredential: true,
 	kind: 'read:chat',
+	res: {
+		type: 'array',
+		optional: false, nullable: false,
+		items: {
+			type: 'object',
+			optional: false, nullable: false,
+			properties: {
+				deliverId: { type: 'string', optional: false, nullable: false },
+				cardId: { type: 'number', optional: false, nullable: false },
+				cardKind: { type: 'string', optional: false, nullable: false },
+				roomId: { type: 'string', optional: false, nullable: false },
+				createdAt: { type: 'string', optional: false, nullable: false },
+			},
+		},
+	},
 	errors: {
 		noSuchRoom: {
 			message: 'No such room.',

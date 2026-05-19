@@ -15,6 +15,11 @@ export const meta = {
 	tags: ['chat'],
 	requireCredential: true,
 	kind: 'write:chat',
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {},
+	},
 	errors: {
 		noSuchPoll: {
 			message: 'No such poll.',

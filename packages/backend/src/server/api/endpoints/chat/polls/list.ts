@@ -12,6 +12,47 @@ export const meta = {
 	tags: ['chat'],
 	requireCredential: true,
 	kind: 'read:chat',
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			scheduledPolls: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'object',
+					optional: false, nullable: false,
+					properties: {
+						id: { type: 'string', optional: false, nullable: false },
+						title: { type: 'string', optional: false, nullable: false },
+						fromUserId: { type: 'string', optional: false, nullable: false },
+						roomId: { type: 'string', optional: false, nullable: false },
+						createdAt: { type: 'string', optional: false, nullable: false },
+						startsAt: { type: 'string', optional: false, nullable: true },
+					},
+				},
+			},
+			startedPolls: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'object',
+					optional: false, nullable: false,
+					properties: {
+						id: { type: 'string', optional: false, nullable: false },
+						title: { type: 'string', optional: false, nullable: false },
+						voteForUsers: { type: 'boolean', optional: false, nullable: false },
+						userChoices: { type: 'array', optional: false, nullable: true, items: { type: 'object' } },
+						textChoices: { type: 'array', optional: false, nullable: true, items: { type: 'string' } },
+						fromUserId: { type: 'string', optional: false, nullable: false },
+						roomId: { type: 'string', optional: false, nullable: false },
+						createdAt: { type: 'string', optional: false, nullable: false },
+						finishesAt: { type: 'string', optional: false, nullable: true },
+					},
+				},
+			},
+		},
+	},
 	errors: {
 		noSuchRoom: {
 			message: 'No such room.',
