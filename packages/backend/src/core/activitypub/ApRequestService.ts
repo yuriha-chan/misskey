@@ -4,9 +4,11 @@
  */
 
 import { URL } from 'node:url';
+import { promisify } from 'node:util';
 import { Inject, Injectable } from '@nestjs/common';
 import { genRFC3230DigestHeader, signAsDraftToRequest } from '@misskey-dev/node-http-message-signatures';
 import * as htmlParser from 'node-html-parser';
+import { RsaKeyPair } from 'slacc';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiUser } from '@/models/User.js';

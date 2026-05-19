@@ -1197,13 +1197,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 	}
 
-	public checkProhibitedWordsContain(data: any, prohibitedWords?: string[]) {
-		if (prohibitedWords == null) {
-			prohibitedWords = this.meta.prohibitedWords;
-		}
-
-		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join("\n") : '', data.files ? data.files.map((file: MiDriveFile) => file.id) : [])) {
-			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
+	public checkProhibitedWordsContain(content: Parameters<UtilityService['concatNoteContentsForKeyWordCheck']>[0]) {
+		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, content.text ?? '', content.cw ?? '', content.pollChoices ? content.pollChoices.join("\n") : '', [])) {
+			return true;
 		}
 		return false;
 	}

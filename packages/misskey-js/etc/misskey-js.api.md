@@ -1077,12 +1077,6 @@ type ChatCard = components['schemas']['ChatCard'];
 type ChatCardRevealed = components['schemas']['ChatCardRevealed'];
 
 // @public (undocumented)
-type ChatCardsListRequest = operations['chat___cards___list']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChatCardsRevealRequest = operations['chat___cards___reveal']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
 type ChatEvent = components['schemas']['ChatEvent'];
 
 // @public (undocumented)
@@ -1155,19 +1149,7 @@ type ChatPollFinished = components['schemas']['ChatPollFinished'];
 type ChatPollScheduled = components['schemas']['ChatPollScheduled'];
 
 // @public (undocumented)
-type ChatPollsFinishRequest = operations['chat___polls___finish']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChatPollsListRequest = operations['chat___polls___list']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChatPollsStartRequest = operations['chat___polls___start']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
 type ChatPollStarted = components['schemas']['ChatPollStarted'];
-
-// @public (undocumented)
-type ChatPollsVoteRequest = operations['chat___polls___vote']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoom = components['schemas']['ChatRoom'];
@@ -1252,9 +1234,6 @@ type ChatRoomsShowRequest = operations['chat___rooms___show']['requestBody']['co
 
 // @public (undocumented)
 type ChatRoomsShowResponse = operations['chat___rooms___show']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChatRoomsUpdateMembershipRequest = operations['chat___rooms___update-membership']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoomsUpdateRequest = operations['chat___rooms___update']['requestBody']['content']['application/json'];
@@ -1813,8 +1792,6 @@ declare namespace entities {
         ChartsUserReactionsResponse,
         ChartsUsersRequest,
         ChartsUsersResponse,
-        ChatCardsListRequest,
-        ChatCardsRevealRequest,
         ChatHistoryRequest,
         ChatHistoryResponse,
         ChatMessagesCreateToRoomRequest,
@@ -1832,10 +1809,6 @@ declare namespace entities {
         ChatMessagesUnreactRequest,
         ChatMessagesUserTimelineRequest,
         ChatMessagesUserTimelineResponse,
-        ChatPollsFinishRequest,
-        ChatPollsListRequest,
-        ChatPollsStartRequest,
-        ChatPollsVoteRequest,
         ChatRoomsArchiveRequest,
         ChatRoomsCreateRequest,
         ChatRoomsCreateResponse,
@@ -1863,7 +1836,6 @@ declare namespace entities {
         ChatRoomsShowResponse,
         ChatRoomsUpdateRequest,
         ChatRoomsUpdateResponse,
-        ChatRoomsUpdateMembershipRequest,
         ChatSecretsListRequest,
         ChatSecretsRevealRequest,
         ClipsAddNoteRequest,
@@ -1964,6 +1936,8 @@ declare namespace entities {
         FollowingDeleteResponse,
         FollowingInvalidateRequest,
         FollowingInvalidateResponse,
+        FollowingListRequest,
+        FollowingListResponse,
         FollowingRequestsAcceptRequest,
         FollowingRequestsCancelRequest,
         FollowingRequestsCancelResponse,
@@ -2494,6 +2468,12 @@ type FollowingInvalidateRequest = operations['following___invalidate']['requestB
 
 // @public (undocumented)
 type FollowingInvalidateResponse = operations['following___invalidate']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type FollowingListRequest = operations['following___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type FollowingListResponse = operations['following___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type FollowingRequestsAcceptRequest = operations['following___requests___accept']['requestBody']['content']['application/json'];
