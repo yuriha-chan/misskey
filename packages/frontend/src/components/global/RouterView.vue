@@ -6,8 +6,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_pageContainer" :class="$style.root">
 	<KeepAlive :max="prefer.s.numberOfPageCache">
-		<Suspense :timeout="0">
-			<component :is="currentPageComponent" :key="key" v-bind="Object.fromEntries(currentPageProps)"/>
+		<Suspense :timeout="0" @resolve="() => onMainContentLoaded(false)">
+			<component :is="currentPageComponent" :key="key" v-bind="Object.fromEntries(currentPageProps)" @mainContentLoaded="() => onMainContentLoaded(true)" @contentLoadDelayed="onContentLoadDelayed" />
 
 			<template #fallback>
 				<MkLoading/>
@@ -28,6 +28,10 @@ import { deepEqual } from '@/utility/deep-equal.js';
 
 const props = defineProps<{
 	router?: Router;
+}>();
+
+const emits = defineEmits<{
+	(e: 'mainContentLoaded'): void
 }>();
 
 const _router = props.router ?? inject(DI.router);
@@ -59,6 +63,18 @@ router.useListener('change', ({ resolved }) => {
 	key.value = router.getCurrentFullPath();
 	currentRoutePath = resolved.route.path;
 });
+
+let contentLoadWillDelay = false;
+
+const onContentLoadDelayed = () => {
+	contentLoadWillDelay = true;
+}
+
+const onMainContentLoaded = (delayed) => {
+	if (!contentLoadWillDelay || delayed) {
+		emits('mainContentLoaded');
+	}
+};
 </script>
 
 <style lang="scss" module>

@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:leaveToClass="prefer.s.animation ? $style.transition_menuDrawer_leaveTo : ''"
 >
 	<div v-if="drawerMenuShowing" :class="$style.menuDrawer">
-		<XNavbar style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
+		<XNavbar style="height: 100%;" :asDrawer="true" :showWidgetButton="false" :showContent="true"/>
 	</div>
 </Transition>
 

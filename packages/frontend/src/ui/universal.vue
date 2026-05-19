@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<XTitlebar v-if="prefer.r.showTitlebar.value" style="flex-shrink: 0;"/>
 
 	<div :class="$style.nonTitlebarArea">
-		<XSidebar v-if="!isMobile" :class="$style.sidebar" :showWidgetButton="!showWidgetsSide" @widgetButtonClick="widgetsShowing = true"/>
+		<XSidebar v-if="!isMobile" :showContent="routerViewLoaded" :class="$style.sidebar" :showWidgetButton="!showWidgetsSide" @widgetButtonClick="widgetsShowing = true"/>
 
 		<div :class="[$style.contents, !isMobile && prefer.r.showTitlebar.value ? $style.withSidebarAndTitlebar : null]" @contextmenu.stop="onContextmenu">
 			<div>
@@ -19,12 +19,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XStatusBars :class="$style.statusbars"/>
 			</div>
 			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content"/>
-			<RouterView v-else :class="$style.content"/>
-			<XMobileFooterMenu v-if="isMobile" ref="navFooter" v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing"/>
+			<RouterView v-else :class="$style.content" @mainContentLoaded="onRouterViewLoaded"/>
+			<Transition
+				:enterActiveClass="$style.transition_navFooter_enterActive"
+				:leaveActiveClass="$style.transition_navFooter_leaveActive"
+				:enterFromClass="$style.transition_navFooter_enterFrom"
+				:leaveToClass="$style.transition_navFooter_leaveTo"
+			>
+				<XMobileFooterMenu v-if="isMobile && navFooterShowing && navFooterShowingByPage " v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing" ref="navFooter"/>
+			</Transition>
 		</div>
 
 		<div v-if="showWidgetsSide && !pageMetadata?.needWideArea" :class="$style.widgets">
-			<XWidgets/>
+			<XWidgets v-if="routerViewLoaded"/>
 		</div>
 	</div>
 
@@ -33,7 +40,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, provide, onMounted, computed, ref } from 'vue';
+import { defineAsyncComponent, provide, onMounted, computed, ref, shallowRef, watch } from 'vue';
 import { instanceName } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
 import XCommon from './_common_/common.vue';
@@ -76,6 +83,8 @@ window.addEventListener('resize', () => {
 
 const pageMetadata = ref<null | PageMetadata>(null);
 const widgetsShowing = ref(false);
+const navFooterShowing = ref(true);
+const navFooterShowingByPage = ref(true);
 
 provide(DI.router, mainRouter);
 provideMetadataReceiver((metadataGetter) => {
@@ -92,10 +101,15 @@ provideMetadataReceiver((metadataGetter) => {
 provideReactiveMetadata(pageMetadata);
 
 const drawerMenuShowing = ref(false);
+const routerViewLoaded = ref(false);
 
 mainRouter.on('change', () => {
 	drawerMenuShowing.value = false;
 });
+
+const onRouterViewLoaded = () => {
+	routerViewLoaded.value = true;
+};
 
 if (window.innerWidth > 1024) {
 	const tempUI = miLocalStorage.getItem('ui_temp');
@@ -105,6 +119,69 @@ if (window.innerWidth > 1024) {
 		window.location.reload();
 	}
 }
+
+let scrollHistory: {time: Date, position: number} [] = [];
+
+if (prefer.s.hideNavFooter) {
+	provide('onContentScroll', (e) => {
+    const elem = e.target;
+		const now = new Date();
+		scrollHistory = scrollHistory.filter(x => (now - x.time < 2000) && (now > x.time));
+		let scrollPosition = elem.scrollTop;
+		scrollHistory.push({ time: now, position: scrollPosition });
+		if (scrollHistory.length === 1) {
+			return;
+		}
+		let diffPosition = scrollPosition - scrollHistory[0].position;
+		let diffTime = now - scrollHistory[0].time;
+		let scrollSpeed = diffPosition / diffTime;
+		if (scrollPosition === 0) {
+			navFooterShowing.value = true;
+			scrollHistory = [];
+		} else if (scrollSpeed > 0.2 && diffPosition > 300 || scrollSpeed < -0.5 && diffPosition < -600) {
+			navFooterShowing.value = false;
+		} else if (-0.2 < scrollSpeed && scrollSpeed < 0.02) {
+			navFooterShowing.value = true;
+		}
+	}, { passive: true });
+}
+
+onMounted(() => {
+	if (!isDesktop.value) {
+		window.addEventListener('resize', () => {
+			if (window.innerWidth >= DESKTOP_THRESHOLD) isDesktop.value = true;
+		}, { passive: true });
+	}
+	const fullPath = mainRouter.getCurrentFullPath();
+	if (fullPath.startsWith("/chat/room/") || fullPath.startsWith("/chat/user/")) {
+			navFooterShowingByPage.value = false;
+	}
+	mainRouter.addListener('change', ctx => {
+		if (ctx.fullPath.startsWith("/chat/room/") || ctx.fullPath.startsWith("/chat/user/")) {
+			navFooterShowingByPage.value = false;
+		} else {
+			navFooterShowingByPage.value = true;
+		}
+	});
+});
+
+
+const navFooterHeight = ref(0);
+const navFooter = shallowRef<HTMLElement>();
+
+watch(navFooter, () => {
+	if (navFooter.value) {
+		navFooterHeight.value = navFooter.value?.offsetHeight ?? 0;
+		document.body.style.setProperty('--MI-stickyBottom', `${navFooterHeight.value}px`);
+		document.body.style.setProperty('--MI-minBottomSpacing', 'var(--MI-minBottomSpacingMobile)');
+	} else {
+		navFooterHeight.value = 0;
+		document.body.style.setProperty('--MI-stickyBottom', '0px');
+		document.body.style.setProperty('--MI-minBottomSpacing', '0px');
+	}
+}, {
+	immediate: true,
+});
 
 function onContextmenu(ev: PointerEvent) {
 	if (isLink(ev.target as HTMLElement)) return;
@@ -127,6 +204,64 @@ function onContextmenu(ev: PointerEvent) {
 <style lang="scss" module>
 $widgets-hide-threshold: 1090px;
 
+.transition_navFooter_enterActive {
+	opacity: 1;
+	transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.transition_navFooter_leaveActive {
+	opacity: 1;
+	transition: opacity 800ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.transition_navFooter_enterFrom,
+.transition_navFooter_leaveTo {
+	opacity: 0;
+}
+
+.transition_menuDrawerBg_enterActive,
+.transition_menuDrawerBg_leaveActive {
+	opacity: 1;
+	transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.transition_menuDrawerBg_enterFrom,
+.transition_menuDrawerBg_leaveTo {
+	opacity: 0;
+}
+
+.transition_menuDrawer_enterActive,
+.transition_menuDrawer_leaveActive {
+	opacity: 1;
+	transform: translateX(0);
+	transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1), opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.transition_menuDrawer_enterFrom,
+.transition_menuDrawer_leaveTo {
+	opacity: 0;
+	transform: translateX(-240px);
+}
+
+.transition_widgetsDrawerBg_enterActive,
+.transition_widgetsDrawerBg_leaveActive {
+	opacity: 1;
+	transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.transition_widgetsDrawerBg_enterFrom,
+.transition_widgetsDrawerBg_leaveTo {
+	opacity: 0;
+}
+
+.transition_widgetsDrawer_enterActive,
+.transition_widgetsDrawer_leaveActive {
+	opacity: 1;
+	transform: translateX(0);
+	transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1), opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.transition_widgetsDrawer_enterFrom,
+.transition_widgetsDrawer_leaveTo {
+	opacity: 0;
+	transform: translateX(240px);
+}
+
 .root {
 	height: 100dvh;
 	overflow: clip;
@@ -144,6 +279,14 @@ $widgets-hide-threshold: 1090px;
 
 .sidebar {
 	border-right: solid 0.5px var(--MI_THEME-divider);
+}
+
+.sidebarPlaceholder {
+	width: 250px;
+}
+
+.sidebarPlaceholder.iconOnly {
+	width: 80px;
 }
 
 .contents {
@@ -184,4 +327,5 @@ $widgets-hide-threshold: 1090px;
 		display: none;
 	}
 }
+
 </style>
