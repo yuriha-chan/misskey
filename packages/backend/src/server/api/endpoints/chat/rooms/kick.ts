@@ -16,12 +16,6 @@ export const meta = {
 
 	kind: 'write:chat',
 
-	res: {
-		type: 'object',
-		optional: false, nullable: false,
-		properties: {},
-	},
-
 	errors: {
 		noSuchRoom: {
 			message: 'No such room.',

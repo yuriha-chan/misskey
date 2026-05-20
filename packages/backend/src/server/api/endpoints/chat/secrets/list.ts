@@ -23,7 +23,7 @@ export const meta = {
 				title: { type: 'string', optional: false, nullable: false },
 				roomId: { type: 'string', optional: false, nullable: false },
 				fromUserId: { type: 'string', optional: false, nullable: false },
-				revealsAt: { type: 'string', optional: false, nullable: true },
+				revealsAt: { type: 'string', optional: true, nullable: true },
 				createdAt: { type: 'string', optional: false, nullable: false },
 			},
 		},

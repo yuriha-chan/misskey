@@ -255,7 +255,7 @@ export class ChatService {
 	@bindThis
 	public async listSecret(roomId: MiChatRoom['id'], me?: MiUser) {
 		const secrets = await this.chatSecretsRepository.find({ where: { roomId, revealedId: IsNull() }});
-		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt, createdAt: this.idService.parse(s.id).date.toISOString() }));
+		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt?.toISOString() ?? null, createdAt: this.idService.parse(s.id).date.toISOString() }));
 	}
 
 	@bindThis
