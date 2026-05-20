@@ -73,6 +73,14 @@ Polls with `voteForUsers: true` have user IDs as choices. Some users may have be
 ### 2.7 Room Ownership Model Shift
 Owners now get an explicit `chat_room_membership` record (previously they were implicitly a member without a DB row). This simplifies queries — all room membership queries check `hasLeft` uniformly.
 
+### 2.8 Frontend User Data Caching
+Since chat room is a place where limited number of participants are involved, the user data is not attched to the message. Instead, the client is responsible to receive user data independently and map on their own.
+
+### 2.9 Frontend Type Definitions
+There are additional frontend types defined separated from misskey-js definitions. There are six types: `NormalizedChatMessage` is a chat message with author and reaction users resolved (see 2.8).  `TimelineItem` is a discriminated union extending `ChatEvent` with join, leave, membershipUpdated, and roomArchived variants. This type represents all items that should be rendered in the chat room interface. `TrackedPoll` is a poll entity union carrying frontend-only lifecycle flags (`started`, `voted`).
+
+Three draft types (`ChatPollDraft`, `ChatSecretDraft`, `ChatCardsDraft`) represent form-level data shapes that intentionally differ from API entity types: e.g.`ChatSecret` lacks `plaintext` — that field only appears on `ChatSecretRevealed` after reveal. The draft carries `plaintext` and `revealsIn` for pre-commit editing without leaking the secret via the API schema.
+
 ---
 
 ## 3. Layered Implementation
@@ -131,45 +139,61 @@ Registered in: `queue/types.ts` (3 job data types), `queue/const.ts` (3 QUEUE ke
 | `chatRoomUserStream` per‑user channel | `GlobalEventService.ts` — new stream type; `chat-room.ts` channel now subscribes to `chatRoomUserStream:{roomId}-{userId}` for self |
 | `membershipUpdated` event | Published on bubble color change; consumed by room participants to refresh UI |
 
-### Layer 6: Frontend
-| What | Files |
-|---|---|
-| **New components** | `MkColorId.vue` (color‑coded ID segments), `MkCountdown.vue` (live countdown timer), `MkTimeDurationInput.vue` (compound duration input with steppers) |
-| **New pages/dialogs** | `home.publicRooms.vue` (public room listing, 10s polling), `room.info.vue` (room settings tab), `edit-chat-room.vue` (room creation dialog), `edit-chat-participation.vue` (bubble color picker), `edit-chat-poll.vue` (poll creation), `edit-chat-secret.vue` (secret creation), `edit-chat-cards.vue` (card creation + distribution), `vote-chat-poll.vue` (vote dialog) |
-| **Major rewrites** | `room.vue` (multi‑event timeline, sticky‑top bar for polls/secrets/cards, 14 WebSocket handlers), `XMessage.vue` (10 event‑type renderers), `room.form.vue` (attachment system with preview chips) |
-| **Minor tweaks** | `MkFukidashi.vue` (CSS mix for per‑user bubble color), `MkPageHeader.vue` (+showText toggle), `MkPageHeader.tabs.vue` (responsive padding), `home.home.vue` (+public rooms section, replaced inline create form), `home.joiningRooms.vue` (+includeLeft toggle), `home.ownedRooms.vue` (+includeArchived toggle) |
+### Layer 6: Frontend Types and Data
+- **User data**: User objects are not attached to chat messages by the server. The client maintains a `membersMap` keyed by `userId`, populated from room membership data. `NormalizedChatMessage` wraps `ChatMessageLite` with resolved `fromUser` and `reaction.user` fields drawn from `membersMap` (or self for own messages).
+- **Timeline items**: `TimelineItem` extends `ChatEvent` with join, leave, membershipUpdated, and roomArchived variants — all types displayed in the chat room.
+- **Poll state**: `TrackedPoll` carries frontend-only lifecycle flags (`started`, `voted`) via a distributive union over the two poll entity stages.
+- **Form shapes**: `ChatPollDraft`, `ChatSecretDraft`, and `ChatCardsDraft` carry fields absent from API entity types (e.g., `plaintext` before secret commit).
+- **Streaming**: 11 new `chatRoom` events declared with correct entity types.
+- **Queue types**: `closeExpiredChatRoom`, `revealChatSecret`, `endChatPoll` added to `misskey-js/consts.ts`.
 
-### Layer 7: i18n & SDK
+#### Layer 7: Frontend Components
+| File | Role |
+|---|---|
+| `room.vue` | Root page: multi‑event timeline with date separators and 14 WebSocket handlers, sticky bar for polls/secrets/cards, header tabs (chat/search/members/info), connection scoped per channel type |
+| `XMessage.vue` | Message renderer: 10 event‑type templates (message, poll scheduled/started/finished, secret committed/revealed, card delivered/revealed, join, leave), reactions, search result enrichment |
+| `room.form.vue` | Message composer: text input with attachment preview chips for polls, secrets, cards, and files |
+| `edit-chat-poll.vue` | Poll creation dialog |
+| `edit-chat-secret.vue` | Secret creation dialog |
+| `edit-chat-cards.vue` | Card creation + distribution dialog |
+| `edit-chat-room.vue` | Room creation dialog |
+| `edit-chat-participation.vue` | Bubble color picker dialog |
+| `vote-chat-poll.vue` | Vote dialog |
+| `room.info.vue` | Room settings tab |
+| `room.members.vue` | Member list with kick |
+| `room.search.vue` | Message search within room |
+| `home.publicRooms.vue` | Public room listing |
+| `MkColorId.vue` | Color‑coded ID segments |
+| `MkCountdown.vue` | Live countdown timer |
+| `MkTimeDurationInput.vue` | Duration input with steppers |
+| `MkFukidashi.vue` | Per‑user bubble color via `--MI_USER-fukidashi` |
+| `MkPageHeader.vue` | `showText` made optional |
+| `home.home.vue` | Public rooms foldable section |
+| `home.joiningRooms.vue` | `includeLeft` toggle |
+| `home.ownedRooms.vue` | `includeArchived` toggle |
+| `admin-file.chat.vue` | XMessage prop `:message` → `:item` |
+| `message.vue` | XMessage prop `:message` → `:item` |
+
+#### Layer 8: Frontend Event Handling and API Calls
+| What | Where |
+|---|---|
+| **14 WebSocket handlers** | Client receives messages via websocket (`room.vue`) — `message`, `deleted`, `react`, `unreact`, `join`, `leave`, `pollScheduled`, `pollStarted`, `pollFinished`, `secretCommitted`, `secretRevealed`, `cardDelivered`, `cardRevealed`, `roomArchived`, `membershipUpdated` |
+| **Connection scoping** | Listeners registered in the same branch where the channel is created (`chatUser` or `chatRoom`) |
+| **Calling API endpoints** | Client posts chat text and other events by calling API endpoints, not by sending websocket message: `chat/messages/create-to-{user,room}`, `chat/polls/{vote,start,finish}`, `chat/secrets/reveal`, `chat/cards/reveal` |
+| **Prop contracts** | XMessage accepts `:item` (TimelineItem) and `:membership` (optional ChatRoomMembership) |
+
+### Layer 9: i18n
 | What | Where |
 |---|---|
 | **72 new keys** | `locales/ja-JP.yml` — 2 general + 70 under `_chat:` (polls, secrets, cards, room management, bubble color) |
-| **Auto‑gen** | `packages/misskey-js/src/autogen/` fully regenerated (entities, models, types, apiClientJSDoc, endpoint, api.md) |
-| **i18n types** | `packages/i18n/src/autogen/locale.ts` regenerated |
 
 ---
 
 ## 4. Divergences from `Developer_Manual.md`
 
-### 4.1 Missing `res` in New API Endpoint Meta (vs §1)
-Several new endpoints have **no `res` field declared** in their `meta`, meaning no response schema is visible to the OpenAPI generator:
+### 4.1 Missing `res` in New API Endpoint Meta (vs §1) => fixed
 
-| Endpoint | `meta.res` |
-|---|---|
-| `chat/cards/list` | **missing** (returns `ChatCard[]`) |
-| `chat/cards/reveal` | **missing** (void) |
-| `chat/polls/start` | **missing** (void) |
-| `chat/polls/finish` | **missing** (void) |
-| `chat/polls/vote` | **missing** (void) |
-| `chat/polls/list` | **missing** (returns `{scheduledPolls, startedPolls}`) |
-| `chat/rooms/archive` | **missing** (void) |
-| `chat/rooms/kick` | **missing** (void) |
-| `chat/rooms/update-membership` | **missing** (void) |
-| `chat/secrets/list` | **missing** (returns `ChatSecret[]`) |
-| `chat/secrets/reveal` | **missing** (void) |
-
-The `Developer_Manual.md` §1 template shows `res` as a declared field. While `res` is optional in the type system, the manual's template always includes it. Similarly, `chat/messages/room-timeline` had its `ref` removed and now returns only `type: 'object'` — the union `ChatEvent` type is defined in `json-schema/chat-event.ts` but not referenced in the endpoint's own `res` (the ref is missing).
-
-### 4.2 Test File: Incomplete Copy‑Paste Artifacts (vs §1 e2e test requirement)
+### 4.2 Test File: Incomplete Copy‑Paste Artifacts (vs §1 e2e test requirement) => planned
 The new test file `packages/backend/test/unit/entities/ChatEntityService.ts` (138 lines) contains numerous issues:
 
 1. **Wrong import path**: `ChatEntityService` is imported from `'@/core/entities/UserEntityService.js'` (line 7) — should be `'@/core/entities/ChatEntityService.js'`.
@@ -179,7 +203,7 @@ The new test file `packages/backend/test/unit/entities/ChatEntityService.ts` (13
 
 The manual §1 requires an e2e test for each endpoint; this file is a unit test for the entity service, but it is functionally broken.
 
-### 4.3 Missing Storybook Stories for New Mk* Components (vs §12)
+### 4.3 Missing Storybook Stories for New Mk* Components (vs §12) => postponed
 The three new shared components have **no `*.stories.impl.ts` files**:
 - `MkColorId.vue` — no `MkColorId.stories.impl.ts`
 - `MkCountdown.vue` — no `MkCountdown.stories.impl.ts`
@@ -190,24 +214,9 @@ The manual §12 explicitly requires a `*.stories.impl.ts` file alongside every `
 ### 4.4 No CHANGELOG Entry
 The diff shows **no changes to `CHANGELOG.md`**. According to `CONTRIBUTING.md` (line 58) and `AGENTS.md` (CHANGELOG section), user‑facing changes must be documented in `CHANGELOG.md` under `## Unreleased`. All four feature groups (polls, secrets, cards, public rooms) are user‑facing additions.
 
-### 4.5 Migration Naming Inconsistency (§11)
-The manual §11 prescribes `{Date.now()}-<descriptive-name>.js` for the filename. The five new migrations use:
-- `chat-soft-leave` (camelCase)
-- `chat-room` (kebab‑case component)
-- `add-chat-features-tables` (kebab‑case)
-- `add-bubble-style-to-chat-membership` (kebab‑case)
-- `addChatMessageVisibility` (camelCase)
+### 4.5 Migration Naming Inconsistency (§11) => not planned
 
-No strict enforcement exists in CI for naming style, but the manual and `AGENTS.md` describe a preferred pattern that is not consistently followed here.
-
-### 4.6 `chat/rooms/members` Endpoint: Pagination Removed Without Versioning
-The `chat/rooms/members` endpoint had its `limit`, `sinceId`, `untilId`, `sinceDate`, `untilDate` params **removed entirely**. This is a backwards‑incompatible API change — callers that pass pagination params will now receive validation errors. No deprecated‑params strategy or API versioning was applied.
-
-### 4.7 Meta Property Pattern for `types.ts` (vs §4)
-`moderationLogTypes` in `types.ts` was extended with `'archiveChatRoom'`. This follows the manual §4 pattern (adding to `Meta.ts` + migration + API endpoints). The moderation log type is consistent.
-
-### 4.8 No New Global Registrations for Mk Components (vs §12)
-The three new `Mk*` components (`MkColorId`, `MkCountdown`, `MkTimeDurationInput`) are **locally imported** in their consumers, not registered globally in `components/index.ts`. The manual §12 gives both paths (global vs local) — this is a choice, not a violation, but worth noting since most `Mk*` components in this codebase are globally registered.
+### 4.6 `chat/rooms/members` Endpoint: Pagination Removed Without Versioning => not planned
 
 ---
 
@@ -219,8 +228,10 @@ The three new `Mk*` components (`MkColorId`, `MkCountdown`, `MkTimeDurationInput
 | 10 modified endpoints | Most changes are backward‑compatible additions; `chat/rooms/members` removed pagination (breaking) |
 | 4 new DB entities + 5 migrations | All entities fully registered (DI, RepositoryModule, postgres.ts, _.ts) |
 | 3 new queue types + processors | Fully registered across all 6 required files |
-| 3 new frontend components | Missing Storybook stories |
-| 8 new frontend pages/dialogs | SPDX headers present, `definePage()` present |
+| 3 new shared components | Missing Storybook stories |
+| 10 new page components / dialogs | SPDX headers present, `definePage()` present where applicable |
+| 6 majorly rewritten pages | `room.vue`, `XMessage.vue`, `room.form.vue`, `home.home.vue`, `admin-file.chat.vue`, `message.vue` |
+| 6 exported frontend types | `NormalizedChatMessage`, `TimelineItem`, `TrackedPoll`, `ChatPollDraft`, `ChatSecretDraft`, `ChatCardsDraft` |
 | 72 new i18n keys | Only `ja-JP.yml` edited (correct per §16) |
 | misskey‑js auto‑gen | Executed (all autogen files updated) |
 | e2e / unit test | One broken unit test file (copy‑paste artifacts, no test cases) |
