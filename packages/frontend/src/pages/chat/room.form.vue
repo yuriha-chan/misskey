@@ -56,6 +56,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, watch, ref, shallowRef, computed, nextTick, onBeforeUnmount, reactive } from 'vue';
 import * as Misskey from 'misskey-js';
+import type { ChatPollDraft, ChatSecretDraft, ChatCardsDraft } from './room.vue';
 //import insertTextAtCursor from 'insert-text-at-cursor';
 import { formatTimeString } from '@/utility/format-time-string.js';
 import { selectFile } from '@/utility/drive.js';
@@ -84,9 +85,9 @@ const fileEl = shallowRef<HTMLInputElement>();
 
 const text = ref<string>('');
 const file = ref<Misskey.entities.DriveFile | null>(null);
-const poll = ref<Record<string, any> | null>(null);
-const secret = ref<Record<string, any> | null>(null);
-const cards = ref<Record<string, any> | null>(null);
+const poll = ref<ChatPollDraft | null>(null);
+const secret = ref<ChatSecretDraft | null>(null);
+const cards = ref<ChatCardsDraft | null>(null);
 const sending = ref(false);
 const textareaReadOnly = ref(false);
 let autocompleteInstance: Autocomplete | null = null;
@@ -105,7 +106,7 @@ function openAttachmentMenu(ev: MouseEvent) {
 
 async function openPollDialog() {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-poll.vue').then(x => x.default), {
-		poll: poll.value as any,
+		poll: poll.value,
 		members: props.members,
 	}, {
 		done: result => {
@@ -118,7 +119,7 @@ async function openPollDialog() {
 }
 async function openSecretDialog(): Promise<void> {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-secret.vue').then(x => x.default), {
-		secret: secret.value as any,
+		secret: secret.value,
 	}, {
 		done: result => {
 			if (result.created) {
@@ -130,7 +131,7 @@ async function openSecretDialog(): Promise<void> {
 }
 async function openCardsDialog() {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-cards.vue').then(x => x.default), {
-		cards: cards.value as any,
+		cards: cards.value,
 		members: props.members,
 	}, {
 		done: result => {
@@ -265,11 +266,11 @@ function onChangeFile() {
 	}
 }
 
-function packDeliverCards(cards: { title: string; cards: string[]; deliver: { user: { id: string }, count: number }[]}) {
+function packDeliverCards(cards: ChatCardsDraft) {
 	return {...cards, deliver: cards.deliver.map(d => ({ count: d.count, userId: d.user.id }))};
 }
-function packPoll(poll: { voteForUsers: boolean; choices: ({ id: string } | string)[] }) {
-	return {...poll, choices: poll.voteForUsers ? (poll.choices as { id: string }[]).map(u => u.id) : poll.choices };
+function packPoll(poll: ChatPollDraft) {
+	return {...poll, choices: poll.voteForUsers ? (poll.choices as Misskey.entities.UserLite[]).map(u => u.id) : poll.choices };
 }
 
 function send() {
@@ -287,9 +288,9 @@ function send() {
 	const params: any = {};
 	if (text.value.trim()) params.text = text.value;
 	if (file.value) params.fileId = file.value.id;
-	if (poll.value) params.poll = packPoll(poll.value as any);
+	if (poll.value) params.poll = packPoll(poll.value);
 	if (secret.value) params.commitSecret = secret.value;
-	if (cards.value) params.deliverCards = packDeliverCards(cards.value as any);
+	if (cards.value) params.deliverCards = packDeliverCards(cards.value);
 
 	createMessage(params).then(() => {
 		clear();

@@ -55,6 +55,7 @@
 <script lang="ts" setup>
 import { ref, computed, watch, onMounted, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
+import type { ChatCardsDraft } from './room.vue';
 import { i18n } from '@/i18n.js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -73,7 +74,7 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-	cards?: { title: string; cards: string[]; deliver: { user: Misskey.entities.UserLite; count: number }[] } | null;
+	cards?: ChatCardsDraft | null;
 	members: Record<string, Misskey.entities.ChatRoomMembership>;
 }>();
 

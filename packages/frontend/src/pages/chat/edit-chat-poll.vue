@@ -54,6 +54,7 @@
 import { ref, computed, onMounted, useTemplateRef } from 'vue';
 import { i18n } from '@/i18n.js';
 import * as Misskey from 'misskey-js';
+import type { ChatPollDraft } from './room.vue';
 import * as os from '@/os.js';
 import { ensureSignin } from '@/i.js';
 import MkWindow from '@/components/MkWindow.vue';
@@ -78,7 +79,7 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-	poll?: { title: string; textChoices: string[]; userChoices: string[]; choices: string[]; voteForUsers: boolean; startsIn: number, duration: number, anonymous: boolean } | null;
+	poll?: ChatPollDraft | null;
 	members: Record<string, Misskey.entities.ChatRoomMembership>;
 }>();
 
@@ -118,9 +119,9 @@ onMounted(() => {
 	if (props.poll != null) {
 		title.value = props.poll.title;
 		if (props.poll.voteForUsers) {
-			userChoices.value = props.poll.choices as unknown as Misskey.entities.UserLite[];
+			userChoices.value = props.poll.choices as Misskey.entities.UserLite[];
 		} else {
-			textChoices.value = props.poll.choices;
+			textChoices.value = props.poll.choices as string[];
 		}
 		startsIn.value = props.poll.startsIn ?? 0;
 		duration.value = props.poll.duration;

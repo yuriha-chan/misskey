@@ -85,9 +85,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div :class="$style.footer">
 			<button v-if="item.type === 'message'" class="_textButton" style="color: currentColor;" @click="showMenu"><i class="ti ti-dots-circle-horizontal"></i></button>
-			<MkTime :class="$style.time" :time="(item.data as any).createdAt"/>
-			<MkA v-if="isSearchResult && 'toRoom' in item.data && (item.data as any).toRoom != null" :to="`/chat/room/${(item.data as any).toRoomId}`">{{ (item.data as any).toRoom.name }}</MkA>
-			<MkA v-if="isSearchResult && 'toUser' in item.data && (item.data as any).toUser != null && isMe" :to="`/chat/user/${(item.data as any).toUserId}`">@{{ (item.data as any).toUser.username }}</MkA>
+			<MkTime :class="$style.time" :time="(item.data as { createdAt: string }).createdAt"/>
+			<MkA v-if="isSearchResult && 'toRoom' in item.data && (item.data as Misskey.entities.ChatMessage).toRoom != null" :to="`/chat/room/${(item.data as Misskey.entities.ChatMessage).toRoomId}`">{{ (item.data as Misskey.entities.ChatMessage).toRoom!.name }}</MkA>
+			<MkA v-if="isSearchResult && 'toUser' in item.data && (item.data as Misskey.entities.ChatMessage).toUser != null && isMe" :to="`/chat/user/${(item.data as Misskey.entities.ChatMessage).toUserId}`">@{{ (item.data as Misskey.entities.ChatMessage).toUser!.username }}</MkA>
 		</div>
 		<TransitionGroup
 			v-if="item.type === 'message'"

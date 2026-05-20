@@ -28,6 +28,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
+import type { ChatSecretDraft } from './room.vue';
 import { i18n } from '@/i18n.js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -43,15 +44,15 @@ const emit = defineEmits<{
 	(ev: 'closed'): void;
 }>();
 const props = defineProps<{
-	secret?: Misskey.entities.ChatSecret | null;
+	secret?: ChatSecretDraft | null;
 }>();
 const uiWindow = useTemplateRef('uiWindow');
 
 onMounted(() => {
 	if (props.secret != null) {
-		const s = props.secret as any;
+		const s = props.secret;
 		title.value = s.title ?? '';
-		plaintext.value = s.plaintext ?? '';
+		plaintext.value = s.plaintext;
 		autoReveal.value = s.revealsIn != null;
 		revealsIn.value = s.revealsIn ?? 60;
 	}
