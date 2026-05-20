@@ -27,7 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div class="_gaps_s">
 			<div v-for="message in searchResults" :key="message.id" :class="$style.searchResultItem">
-				<XMessage :message="{ type: 'message', data: message }" :membership="{ user: message.fromUser }" :isSearchResult="true"/>
+				<XMessage :item="{ type: 'message', data: message }" :isSearchResult="true"/>
 			</div>
 		</div>
 	</MkFoldableSection>
@@ -115,7 +115,7 @@ async function startUser() {
 	});
 }
 
-async function showCreateRoomDialog(): Promise {
+async function showCreateRoomDialog(): Promise<void> {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-room.vue').then(x => x.default), {
 	}, {
 		done: result => {
@@ -127,7 +127,7 @@ async function showCreateRoomDialog(): Promise {
 				});
 			}
 		},
-		closed: () => dispose,
+		closed: () => dispose(),
 	});
 }
 

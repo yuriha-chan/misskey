@@ -28,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-if="cards" :class="$style.previewItem">
 			<i class="ti ti-cards"></i>
 			<span>{{ cards.title }}</span>
-			<button class="_button" @click="card = null"><i class="ti ti-x"></i></button>
+			<button class="_button" @click="cards = null"><i class="ti ti-x"></i></button>
 		</div>
 
 		<div :class="$style.input">
@@ -84,9 +84,9 @@ const fileEl = shallowRef<HTMLInputElement>();
 
 const text = ref<string>('');
 const file = ref<Misskey.entities.DriveFile | null>(null);
-const poll = ref<{ title: string; choices: string[]; startsIn: number; duration: number; anonymous: boolean; } | null>(null);
-const secret = ref<{ title: string; plaintext: string; revealsIn: number; } | null>(null);
-const cards = ref<{ title: string; cards: string[]; deliver: { user: string, count: number }[]} | null>(null);
+const poll = ref<Record<string, any> | null>(null);
+const secret = ref<Record<string, any> | null>(null);
+const cards = ref<Record<string, any> | null>(null);
 const sending = ref(false);
 const textareaReadOnly = ref(false);
 let autocompleteInstance: Autocomplete | null = null;
@@ -105,7 +105,7 @@ function openAttachmentMenu(ev: MouseEvent) {
 
 async function openPollDialog() {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-poll.vue').then(x => x.default), {
-		poll: poll.value,
+		poll: poll.value as any,
 		members: props.members,
 	}, {
 		done: result => {
@@ -116,9 +116,9 @@ async function openPollDialog() {
 		closed: () => dispose(),
 	});
 }
-async function openSecretDialog(): Promise {
+async function openSecretDialog(): Promise<void> {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-secret.vue').then(x => x.default), {
-		secret: secret.value,
+		secret: secret.value as any,
 	}, {
 		done: result => {
 			if (result.created) {
@@ -130,7 +130,7 @@ async function openSecretDialog(): Promise {
 }
 async function openCardsDialog() {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-cards.vue').then(x => x.default), {
-		cards: cards.value,
+		cards: cards.value as any,
 		members: props.members,
 	}, {
 		done: result => {
@@ -245,7 +245,7 @@ function onKeydown(ev: KeyboardEvent) {
 	}
 }
 
-function chooseFile(ev: PointerEvent) {
+function chooseFile(ev: MouseEvent) {
 	selectFile({
 		anchorElement: ev.currentTarget ?? ev.target,
 		multiple: false,
@@ -265,11 +265,11 @@ function onChangeFile() {
 	}
 }
 
-function packDeliverCards(cards) {
+function packDeliverCards(cards: { title: string; cards: string[]; deliver: { user: { id: string }, count: number }[]}) {
 	return {...cards, deliver: cards.deliver.map(d => ({ count: d.count, userId: d.user.id }))};
 }
-function packPoll(poll) {
-	return {...poll, choices: poll.voteForUsers ? poll.choices.map(u => u.id) : poll.choices };
+function packPoll(poll: { voteForUsers: boolean; choices: ({ id: string } | string)[] }) {
+	return {...poll, choices: poll.voteForUsers ? (poll.choices as { id: string }[]).map(u => u.id) : poll.choices };
 }
 
 function send() {
@@ -287,9 +287,9 @@ function send() {
 	const params: any = {};
 	if (text.value.trim()) params.text = text.value;
 	if (file.value) params.fileId = file.value.id;
-	if (poll.value) params.poll = packPoll(poll.value);
+	if (poll.value) params.poll = packPoll(poll.value as any);
 	if (secret.value) params.commitSecret = secret.value;
-	if (cards.value) params.deliverCards = packDeliverCards(cards.value);
+	if (cards.value) params.deliverCards = packDeliverCards(cards.value as any);
 
 	createMessage(params).then(() => {
 		clear();

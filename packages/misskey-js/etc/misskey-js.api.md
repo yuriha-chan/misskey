@@ -917,6 +917,24 @@ export type Channels = {
                 user?: UserLite;
                 messageId: ChatMessageLite['id'];
             }) => void;
+            join: (payload: ChatRoomMembership) => void;
+            leave: (payload: {
+                id: string;
+                createdAt: string;
+                userId: string;
+            }) => void;
+            pollScheduled: (payload: ChatPollScheduled) => void;
+            pollStarted: (payload: ChatPollStarted) => void;
+            pollFinished: (payload: ChatPollFinished) => void;
+            secretCommitted: (payload: ChatSecret) => void;
+            secretRevealed: (payload: ChatSecret) => void;
+            cardDelivered: (payload: ChatCard) => void;
+            cardRevealed: (payload: ChatCardRevealed) => void;
+            roomArchived: (payload: {
+                id: string;
+                isArchived: boolean;
+            }) => void;
+            membershipUpdated: (payload: ChatRoomMembership) => void;
         };
         receives: {
             read: {
@@ -3483,7 +3501,7 @@ type QueueStats = {
 type QueueStatsLog = QueueStats[];
 
 // @public (undocumented)
-export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver"];
+export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver", "closeExpiredChatRoom", "revealChatSecret", "endChatPoll"];
 
 // @public (undocumented)
 type RenoteMuteCreateRequest = operations['renote-mute___create']['requestBody']['content']['application/json'];
@@ -4001,8 +4019,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:60:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:226:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:241:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:233:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:248:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

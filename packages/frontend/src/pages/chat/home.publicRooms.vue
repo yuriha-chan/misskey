@@ -12,11 +12,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 		class="_panel"
 		:to="`/chat/room/${item.id}`"
 	>
-		<MkAvatars :class="$style.avatars" :userIds="item.memberships.map(m => m.userId)" indicator :preview="false"/>
+		<MkAvatars :class="$style.avatars" :userIds="(item.memberships ?? []).map(m => m.userId)" indicator :preview="false"/>
 		<div :class="$style.body">
 			<header :class="$style.header">
 				<span :class="$style.name"><i class="ti ti-users"></i> {{ item.name }}</span>
-				<span :class="$style.occupation">({{ item.memberships.length }} / {{ item.capacity }})</span>
+				<span :class="$style.occupation">({{ (item.memberships ?? []).length }} / {{ item.capacity }})</span>
 			</header>
 			<div :class="$style.description">{{ item.description }}</div>
 		</div>
@@ -37,7 +37,7 @@ import MkAvatars from '@/components/MkAvatars.vue';
 
 const $i = ensureSignin();
 
-const rooms = ref([]);
+const rooms = ref<Misskey.entities.ChatRoom[]>([]);
 const includeArchived = ref(false);
 
 const initializing = ref(true);

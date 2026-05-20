@@ -21,8 +21,8 @@
 					<div class="_gaps_s">
 						<div v-for="(choice, idx) in voteForUsers ? userChoices : textChoices" :key="idx" style="display: flex; gap: 6px; align-items: center;">
 							<template v-if="voteForUsers">
-								<MkUserCardMini :user="choice" v-if="choice" :withChart="false"/>
-								<MkButton @click=selectUser(idx)>{{ i18n.ts.selectUser }}</MkButton>
+								<MkUserCardMini :user="choice as Misskey.entities.UserLite" v-if="choice" :withChart="false"/>
+								<MkButton @click="selectUser(idx)">{{ i18n.ts.selectUser }}</MkButton>
 							</template>
 							<template v-else>
 								<MkInput v-model="textChoices[idx]" />
@@ -32,10 +32,10 @@
 						<MkButton @click="addChoice(voteForUsers)" icon="ti ti-plus">{{ i18n.ts.add }}</MkButton>
 					</div>
 				</div>
-				<MkTimeDurationInput v-model.number="startsIn" type="number" :min="0" :max="86400">
+				<MkTimeDurationInput v-model="startsIn" :min="0" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
 					<template #label>{{ i18n.ts._chat.pollStartsIn }}</template>
 				</MkTimeDurationInput>
-				<MkTimeDurationInput v-model.number="duration" type="number" :min="10" :max="86400">
+				<MkTimeDurationInput v-model="duration" :min="10" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
 					<template #label>{{ i18n.ts._chat.pollDuration }}</template>
 				</MkTimeDurationInput>
 				<MkSwitch v-model="anonymous">
@@ -78,32 +78,32 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-	poll?: { title: string; textChoices: string[]; userChoices: string[]; startsIn: number, duration: number, anonymous: boolean } | null;
+	poll?: { title: string; textChoices: string[]; userChoices: string[]; choices: string[]; voteForUsers: boolean; startsIn: number, duration: number, anonymous: boolean } | null;
 	members: Record<string, Misskey.entities.ChatRoomMembership>;
 }>();
 
 const uiWindow = useTemplateRef('uiWindow');
 
-async function selectUser(idx) {
+async function selectUser(idx: number) {
 	let user = await os.selectUser({ includeSelf: true, localOnly: true });
 	return userChoices.value[idx] = user;
 }
 
 function voteForRoomMembers() {
 	voteForUsers.value = true;
-	userChoices.value = Object.values(props.members).filter(m => !m.hasLeft).map(m => m.user);
+	userChoices.value = Object.values(props.members).filter(m => !m.hasLeft).map(m => m.user as Misskey.entities.UserLite);
 }
 
 function voteForRoomMembersNotMe() {
 	voteForUsers.value = true;
-	userChoices.value = Object.values(props.members).filter(m => !m.hasLeft).map(m => m.user).filter(u => u.id !== $i.id);
+	userChoices.value = Object.values(props.members).filter(m => !m.hasLeft).map(m => m.user as Misskey.entities.UserLite).filter(u => u != null && u.id !== $i.id);
 }
 
-function unique(arr, eq) {
+function unique<T>(arr: T[], eq: (a: T, b: T) => boolean): T[] {
   return arr.reduce((acc, x) => {
     if (!acc.some(y => eq(x, y))) acc.push(x);
     return acc;
-  }, []);
+  }, [] as T[]);
 }
 
 const normalizedChoices = computed(() =>
@@ -118,7 +118,7 @@ onMounted(() => {
 	if (props.poll != null) {
 		title.value = props.poll.title;
 		if (props.poll.voteForUsers) {
-			userChoices.value = props.poll.choices;
+			userChoices.value = props.poll.choices as unknown as Misskey.entities.UserLite[];
 		} else {
 			textChoices.value = props.poll.choices;
 		}
@@ -130,10 +130,18 @@ onMounted(() => {
 });
 
 function addChoice(user: boolean) {
-	(user ? userChoices : textChoices).value.push(user ? null : '');
+	if (user) {
+		userChoices.value.push(null);
+	} else {
+		textChoices.value.push('');
+	}
 }
 function removeChoice(user: boolean, idx: number) {
-	(user ? userChoices : textChoices).value.splice(idx, 1);
+	if (user) {
+		userChoices.value.splice(idx, 1);
+	} else {
+		textChoices.value.splice(idx, 1);
+	}
 }
 async function done() {
 	emit('done', {

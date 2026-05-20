@@ -20,7 +20,7 @@
 								aria-labelledby="`label_${idx}`"
 							/>
 							<label :for="`option_${idx}`" :class="$style.itemRoot">
-								<MkUserCardMini v-if="props.voteForUsers && item" :user="item" :withChart="false"/>
+								<MkUserCardMini v-if="props.voteForUsers && item" :user="item as Misskey.entities.UserLite" :withChart="false"/>
 								<div v-else-if="props.voteForUsers">(deleted user)</div>
 								<div v-else :class="$style.itemCaption" :id="`label_${idx}`">
 									<div :class="$style.itemName">{{ item }}</div>
@@ -44,6 +44,7 @@ import { i18n } from '@/i18n.js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
+import * as Misskey from 'misskey-js';
 
 const props = defineProps<{
 	title?: string;
@@ -53,16 +54,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(ev: 'done', v: { choice: integer; } | null): void;
+	(ev: 'done', v: { choice: number; } | null): void;
 	(ev: 'closed'): void;
 }>();
 
 const uiWindow = useTemplateRef('uiWindow');
 const items = ref(props.options ?? []);
-const selectedId = ref(null);
+const selectedId = ref<number | null>(null);
 
 function done() {
-	if (!selectedId.value === null) return;
+	if (selectedId.value === null) return;
 	emit('done', { choice: selectedId.value });
 	uiWindow.value?.close();
 }

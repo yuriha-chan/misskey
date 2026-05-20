@@ -1,7 +1,14 @@
 import {
 	Antenna,
+	ChatCard,
+	ChatCardRevealed,
 	ChatMessage,
 	ChatMessageLite,
+	ChatPollFinished,
+	ChatPollScheduled,
+	ChatPollStarted,
+	ChatRoomMembership,
+	ChatSecret,
 	DriveFile,
 	DriveFolder,
 	Note,
@@ -283,6 +290,17 @@ export type Channels = {
 				user?: UserLite;
 				messageId: ChatMessageLite['id'];
 			}) => void;
+			join: (payload: ChatRoomMembership) => void;
+			leave: (payload: { id: string; createdAt: string; userId: string }) => void;
+			pollScheduled: (payload: ChatPollScheduled) => void;
+			pollStarted: (payload: ChatPollStarted) => void;
+			pollFinished: (payload: ChatPollFinished) => void;
+			secretCommitted: (payload: ChatSecret) => void;
+			secretRevealed: (payload: ChatSecret) => void;
+			cardDelivered: (payload: ChatCard) => void;
+			cardRevealed: (payload: ChatCardRevealed) => void;
+			roomArchived: (payload: { id: string; isArchived: boolean }) => void;
+			membershipUpdated: (payload: ChatRoomMembership) => void;
 		};
 		receives: {
 			read: {

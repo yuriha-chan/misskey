@@ -13,7 +13,7 @@
 				<MkSwitch v-model="autoReveal">
 					<template #label>{{ i18n.ts._chat.autoReveal }}</template>
 				</MkSwitch>
-				<MkInput v-if="autoReveal" v-model.number="revealsIn" type="number" min="10" max="3600" placeholder="10-3600 (in seconds)">
+				<MkInput v-if="autoReveal" v-model="revealsIn" type="number" :min="10" :max="3600" placeholder="10-3600 (in seconds)">
 					<template #label>{{ i18n.ts._chat.revealsIn }}</template>
 					<template #suffix>{{ i18n.ts._time.second }}</template>
 				</MkInput>
@@ -27,6 +27,7 @@
 </template>
 <script lang="ts" setup>
 import { ref, onMounted, useTemplateRef } from 'vue';
+import * as Misskey from 'misskey-js';
 import { i18n } from '@/i18n.js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -48,10 +49,11 @@ const uiWindow = useTemplateRef('uiWindow');
 
 onMounted(() => {
 	if (props.secret != null) {
-		title.value = props.secret.title;
-		plaintext.value = props.secret.plaintext;
-		autoReveal.value = props.secret.revealsIn != null;
-		revealsIn.value = props.secret.revealsIn;
+		const s = props.secret as any;
+		title.value = s.title ?? '';
+		plaintext.value = s.plaintext ?? '';
+		autoReveal.value = s.revealsIn != null;
+		revealsIn.value = s.revealsIn ?? 60;
 	}
 });
 
