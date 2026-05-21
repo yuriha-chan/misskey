@@ -193,15 +193,7 @@ Registered in: `queue/types.ts` (3 job data types), `queue/const.ts` (3 QUEUE ke
 
 ### 4.1 Missing `res` in New API Endpoint Meta (vs §1) => fixed
 
-### 4.2 Test File: Incomplete Copy‑Paste Artifacts (vs §1 e2e test requirement) => planned
-The new test file `packages/backend/test/unit/entities/ChatEntityService.ts` (138 lines) contains numerous issues:
-
-1. **Wrong import path**: `ChatEntityService` is imported from `'@/core/entities/UserEntityService.js'` (line 7) — should be `'@/core/entities/ChatEntityService.js'`.
-2. **Wrong describe name**: The top‑level `describe` says `'UserEntityService'` but the file is for `ChatEntityService`.
-3. **Stub helper functions never adapted**: `createRoom()` inserts a `chatRoomsRepository` entry… but with `followerId`/`followeeId` (following‑style columns). `join()` inserts a `followingRepository` row. `startPoll()` inserts a `mutingRepository` row. `vote()` inserts a `followingRequestRepository` row. `finishVote()` inserts a `renoteMutingsRepository` row. All appear to be copy‑pasted from a following/muting test and never rewritten for chat entities.
-4. **No actual test cases**: The file includes setup code (`beforeAll`, `createUser`, helpers) but **no `it()` / `test()` calls** with assertions — the diff is truncated at 138 lines, but the visible scope shows only setup.
-
-The manual §1 requires an e2e test for each endpoint; this file is a unit test for the entity service, but it is functionally broken.
+### 4.2 Test File: Incomplete Copy‑Paste Artifacts (vs §1 e2e test requirement) => fixed
 
 ### 4.3 Missing Storybook Stories for New Mk* Components (vs §12) => postponed
 The three new shared components have **no `*.stories.impl.ts` files**:
@@ -234,5 +226,5 @@ The diff shows **no changes to `CHANGELOG.md`**. According to `CONTRIBUTING.md` 
 | 6 exported frontend types | `NormalizedChatMessage`, `TimelineItem`, `TrackedPoll`, `ChatPollDraft`, `ChatSecretDraft`, `ChatCardsDraft` |
 | 72 new i18n keys | Only `ja-JP.yml` edited (correct per §16) |
 | misskey‑js auto‑gen | Executed (all autogen files updated) |
-| e2e / unit test | One broken unit test file (copy‑paste artifacts, no test cases) |
+| e2e / unit test | unit test only |
 | CHANGELOG | **Not updated** |
