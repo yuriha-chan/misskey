@@ -152,7 +152,31 @@ export type NormalizedChatMessage = Omit<Misskey.entities.ChatMessageLite, 'from
 	})[];
 };
 
-export type TimelineItem = Misskey.entities.ChatEvent | {
+export type TimelineItem = {
+	type: 'message';
+	data: Misskey.entities.ChatMessageLite;
+} | {
+	type: 'pollScheduled';
+	data: Misskey.entities.ChatPollScheduled;
+} | {
+	type: 'pollStarted';
+	data: Misskey.entities.ChatPollStarted;
+} | {
+	type: 'pollFinished';
+	data: Misskey.entities.ChatPollFinished;
+} | {
+	type: 'cardDelivered';
+	data: Misskey.entities.ChatCard;
+} | {
+	type: 'cardRevealed';
+	data: Misskey.entities.ChatCardRevealed;
+} | {
+	type: 'secretCommitted';
+	data: Misskey.entities.ChatSecret;
+} | {
+	type: 'secretRevealed';
+	data: Misskey.entities.ChatSecretRevealed;
+} | {
 	type: 'join';
 	data: Misskey.entities.ChatRoomMembership;
 } | {
