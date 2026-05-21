@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { describe, beforeAll, afterAll, test } from 'vitest';
-import { api, castAsError, initTestDb, signup, startJobQueue } from '../utils.js';
+import { api, castAsError, initTestDb, signup, startJobQueue, waitFire } from '../utils.js';
 import type { INestApplicationContext } from '@nestjs/common';
 import type * as misskey from 'misskey-js';
 
@@ -1306,6 +1306,260 @@ describe('Chat', () => {
 			const revealedEvent = timeline.body.find((e: any) => e.type === 'secretRevealed');
 			assert.ok(revealedEvent);
 			assert.strictEqual((revealedEvent as any).data.plaintext, 'will reveal after rejoin');
+		});
+	});
+
+	describe('Streaming events', () => {
+		let room: any;
+
+		beforeAll(async () => {
+			const res = await api('chat/rooms/create', {
+				name: 'streaming room',
+				isPublic: true,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			room = res.body;
+			await api('chat/rooms/join', { roomId: room.id }, bob);
+		});
+
+		test('message event fires when creating a message', async () => {
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/create-to-room', { toRoomId: room.id, text: 'streaming hello' }, alice),
+				msg => msg.type === 'message' && msg.body && msg.body.text === 'streaming hello',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('deleted event fires when deleting a message', async () => {
+			const created = await api('chat/messages/create-to-room', { toRoomId: room.id, text: 'to be deleted' }, alice);
+			assert.strictEqual(created.status, 200);
+			assert.ok(created.body);
+			const cBody = created.body;
+
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/delete', { messageId: cBody.id }, alice),
+				msg => msg.type === 'deleted' && msg.body === cBody.id,
+				{ roomId: room.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('react event fires when reacting', async () => {
+			const created = await api('chat/messages/create-to-room', { toRoomId: room.id, text: 'react to me' }, alice);
+			assert.strictEqual(created.status, 200);
+			assert.ok(created.body);
+			const cBody = created.body;
+
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/react', { messageId: cBody.id, reaction: '👍' }, bob),
+				msg => msg.type === 'react' && msg.body && msg.body.messageId === cBody.id && msg.body.reaction === '👍',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('unreact event fires when unreacting', async () => {
+			const created = await api('chat/messages/create-to-room', { toRoomId: room.id, text: 'unreact me' }, alice);
+			assert.strictEqual(created.status, 200);
+			assert.ok(created.body);
+			const cBody = created.body;
+
+			await api('chat/messages/react', { messageId: cBody.id, reaction: '👍' }, bob);
+
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/unreact', { messageId: cBody.id, reaction: '👍' }, bob),
+				msg => msg.type === 'unreact' && msg.body && msg.body.messageId === cBody.id && msg.body.reaction === '👍',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('join event fires when joining', async () => {
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/rooms/join', { roomId: room.id }, carol),
+				msg => msg.type === 'join' && msg.body.userId === carol.id,
+				{ roomId: room.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('leave event fires when leaving', async () => {
+			const another = await api('chat/rooms/create', { name: 'leave-stream', isPublic: true }, alice);
+			await api('chat/rooms/join', { roomId: another.body.id }, bob);
+
+			const fired = await waitFire(
+				bob, 'chatRoom',
+				() => api('chat/rooms/leave', { roomId: another.body.id }, bob),
+				msg => msg.type === 'leave' && msg.body.userId === bob.id,
+				{ roomId: another.body.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('pollStarted and pollFinished events fire', async () => {
+			let started = false;
+			let finished = false;
+
+			const pollMsg = await api('chat/messages/create-to-room', {
+				toRoomId: room.id,
+				poll: { title: 'stream poll', choices: ['a', 'b'] },
+			}, alice);
+
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
+
+			started = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/create-to-room', {
+					toRoomId: room.id,
+					poll: { title: 'stream poll 2', choices: ['x', 'y'] },
+				}, alice),
+				msg => msg.type === 'pollStarted' && msg.body.title === 'stream poll 2',
+				{ roomId: room.id },
+			);
+
+			const polls2 = await api('chat/polls/list', { roomId: room.id }, alice);
+			const poll2 = polls2.body.startedPolls.find((p: any) => p.title === 'stream poll 2');
+			assert.ok(poll2);
+			const pollId2 = poll2.id;
+
+			finished = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/polls/finish', { pollId: pollId2 }, alice),
+				msg => msg.type === 'pollFinished' && msg.body.id === pollId2,
+				{ roomId: room.id },
+			);
+
+			assert.strictEqual(started, true);
+			assert.strictEqual(finished, true);
+		});
+
+		test('secretCommitted and secretRevealed events fire', async () => {
+			const msg = await api('chat/messages/create-to-room', {
+				toRoomId: room.id,
+				commitSecret: { title: 'stream secret', plaintext: 's3cr3t' },
+			}, alice);
+			assert.strictEqual(msg.status, 204);
+
+			const secrets = await api('chat/secrets/list', { roomId: room.id }, alice);
+			const secret = secrets.body.find((s: any) => s.title === 'stream secret');
+			assert.ok(secret);
+
+			const committedFired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/create-to-room', {
+					toRoomId: room.id,
+					commitSecret: { title: 'stream secret 2', plaintext: 's3cr3t2' },
+				}, alice),
+				msg => msg.type === 'secretCommitted' && msg.body.title === 'stream secret 2',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(committedFired, true);
+
+			const secrets2 = await api('chat/secrets/list', { roomId: room.id }, alice);
+			const secret2 = secrets2.body.find((s: any) => s.title === 'stream secret 2');
+			assert.ok(secret2);
+
+			const revealedFired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/secrets/reveal', { id: secret2.id }, alice),
+				msg => msg.type === 'secretRevealed' && msg.body.id === secret2.id,
+				{ roomId: room.id },
+			);
+			assert.strictEqual(revealedFired, true);
+		});
+
+		test('cardDelivered and cardRevealed events fire', async () => {
+			let delivered = false;
+			let revealed = false;
+
+			delivered = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/messages/create-to-room', {
+					toRoomId: room.id,
+					deliverCards: {
+						cards: [{ name: 'Spade', count: 2 }],
+						deliver: [{ userId: alice.id, count: 2 }],
+					},
+				}, alice),
+				msg => msg.type === 'cardDelivered',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(delivered, true);
+
+			const cards = await api('chat/cards/list', { roomId: room.id }, alice);
+			const unrevealed = cards.body.filter((c: any) => !c.fromUserId);
+			assert.ok(unrevealed.length > 0);
+
+			revealed = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/cards/reveal', {
+					deliverId: unrevealed[0].deliverId,
+					cardId: unrevealed[0].cardId,
+				}, alice),
+				msg => msg.type === 'cardRevealed' && msg.body.deliverId === unrevealed[0].deliverId,
+				{ roomId: room.id },
+			);
+			assert.strictEqual(revealed, true);
+		});
+
+		test('membershipUpdated event fires', async () => {
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/rooms/update-membership', {
+					roomId: room.id,
+					bubbleColor: '#00ff00',
+				}, alice),
+				msg => msg.type === 'membershipUpdated' && msg.body.userId === alice.id,
+				{ roomId: room.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('roomArchived event fires', async () => {
+			const archiveRoom = await api('chat/rooms/create', { name: 'archive-me', isPublic: true }, alice);
+
+			const fired = await waitFire(
+				alice, 'chatRoom',
+				() => api('chat/rooms/archive', { roomId: archiveRoom.body.id }, alice),
+				msg => msg.type === 'roomArchived' && msg.body.archiverId === alice.id,
+				{ roomId: archiveRoom.body.id },
+			);
+			assert.strictEqual(fired, true);
+		});
+
+		test('visibleUserIds: bob receives message, carol does not', async () => {
+			await api('chat/rooms/join', { roomId: room.id }, carol);
+
+			const bobReceived = await waitFire(
+				bob, 'chatRoom',
+				() => api('chat/messages/create-to-room', {
+					toRoomId: room.id,
+					text: 'only for bob',
+					visibleUserIds: [bob.id],
+				}, alice),
+				msg => msg.type === 'message' && msg.body.text === 'only for bob',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(bobReceived, true);
+
+			const carolReceived = await waitFire(
+				carol, 'chatRoom',
+				() => api('chat/messages/create-to-room', {
+					toRoomId: room.id,
+					text: 'only for bob again',
+					visibleUserIds: [bob.id],
+				}, alice),
+				msg => msg.type === 'message' && msg.body.text === 'only for bob again',
+				{ roomId: room.id },
+			);
+			assert.strictEqual(carolReceived, false);
 		});
 	});
 });
