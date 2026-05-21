@@ -203,6 +203,7 @@
 9. **5 Redis connections** — the system opens separate Redis connections for: main cache, pub, sub, timelines, and reactions. They share the same `queueRedisConnection.ts` implementation.
 10. **Backend build target** — `rolldown` bundles to `built/` directory; the backend entry is `built/boot/index.js`. TypeScript source maps are included.
 11. **Import path alias**: `@/` maps to `packages/backend/src/` (backend) or `packages/frontend/src/` (frontend); `@@/` maps to `packages/frontend-shared/src/`.
+12. **E2E queue workers must be started manually** — the test server (`test-server/entry.ts`) intentionally does not start BullMQ queue workers (to avoid interference). Tests that rely on delayed jobs (e.g., reserved posts) must call `startJobQueue()` from `@/boot/common.js` (re-exported via `../utils.js`) in `beforeAll`.
 
 ### Required Environment/Config
 - **Redis** — mandatory; 5 connection lanes
