@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { ChatPollService } from '@/core/ChatPollService.js';
 import { ChatService } from '@/core/ChatService.js';
 import { ApiError } from '@/server/api/error.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type { ChatPollsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 
@@ -25,6 +26,11 @@ export const meta = {
 			message: 'You are not a member of the room.',
 			code: 'NOT_MEMBER',
 			id: 'fedcba09-8765-4321-0fed-cba987654321',
+		},
+		alreadyVoted: {
+			message: 'You have already voted.',
+			code: 'ALREADY_VOTED',
+			id: 'aaf3a28a-718c-4f72-8dc2-d280fcf1ea60',
 		},
 	},
 } as const;
@@ -56,12 +62,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.noSuchPoll);
 			}
 
-			const room = await this.chatService.findRoomById(poll.roomId, false);
-			if (room == null || !await this.chatService.isRoomMember(room, me.id)) {
-				throw new ApiError(meta.errors.notMember);
+			try {
+				await this.chatPollService.vote(me.id, ps.pollId, ps.choice);
+			} catch (err) {
+				if (err instanceof IdentifiableError) {
+					if (err.id === 'fedcba09-8765-4321-0fed-cba987654321') {
+						throw new ApiError(meta.errors.notMember);
+					} else if (err.id === 'aaf3a28a-718c-4f72-8dc2-d280fcf1ea60') {
+						throw new ApiError(meta.errors.alreadyVoted);
+					}
+				}
+				throw err;
 			}
-
-			await this.chatPollService.vote(me.id, ps.pollId, ps.choice);
 		});
 	}
 }

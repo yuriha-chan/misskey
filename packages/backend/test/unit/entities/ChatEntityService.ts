@@ -60,13 +60,16 @@ describe('ChatEntityService', () => {
 			return user;
 		}
 
-		async function createRoom(name: string = 'test-room') {
+		async function createRoom(ownerId?: string, name: string = 'test-room') {
+			if (ownerId == null) {
+				ownerId = (await createUser()).id;
+			}
 			const id = genAidx(Date.now());
 			await chatRoomsRepository.insert({
 				id,
 				name,
 				description: '',
-				ownerId: '',
+				ownerId,
 				isArchived: false,
 				isPublic: false,
 				capacity: 30,

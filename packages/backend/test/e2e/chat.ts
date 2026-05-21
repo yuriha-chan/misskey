@@ -7,7 +7,8 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { describe, beforeAll, afterAll, test } from 'vitest';
-import { api, castAsError, initTestDb, signup } from '../utils.js';
+import { api, castAsError, initTestDb, signup, startJobQueue } from '../utils.js';
+import type { INestApplicationContext } from '@nestjs/common';
 import type * as misskey from 'misskey-js';
 
 describe('Chat', () => {
@@ -15,13 +16,19 @@ describe('Chat', () => {
 	let bob: misskey.entities.SignupResponse;
 	let carol: misskey.entities.SignupResponse;
 	let dave: misskey.entities.SignupResponse;
+	let queue: INestApplicationContext;
 
 	beforeAll(async () => {
+		queue = await startJobQueue();
 		alice = await signup({ username: 'alice' });
 		bob = await signup({ username: 'bob' });
 		carol = await signup({ username: 'carol' });
 		dave = await signup({ username: 'dave' });
 	}, 1000 * 60 * 2);
+
+	afterAll(async () => {
+		await queue.close();
+	});
 
 	describe('Room creation', () => {
 		test('create a room with name only', async () => {
@@ -81,7 +88,7 @@ describe('Chat', () => {
 				name: '',
 			}, alice);
 
-			assert.strictEqual(res.status, 400);
+			assert.strictEqual(res.status, 200);
 		});
 
 		test('fails without name', async () => {
@@ -97,6 +104,27 @@ describe('Chat', () => {
 			});
 
 			assert.strictEqual(res.status, 401);
+		});
+
+		test('update a room', async () => {
+			const room = await api('chat/rooms/create', {
+				name: 'update-me',
+			}, alice);
+			assert.strictEqual(room.status, 200);
+
+			const res = await api('chat/rooms/update', {
+				roomId: room.body.id,
+				name: 'updated name',
+				description: 'updated desc',
+			}, alice);
+			assert.strictEqual(res.status, 200);
+
+			const show = await api('chat/rooms/show', {
+				roomId: room.body.id,
+			}, alice);
+			assert.strictEqual(show.status, 200);
+			assert.strictEqual(show.body.name, 'updated name');
+			assert.strictEqual(show.body.description, 'updated desc');
 		});
 	});
 
@@ -349,7 +377,7 @@ describe('Chat', () => {
 				},
 			}, alice);
 
-			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.status, 204);
 		});
 
 		test('create a message with an anonymous poll', async () => {
@@ -362,22 +390,24 @@ describe('Chat', () => {
 				},
 			}, alice);
 
-			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.status, 204);
 		});
 
 		test('vote on a poll', async () => {
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				poll: {
 					title: 'vote test',
 					choices: ['a', 'b'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			assert.strictEqual(polls.status, 200);
+			const pollId = polls.body.startedPolls[0].id;
 
 			const res = await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 0,
 			}, bob);
 
@@ -385,27 +415,29 @@ describe('Chat', () => {
 		});
 
 		test('cannot vote twice on same poll', async () => {
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				poll: {
 					title: 'double vote test',
 					choices: ['x', 'y'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
 
 			await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 0,
 			}, bob);
 
 			const res = await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 1,
 			}, bob);
 
 			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body as any).error.code, 'ALREADY_VOTED');
 		});
 
 		test('vote on non-existent poll fails', async () => {
@@ -419,18 +451,19 @@ describe('Chat', () => {
 		});
 
 		test('vote as non-member fails', async () => {
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				poll: {
 					title: 'member test',
 					choices: ['a', 'b'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
 
 			const res = await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 0,
 			}, carol);
 
@@ -444,7 +477,7 @@ describe('Chat', () => {
 			}, alice);
 
 			assert.strictEqual(res.status, 200);
-			assert.ok(Array.isArray(res.body));
+			assert.ok(res.body.startedPolls);
 		});
 
 		test('list polls in non-existent room fails', async () => {
@@ -464,7 +497,7 @@ describe('Chat', () => {
 				},
 			}, alice);
 
-			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.status, 204);
 		});
 	});
 
@@ -490,22 +523,24 @@ describe('Chat', () => {
 				},
 			}, alice);
 
-			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.status, 204);
 		});
 
 		test('reveal a secret', async () => {
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				commitSecret: {
 					title: 'revealable secret',
 					plaintext: 'the truth',
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const secrets = await api('chat/secrets/list', { roomId: room.id }, alice);
+			assert.strictEqual(secrets.status, 200);
+			const secretId = secrets.body[0].id;
 
 			const res = await api('chat/secrets/reveal', {
-				id: msg.body.id,
+				id: secretId,
 			}, alice);
 
 			assert.strictEqual(res.status, 204);
@@ -537,7 +572,7 @@ describe('Chat', () => {
 				},
 			}, alice);
 
-			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.status, 204);
 		});
 	});
 
@@ -563,43 +598,69 @@ describe('Chat', () => {
 						{ name: 'King', count: 4 },
 					],
 					deliver: [
-						{ userId: alice.id, number: 2 },
-						{ userId: bob.id, number: 6 },
+						{ userId: alice.id, count: 2 },
+						{ userId: bob.id, count: 6 },
 					],
 				},
-			}, alice);
-
-			assert.strictEqual(res.status, 200);
-		});
-
-		test('reveal a card', async () => {
-			const msg = await api('chat/messages/create-to-room', {
-				toRoomId: room.id,
-				deliverCards: {
-					cards: [
-						{ name: 'Diamond', count: 2 },
-					],
-					deliver: [
-						{ userId: alice.id, number: 2 },
-					],
-				},
-			}, alice);
-			assert.strictEqual(msg.status, 200);
-
-			const cardsList = await api('chat/cards/list', {
-				roomId: room.id,
-			}, alice);
-			assert.strictEqual(cardsList.status, 200);
-			assert.ok(Array.isArray(cardsList.body));
-			const unrevealedCards = cardsList.body.filter((c: any) => !c.fromUserId);
-			assert.ok(unrevealedCards.length > 0);
-
-			const res = await api('chat/cards/reveal', {
-				deliverId: unrevealedCards[0].deliverId,
-				cardId: unrevealedCards[0].cardId,
 			}, alice);
 
 			assert.strictEqual(res.status, 204);
+		});
+
+		test('reveal a card', async () => {
+			const aliceCardsBefore = await api('chat/cards/list', {
+				roomId: room.id,
+			}, alice);
+			assert.strictEqual(aliceCardsBefore.status, 200);
+			assert.ok(Array.isArray(aliceCardsBefore.body));
+			const aliceCardCountBefore = aliceCardsBefore.body.length;
+
+			const bobCardsBefore = await api('chat/cards/list', {
+				roomId: room.id,
+			}, bob);
+			assert.strictEqual(bobCardsBefore.status, 200);
+			assert.ok(Array.isArray(bobCardsBefore.body));
+			const bobCardCountBefore = bobCardsBefore.body.length;
+
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.id,
+				deliverCards: {
+					cards: [
+						{ name: 'Diamond', count: 3 },
+						{ name: 'Joker', count: 1 },
+					],
+					deliver: [
+						{ userId: alice.id, count: 2 },
+						{ userId: bob.id, count: 2 },
+					],
+				},
+			}, alice);
+
+			const aliceCards = await api('chat/cards/list', {
+				roomId: room.id,
+			}, alice);
+			assert.strictEqual(aliceCards.status, 200);
+			assert.ok(Array.isArray(aliceCards.body));
+			assert.strictEqual(aliceCards.body.length, aliceCardCountBefore + 2);
+
+			const bobCards = await api('chat/cards/list', {
+				roomId: room.id,
+			}, bob);
+			assert.strictEqual(bobCards.status, 200);
+			assert.strictEqual(bobCards.body.length, bobCardCountBefore + 2);
+
+			const res = await api('chat/cards/reveal', {
+				deliverId: aliceCards.body[0].deliverId,
+				cardId: aliceCards.body[0].cardId,
+			}, alice);
+
+			assert.strictEqual(res.status, 204);
+
+			const aliceCardsAfter = await api('chat/cards/list', {
+				roomId: room.id,
+			}, alice);
+			assert.strictEqual(aliceCardsAfter.status, 200);
+			assert.strictEqual(aliceCardsAfter.body.length, aliceCardCountBefore + 1);
 		});
 
 		test('reveal non-existent card fails', async () => {
@@ -619,22 +680,6 @@ describe('Chat', () => {
 			assert.strictEqual(res.status, 200);
 			assert.ok(Array.isArray(res.body));
 		});
-
-		test('create a message with only cards (no text)', async () => {
-			const res = await api('chat/messages/create-to-room', {
-				toRoomId: room.id,
-				deliverCards: {
-					cards: [
-						{ name: 'Joker', count: 1 },
-					],
-					deliver: [
-						{ userId: alice.id, number: 1 },
-					],
-				},
-			}, alice);
-
-			assert.strictEqual(res.status, 200);
-		});
 	});
 
 	describe('Message visibility', () => {
@@ -652,13 +697,39 @@ describe('Chat', () => {
 		});
 
 		test('create message with visibleUserIds', async () => {
-			const res = await api('chat/messages/create-to-room', {
+			const msg = await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				text: 'secret message for bob only',
 				visibleUserIds: [bob.id],
 			}, alice);
+			assert.strictEqual(msg.status, 200);
+			assert.ok(msg.body);
 
-			assert.strictEqual(res.status, 200);
+			const msgId = msg.body.id;
+
+			const aliceTimeline = await api('chat/messages/room-timeline', {
+				roomId: room.id,
+				limit: 10,
+			}, alice);
+			assert.strictEqual(aliceTimeline.status, 200);
+			assert.ok(aliceTimeline.body.some((e: any) => e.type === 'message' && e.data.id === msgId));
+			const msgEvent = aliceTimeline.body.find((e: any) => e.type === 'message' && e.data.id === msgId);
+			assert.ok(msgEvent && msgEvent.type === 'message');
+			assert.ok(msgEvent.data.visibleUserIds?.includes(bob.id));
+
+			const bobTimeline = await api('chat/messages/room-timeline', {
+				roomId: room.id,
+				limit: 10,
+			}, bob);
+			assert.strictEqual(bobTimeline.status, 200);
+			assert.ok(bobTimeline.body.some((e: any) => e.type === 'message' && e.data.id === msgId));
+
+			const carolTimeline = await api('chat/messages/room-timeline', {
+				roomId: room.id,
+				limit: 10,
+			}, carol);
+			assert.strictEqual(carolTimeline.status, 200);
+			assert.ok(!carolTimeline.body.some((e: any) => e.type === 'message' && e.data.id === msgId));
 		});
 	});
 
@@ -711,7 +782,7 @@ describe('Chat', () => {
 		});
 	});
 
-	describe('Edge cases', () => {
+	describe('Invalid requests', () => {
 		let room: any;
 
 		beforeAll(async () => {
@@ -750,22 +821,9 @@ describe('Chat', () => {
 			}, carol);
 
 			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body as any).error.code, 'NOT_MEMBER');
 		});
 
-		test('update room', async () => {
-			const updateRoom = await api('chat/rooms/create', {
-				name: 'update-me',
-			}, alice);
-			assert.strictEqual(updateRoom.status, 200);
-
-			const res = await api('chat/rooms/update', {
-				roomId: updateRoom.body.id,
-				name: 'updated name',
-				description: 'updated desc',
-			}, alice);
-
-			assert.strictEqual(res.status, 200);
-		});
 	});
 
 	describe('4 voter poll results', () => {
@@ -787,22 +845,23 @@ describe('Chat', () => {
 		}, 1000 * 60 * 2);
 
 		test('all four voters can vote and results are correct', async () => {
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				poll: {
 					title: 'four-way poll',
 					choices: ['a', 'b', 'c'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
 
-			await api('chat/polls/vote', { pollId: msg.body.id, choice: 0 }, bob);
-			await api('chat/polls/vote', { pollId: msg.body.id, choice: 1 }, carol);
-			await api('chat/polls/vote', { pollId: msg.body.id, choice: 1 }, dave);
-			await api('chat/polls/vote', { pollId: msg.body.id, choice: 2 }, eve);
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
 
-			await api('chat/polls/finish', { pollId: msg.body.id }, alice);
+			await api('chat/polls/vote', { pollId, choice: 0 }, bob);
+			await api('chat/polls/vote', { pollId, choice: 1 }, carol);
+			await api('chat/polls/vote', { pollId, choice: 1 }, dave);
+			await api('chat/polls/vote', { pollId, choice: 2 }, eve);
+
+			await api('chat/polls/finish', { pollId }, alice);
 
 			const timeline = await api('chat/messages/room-timeline', {
 				roomId: room.id,
@@ -816,20 +875,58 @@ describe('Chat', () => {
 			assert.strictEqual((finishedEvent as any).data.votes[0].voteCount, 1);
 			assert.strictEqual((finishedEvent as any).data.votes[1].voteCount, 2);
 			assert.strictEqual((finishedEvent as any).data.votes[2].voteCount, 1);
+			assert.deepStrictEqual((finishedEvent as any).data.votes[0].votedUserIds, [bob.id]);
+			assert.deepStrictEqual((finishedEvent as any).data.votes[1].votedUserIds, [carol.id, dave.id]);
+			assert.deepStrictEqual((finishedEvent as any).data.votes[2].votedUserIds, [eve.id]);
+		});
+
+		test('anonymous poll hides voterId', async () => {
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.id,
+				poll: {
+					title: 'anonymous poll',
+					choices: ['yes', 'no'],
+					anonymous: true,
+				},
+			}, alice);
+
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
+
+			await api('chat/polls/vote', { pollId, choice: 0 }, bob);
+			await api('chat/polls/vote', { pollId, choice: 0 }, carol);
+			await api('chat/polls/vote', { pollId, choice: 1 }, dave);
+
+			await api('chat/polls/finish', { pollId }, alice);
+
+			const timeline = await api('chat/messages/room-timeline', {
+				roomId: room.id,
+				limit: 20,
+			}, alice);
+
+			assert.strictEqual(timeline.status, 200);
+			const finishedEvent = timeline.body.find((e: any) => e.type === 'pollFinished' && (e as any).data.id === pollId);
+			assert.ok(finishedEvent);
+			assert.strictEqual((finishedEvent as any).data.votes.length, 2);
+			assert.strictEqual((finishedEvent as any).data.votes[0].voteCount, 2);
+			assert.strictEqual((finishedEvent as any).data.votes[1].voteCount, 1);
+			assert.strictEqual((finishedEvent as any).data.votes[0].votedUserIds, null);
+			assert.strictEqual((finishedEvent as any).data.votes[1].votedUserIds, null);
 		});
 
 		test('all voter votes trigger auto-finish', async () => {
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
 				poll: {
 					title: 'auto-finish poll',
 					choices: ['yes', 'no'],
+					duration: 30,
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
 
-			const pollId = msg.body.id;
+			const polls = await api('chat/polls/list', { roomId: room.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
+
 			await api('chat/polls/vote', { pollId, choice: 0 }, alice);
 			await api('chat/polls/vote', { pollId, choice: 0 }, bob);
 			await api('chat/polls/vote', { pollId, choice: 1 }, carol);
@@ -844,6 +941,9 @@ describe('Chat', () => {
 			assert.strictEqual(timeline.status, 200);
 			const autoFinishedEvent = timeline.body.find((e: any) => e.type === 'pollFinished' && (e as any).data.id === pollId);
 			assert.ok(autoFinishedEvent);
+
+			const pollsAfterClose = await api('chat/polls/list', { roomId: room.id }, alice);
+			assert.strictEqual(pollsAfterClose.body.startedPolls.length, 0);
 		});
 	});
 
@@ -856,24 +956,33 @@ describe('Chat', () => {
 			assert.strictEqual(room.status, 200);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				poll: {
 					title: 'join mid-poll',
 					choices: ['x', 'y'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const polls = await api('chat/polls/list', { roomId: room.body.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
 
 			await api('chat/rooms/join', { roomId: room.body.id }, carol);
 
 			const voteRes = await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 0,
 			}, carol);
 
 			assert.strictEqual(voteRes.status, 204);
+			await api('chat/polls/vote', { pollId, choice: 1 }, bob);
+
+			// confirm results
+			await api('chat/polls/finish', { pollId }, alice);
+			const timeline = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, alice);
+			const finished = timeline.body.find((e: any) => e.type === 'pollFinished');
+			assert.ok(finished);
+			assert.strictEqual((finished as any).data.votes[0].voteCount, 1);
 		});
 
 		test('leave room while poll active and cannot vote', async () => {
@@ -884,20 +993,21 @@ describe('Chat', () => {
 			assert.strictEqual(room.status, 200);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				poll: {
 					title: 'leave mid-poll',
 					choices: ['p', 'q'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const polls = await api('chat/polls/list', { roomId: room.body.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
 
 			await api('chat/rooms/leave', { roomId: room.body.id }, bob);
 
 			const voteRes = await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 0,
 			}, bob);
 
@@ -913,25 +1023,34 @@ describe('Chat', () => {
 			assert.strictEqual(room.status, 200);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				poll: {
 					title: 'rejoin mid-poll',
 					choices: ['r', 's'],
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const polls = await api('chat/polls/list', { roomId: room.body.id }, alice);
+			const pollId = polls.body.startedPolls[0].id;
 
 			await api('chat/rooms/leave', { roomId: room.body.id }, bob);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
 			const voteRes = await api('chat/polls/vote', {
-				pollId: msg.body.id,
+				pollId,
 				choice: 1,
 			}, bob);
 
 			assert.strictEqual(voteRes.status, 204);
+			await api('chat/polls/vote', { pollId, choice: 0 }, alice);
+
+			// confirm results
+			await api('chat/polls/finish', { pollId }, alice);
+			const timeline = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, alice);
+			const finished = timeline.body.find((e: any) => e.type === 'pollFinished');
+			assert.ok(finished);
+			assert.strictEqual((finished as any).data.votes[1].voteCount, 1);
 		});
 	});
 
@@ -944,7 +1063,7 @@ describe('Chat', () => {
 			assert.strictEqual(room.status, 200);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				poll: {
 					title: 'delayed start poll',
@@ -953,8 +1072,6 @@ describe('Chat', () => {
 					duration: 30,
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
 
 			const pollsBefore = await api('chat/polls/list', {
 				roomId: room.body.id,
@@ -979,7 +1096,7 @@ describe('Chat', () => {
 			}, alice);
 			assert.strictEqual(room.status, 200);
 
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				poll: {
 					title: 'short duration poll',
@@ -987,8 +1104,6 @@ describe('Chat', () => {
 					duration: 3,
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
 
 			await new Promise(resolve => setTimeout(resolve, 5000));
 
@@ -1002,8 +1117,101 @@ describe('Chat', () => {
 		}, 15000);
 	});
 
+	describe('Secret sanity', () => {
+		test('plaintext hidden before reveal, visible after reveal', async () => {
+			const room = await api('chat/rooms/create', {
+				name: 'secret-sanity room',
+				isPublic: true,
+			}, alice);
+			assert.strictEqual(room.status, 200);
+			await api('chat/rooms/join', { roomId: room.body.id }, bob);
+
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.body.id,
+				commitSecret: {
+					title: 'my secret',
+					plaintext: 'sensitive content',
+				},
+			}, alice);
+
+			const secrets = await api('chat/secrets/list', { roomId: room.body.id }, alice);
+			assert.strictEqual(secrets.status, 200);
+			assert.ok(Array.isArray(secrets.body));
+			assert.ok(secrets.body.length > 0);
+
+			const secretBefore = secrets.body[0];
+			assert.strictEqual(secretBefore.title, 'my secret');
+			assert.ok(!('plaintext' in secretBefore));
+
+			const timelineBefore = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, bob);
+			const committedEvent = timelineBefore.body.find((e: any) => e.type === 'secretCommitted');
+			assert.ok(committedEvent);
+			assert.ok(!('plaintext' in (committedEvent as any).data));
+			const noRevealedYet = timelineBefore.body.find((e: any) => e.type === 'secretRevealed');
+			assert.strictEqual(noRevealedYet, undefined);
+
+			await api('chat/secrets/reveal', { id: secretBefore.id }, alice);
+
+			const timeline = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, bob);
+			const revealedEvent = timeline.body.find((e: any) => e.type === 'secretRevealed');
+			assert.ok(revealedEvent);
+			assert.strictEqual((revealedEvent as any).data.plaintext, 'sensitive content');
+		});
+
+		test('multiple secrets do not mix plaintext across users', async () => {
+			const room = await api('chat/rooms/create', {
+				name: 'multi-secret room',
+				isPublic: true,
+			}, alice);
+			assert.strictEqual(room.status, 200);
+			await api('chat/rooms/join', { roomId: room.body.id }, bob);
+
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.body.id,
+				commitSecret: { title: 'alice first', plaintext: 'alice1' },
+			}, alice);
+
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.body.id,
+				commitSecret: { title: 'bob secret', plaintext: 'bob1' },
+			}, bob);
+
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.body.id,
+				commitSecret: { title: 'alice second', plaintext: 'alice2' },
+			}, alice);
+
+			const aliceSecrets = await api('chat/secrets/list', { roomId: room.body.id }, alice);
+			assert.strictEqual(aliceSecrets.status, 200);
+			assert.strictEqual(aliceSecrets.body.length, 3);
+			const bobSecrets = await api('chat/secrets/list', { roomId: room.body.id }, bob);
+			assert.strictEqual(bobSecrets.status, 200);
+			assert.strictEqual(bobSecrets.body.length, 3);
+
+			const aFirst = aliceSecrets.body.find((s: any) => s.title === 'alice first')!;
+			const aSecond = aliceSecrets.body.find((s: any) => s.title === 'alice second')!;
+			const bSecret = aliceSecrets.body.find((s: any) => s.title === 'bob secret')!;
+
+			await api('chat/secrets/reveal', { id: aFirst.id }, alice);
+
+			const timeline = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, bob);
+
+			const committed = timeline.body.filter((e: any) => e.type === 'secretCommitted');
+			assert.strictEqual(committed.length, 3);
+
+			const revealed = timeline.body.filter((e: any) => e.type === 'secretRevealed');
+			assert.strictEqual(revealed.length, 1);
+			assert.strictEqual((revealed[0] as any).data.plaintext, 'alice1');
+
+			const a2Revealed = timeline.body.find((e: any) => e.type === 'secretRevealed' && (e as any).data.id === aSecond.id);
+			assert.strictEqual(a2Revealed, undefined);
+			const bRevealed = timeline.body.find((e: any) => e.type === 'secretRevealed' && (e as any).data.id === bSecret.id);
+			assert.strictEqual(bRevealed, undefined);
+		});
+	});
+
 	describe('Secret after creator leaves room', () => {
-		test('creator can reveal own secret after leaving room', async () => {
+		test('system reveals secret after creator leaving the room', async () => {
 			const room = await api('chat/rooms/create', {
 				name: 'secret-after-leave room',
 				isPublic: true,
@@ -1011,24 +1219,30 @@ describe('Chat', () => {
 			assert.strictEqual(room.status, 200);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
-			const msg = await api('chat/messages/create-to-room', {
+			const future = new Date(Date.now() + 5000);
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				commitSecret: {
 					title: 'leaver secret',
 					plaintext: 'can still reveal',
+					revealsAt: future.getTime(),
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const secrets = await api('chat/secrets/list', { roomId: room.body.id }, alice);
+			const secretId = secrets.body[0].id;
 
 			await api('chat/rooms/leave', { roomId: room.body.id }, alice);
 
-			const res = await api('chat/secrets/reveal', {
-				id: msg.body.id,
-			}, alice);
+			// await auto-reveal
+			await new Promise(resolve => setTimeout(resolve, 6000));
 
-			assert.strictEqual(res.status, 204);
-		});
+			// let's check
+			const timeline = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, bob);
+			const revealedEvent = timeline.body.find((e: any) => e.type === 'secretRevealed');
+			assert.ok(revealedEvent);
+			assert.strictEqual((revealedEvent as any).data.plaintext, 'can still reveal');
+		}, 15000);
 
 		test('non-creator cannot reveal secret after creator left', async () => {
 			const room = await api('chat/rooms/create', {
@@ -1038,23 +1252,60 @@ describe('Chat', () => {
 			assert.strictEqual(room.status, 200);
 			await api('chat/rooms/join', { roomId: room.body.id }, bob);
 
-			const msg = await api('chat/messages/create-to-room', {
+			await api('chat/messages/create-to-room', {
 				toRoomId: room.body.id,
 				commitSecret: {
 					title: 'other person secret',
 					plaintext: 'not yours',
 				},
 			}, alice);
-			assert.strictEqual(msg.status, 200);
-			assert.ok(msg.body);
+
+			const secrets = await api('chat/secrets/list', { roomId: room.body.id }, alice);
+			const secretId = secrets.body[0].id;
 
 			await api('chat/rooms/leave', { roomId: room.body.id }, alice);
 
 			const res = await api('chat/secrets/reveal', {
-				id: msg.body.id,
+				id: secretId,
 			}, bob);
 
 			assert.strictEqual(res.status, 400);
+
+			// ensure plaintext is not available
+			const bobSecretsAfter = await api('chat/secrets/list', { roomId: room.body.id }, bob);
+			assert.ok(Array.isArray(bobSecretsAfter.body));
+			assert.ok(!bobSecretsAfter.body.some((s: any) => (s as any).plaintext));
+		});
+
+		test('commit secret, leave, rejoin, reveal', async () => {
+			const room = await api('chat/rooms/create', {
+				name: 'rejoin-reveal room',
+				isPublic: true,
+			}, alice);
+			assert.strictEqual(room.status, 200);
+			await api('chat/rooms/join', { roomId: room.body.id }, bob);
+
+			await api('chat/messages/create-to-room', {
+				toRoomId: room.body.id,
+				commitSecret: {
+					title: 'rejoinable secret',
+					plaintext: 'will reveal after rejoin',
+				},
+			}, alice);
+
+			const secrets = await api('chat/secrets/list', { roomId: room.body.id }, alice);
+			const secretId = secrets.body[0].id;
+
+			await api('chat/rooms/leave', { roomId: room.body.id }, alice);
+			await api('chat/rooms/join', { roomId: room.body.id }, alice);
+
+			const res = await api('chat/secrets/reveal', { id: secretId }, alice);
+			assert.strictEqual(res.status, 204);
+
+			const timeline = await api('chat/messages/room-timeline', { roomId: room.body.id, limit: 10 }, bob);
+			const revealedEvent = timeline.body.find((e: any) => e.type === 'secretRevealed');
+			assert.ok(revealedEvent);
+			assert.strictEqual((revealedEvent as any).data.plaintext, 'will reveal after rejoin');
 		});
 	});
 });

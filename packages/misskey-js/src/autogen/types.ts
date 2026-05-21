@@ -5714,6 +5714,7 @@ export type components = {
             toUser?: components['schemas']['UserLite'] | null;
             toRoomId?: string | null;
             toRoom?: components['schemas']['ChatRoom'] | null;
+            visibleUserIds?: string[];
             text?: string | null;
             fileId?: string | null;
             file?: components['schemas']['DriveFile'] | null;
@@ -5734,6 +5735,7 @@ export type components = {
             text?: string | null;
             fileId?: string | null;
             file?: components['schemas']['DriveFile'] | null;
+            visibleUserIds?: string[];
             reactions: {
                 reaction: string;
                 user?: components['schemas']['UserLite'] | null;
@@ -5758,6 +5760,7 @@ export type components = {
             createdAt: string;
             fromUserId: string;
             toRoomId: string;
+            visibleUserIds?: string[];
             text?: string | null;
             fileId?: string | null;
             file?: components['schemas']['DriveFile'] | null;
@@ -5934,7 +5937,7 @@ export type components = {
         ChatEvent: {
             /** @constant */
             type: 'message';
-            data: components['schemas']['ChatMessageLite'];
+            data: components['schemas']['ChatMessageLiteForRoom'];
         } | {
             /** @constant */
             type: 'pollScheduled';
@@ -17174,7 +17177,7 @@ export interface operations {
                         deliver: {
                             /** Format: misskey:id */
                             userId?: string;
-                            number?: number;
+                            count?: number;
                         }[];
                     } | null;
                     visibleUserIds?: string[];
