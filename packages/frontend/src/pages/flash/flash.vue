@@ -280,7 +280,7 @@ function showMenu(ev: PointerEvent) {
 		...($i && $i.id !== flash.value.userId ? [
 			{
 				icon: 'ti ti-exclamation-circle',
-				text: i18n.ts.contactAdmin,
+				text: i18n.ts.reportAbuse,
 				action: reportAbuse,
 			},
 			...($i.isModerator || $i.isAdmin ? [

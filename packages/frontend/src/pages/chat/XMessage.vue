@@ -277,7 +277,7 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 
 	if (!isMe.value && props.membership?.user != null) {
 		menu.push({
-			text: i18n.ts.contactAdmin,
+			text: i18n.ts.reportAbuse,
 			icon: 'ti ti-exclamation-circle',
 			action: async () => {
 				const localUrl = `${url}/chat/messages/${(props.item.data as Misskey.entities.ChatMessageLite).id}`;

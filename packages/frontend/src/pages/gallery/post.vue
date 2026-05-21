@@ -183,7 +183,7 @@ function showMenu(ev: PointerEvent) {
 	if ($i && $i.id !== post.value.userId) {
 		menuItems.push({
 			icon: 'ti ti-exclamation-circle',
-			text: i18n.ts.contactAdmin,
+			text: i18n.ts.reportAbuse,
 			action: reportAbuse,
 		});
 
