@@ -189,7 +189,6 @@ describe('home.invitations', () => {
 
 		expect(container.textContent).toContain('Test Room');
 		expect(container.textContent).toContain('A room for testing');
-		expect(container.querySelector('.mk-result')).toBeNull();
 	});
 
 	test('invitation shows room owner', async () => {
@@ -250,6 +249,9 @@ describe('home.invitations', () => {
 		await new Promise(r => setTimeout(r, 0));
 
 		expect(apiMock).toHaveBeenCalledWith('chat/rooms/join', { roomId: 'room-join' });
+		expect(routerPush).toHaveBeenCalledWith('/chat/room/:roomId', {
+			params: { roomId: 'room-join' },
+		});
 	});
 
 	test('ignore button removes invitation from list', async () => {

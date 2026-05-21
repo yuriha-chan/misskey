@@ -24,6 +24,13 @@ vi.mock('@/i18n.js', () => ({
 		ts: {
 			edited: 'edited',
 			isDeleted: 'is deleted',
+			openInWindow: 'Open in window',
+			nothing: 'Nothing',
+			notFound: 'Not found',
+			_ago: {
+				invalid: 'Invalid date',
+				justNow: 'just now',
+			},
 			_chat: {
 				scheduled: 'Scheduled',
 				started: 'Started',
@@ -41,6 +48,24 @@ vi.mock('@/i18n.js', () => ({
 			},
 		},
 		tsx: {
+			_ago: {
+				yearsAgo: ({ n }: any) => `${n}y ago`,
+				monthsAgo: ({ n }: any) => `${n}mo ago`,
+				weeksAgo: ({ n }: any) => `${n}w ago`,
+				daysAgo: ({ n }: any) => `${n}d ago`,
+				hoursAgo: ({ n }: any) => `${n}h ago`,
+				minutesAgo: ({ n }: any) => `${n}min ago`,
+				secondsAgo: ({ n }: any) => `${n}s ago`,
+			},
+			_timeIn: {
+				years: ({ n }: any) => `${n}y`,
+				months: ({ n }: any) => `${n}mo`,
+				weeks: ({ n }: any) => `${n}w`,
+				days: ({ n }: any) => `${n}d`,
+				hours: ({ n }: any) => `${n}h`,
+				minutes: ({ n }: any) => `${n}min`,
+				seconds: ({ n }: any) => `${n}s`,
+			},
 			_chat: {
 				pollScheduled({ what }: any) { return `poll scheduled: ${what}`; },
 				pollStarted({ what }: any) { return `poll started: ${what}`; },
@@ -88,7 +113,7 @@ vi.mock('@/utility/extract-url-from-mfm.js', () => ({
 }));
 
 vi.mock('@/utility/misskey-api.js', () => ({
-	misskeyApi: vi.fn().mockResolvedValue(undefined),
+	misskeyApi: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@/utility/sound.js', () => ({
@@ -98,6 +123,15 @@ vi.mock('@/utility/sound.js', () => ({
 vi.mock('@/utility/copy-to-clipboard.js', () => ({
 	copyToClipboard: vi.fn(),
 }));
+
+vi.mock('@/composables/use-lowres-time.js', () => ({
+	useLowresTime: () => ({ value: Date.now() }),
+}));
+
+vi.mock('@@/js/intl-const.js', () => {
+	const fmt = { format: vi.fn(() => '2024-01-01T00:00:00Z') };
+	return { dateTimeFormat: fmt, numberFormat: fmt };
+});
 
 vi.mock('@/utility/reaction-picker.js', () => ({
 	reactionPicker: { show: vi.fn() },
@@ -116,22 +150,20 @@ vi.mock('@/di.js', () => ({
 	},
 }));
 
+vi.mock('@/local-storage.js', () => ({
+	miLocalStorage: {
+		getItem: vi.fn(() => null),
+		setItem: vi.fn(),
+		removeItem: vi.fn(),
+		getItemAsJson: vi.fn(() => null),
+		setItemAsJson: vi.fn(),
+	},
+}));
+
 vi.mock('@/store.js', () => ({
 	store: {
 		s: { darkMode: false },
 	},
-}));
-
-vi.mock('@/components/MkUrlPreview.vue', () => ({
-	default: { template: '<span></span>' },
-}));
-
-vi.mock('@/components/MkUserCardMini.vue', () => ({
-	default: { template: '<span></span>' },
-}));
-
-vi.mock('@/components/MkAvatars.vue', () => ({
-	default: { template: '<span></span>' },
 }));
 
 function StubMfm(props: any) {
@@ -167,6 +199,14 @@ async function mountXMessage(item: any, membership?: any) {
 		},
 	});
 	app.component('Mfm', StubMfm as any);
+	const MkAvatar = (await import('@/components/global/MkAvatar.vue')).default;
+	const MkUserName = (await import('@/components/global/MkUserName.vue')).default;
+	const MkTime = (await import('@/components/global/MkTime.vue')).default;
+	const MkA = (await import('@/components/global/MkA.vue')).default;
+	app.component('MkAvatar', MkAvatar);
+	app.component('MkUserName', MkUserName);
+	app.component('MkTime', MkTime);
+	app.component('MkA', MkA);
 	app.mount(container);
 	await nextTick();
 	return container;

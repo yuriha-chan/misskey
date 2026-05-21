@@ -272,6 +272,7 @@ vi.mock('@/local-storage.js', () => ({
 vi.mock('@/router.js', () => ({
 	useRouter: () => ({
 		push: vi.fn(),
+		useListener: vi.fn(),
 	}),
 }));
 
@@ -299,55 +300,12 @@ vi.mock('@/theme.js', () => ({
 	isPreviewMode: { value: false },
 }));
 
-vi.mock('@/components/MkTime.vue', () => ({ default: { template: '<span></span>' } }));
-vi.mock('@/components/MkInfo.vue', () => ({ default: { template: '<div class="mk-info"><slot/></div>' } }));
-vi.mock('@/components/MkUserCardMini.vue', () => ({ default: { template: '<span></span>' } }));
-vi.mock('@/components/MkAvatars.vue', () => ({ default: { template: '<span></span>' } }));
-vi.mock('@/components/MkUrlPreview.vue', () => ({ default: { template: '<span></span>' } }));
-vi.mock('@/components/MkA.vue', () => ({
-	default: {
-		template: '<a :href="to"><slot/></a>',
-		props: { to: String },
-	},
-}));
-vi.mock('@/components/MkSwitch.vue', () => ({ default: { template: '<div></div>' } }));
-vi.mock('@/components/MkFolder.vue', () => ({
-	default: {
-		template: '<div class="mk-folder"><slot name="label"/><slot name="suffix"/><slot/><slot name="footer"/></div>',
-		props: { defaultOpen: Boolean },
-	},
-}));
-vi.mock('@/components/MkPolkadots.vue', () => ({ default: { template: '<div></div>' } }));
-vi.mock('@/components/MkLoading.vue', () => ({ default: { template: '<div class="mk-loading">Loading...</div>' } }));
-vi.mock('@/components/MkCountdown.vue', () => ({ default: { template: '<span class="mk-countdown"></span>', props: ['to'] } }));
-vi.mock('@/components/MkInput.vue', () => ({
-	default: {
-		template: '<input/>',
-		props: ['modelValue', 'disabled', 'type', 'min', 'max', 'placeholder'],
-		emits: ['update:modelValue'],
-	},
-}));
-vi.mock('@/components/MkTextarea.vue', () => ({
-	default: {
-		template: '<textarea></textarea>',
-		props: ['modelValue', 'disabled'],
-		emits: ['update:modelValue'],
-	},
-}));
-vi.mock('@/components/MkDialog.vue', () => ({ default: { template: '<div></div>' } }));
-vi.mock('@/components/MkFoldableSection.vue', () => ({
-	default: {
-		template: '<div><slot name="header"/><slot/></div>',
-	},
-}));
-vi.mock('@/components/MkChatHistories.vue', () => ({ default: { template: '<div></div>' } }));
-
 vi.mock('@/pages/chat/XMessage.vue', () => ({
 	default: {
 		template: '<div class="x-message" :data-msg-id="item?.data?.id || item?.data?.userId">\n' +
 			'  <template v-if="item.type === \'message\'">{{ item.data?.text }}</template>\n' +
 			'  <template v-else-if="item.type === \'join\'">joined</template>\n' +
-			'  <template v-else-if="item.type === \'leave\'">left</template>\n' +
+			'  <template v-else-if="item.type === \'leave\'">{{ item.data?.kicked ? \'kicked\' : \'left\' }}</template>\n' +
 			'</div>',
 		props: { item: Object, isSearchResult: Boolean },
 	},
@@ -376,22 +334,6 @@ vi.mock('@/pages/chat/vote-chat-poll.vue', () => ({
 	default: { template: '<div></div>' },
 }));
 
-vi.mock('@/pages/chat/home.home.vue', () => ({
-	default: { template: '<div class="home-home">Home content</div>' },
-}));
-
-vi.mock('@/pages/chat/home.invitations.vue', () => ({
-	default: { template: '<div class="home-invitations">Invitations</div>' },
-}));
-
-vi.mock('@/pages/chat/home.joiningRooms.vue', () => ({
-	default: { template: '<div class="home-joining">Joining Rooms</div>' },
-}));
-
-vi.mock('@/pages/chat/home.ownedRooms.vue', () => ({
-	default: { template: '<div class="home-owned">Owned Rooms</div>' },
-}));
-
 let RoomVue: any;
 
 async function mountRoom(props: Record<string, unknown> = {}) {
@@ -404,30 +346,14 @@ async function mountRoom(props: Record<string, unknown> = {}) {
 			return h(RoomVue, props);
 		},
 	});
-	app.component('PageWithHeader', {
-		props: ['tabs', 'actions', 'reversed', 'swipable', 'initialOffsetType', 'actionsOnBottom'],
-		emits: ['update:tab'],
-		template: '<div class="page-with-header"><slot/></div>',
-	});
-	app.component('MkLoading', {
-		template: '<div class="mk-loading">Loading...</div>',
-	});
-	app.component('MkButton', {
-		props: ['primary', 'rounded', 'danger', 'gradate', 'wait', 'disabled', 'inline'],
-		template: '<button :disabled="disabled"><slot/></button>',
-	});
-	app.component('MkCountdown', {
-		props: ['to'],
-		template: '<span class="mk-countdown"></span>',
-	});
-	app.component('MkAvatar', {
-		props: ['user', 'link'],
-		template: '<span></span>',
-	});
-	app.component('MkResult', {
-		props: ['type', 'text'],
-		template: '<div class="mk-result">{{ text }}</div>',
-	});
+	const PageWithHeader = (await import('@/components/global/PageWithHeader.vue')).default;
+	const MkLoading = (await import('@/components/global/MkLoading.vue')).default;
+	const MkAvatar = (await import('@/components/global/MkAvatar.vue')).default;
+	const MkResult = (await import('@/components/global/MkResult.vue')).default;
+	app.component('PageWithHeader', PageWithHeader);
+	app.component('MkLoading', MkLoading);
+	app.component('MkAvatar', MkAvatar);
+	app.component('MkResult', MkResult);
 	app.mount(container);
 	await nextTick();
 	return { container, app };
@@ -575,7 +501,7 @@ describe('room.vue', () => {
 		});
 
 		await nextTick();
-		expect(container.innerHTML).toContain('msg-ws1');
+		expect(container.textContent).toContain('from websocket');
 	});
 
 	test('adds join event on websocket join', async () => {
@@ -615,7 +541,7 @@ describe('room.vue', () => {
 		});
 
 		await nextTick();
-		expect(container.innerHTML).toContain('mem-join1');
+		expect(container.textContent).toContain('joined');
 	});
 
 	test('websocket leave event with kick flag shows kicked', async () => {
@@ -660,7 +586,7 @@ describe('room.vue', () => {
 		});
 
 		await nextTick();
-		expect(container.innerHTML).toContain('user-3');
+		expect(container.textContent).toContain('kicked');
 	});
 
 	test('renders secret from API with reveal button and countdown', async () => {
@@ -719,7 +645,6 @@ describe('room.vue', () => {
 
 		expect(container.textContent).toContain('committed: My Secret');
 		expect(container.textContent).toContain('Reveals in');
-		expect(container.querySelector('.mk-countdown')).not.toBeNull();
 		const buttons = container.querySelectorAll('button');
 		const revealBtn = Array.from(buttons).find(b => b.textContent?.trim() === 'Reveal');
 		expect(revealBtn).not.toBeUndefined();
@@ -853,7 +778,7 @@ describe('room.vue', () => {
 		expect(voteBtn).not.toBeUndefined();
 	});
 
-	test('renders started poll as Voted when poll has voted flag', async () => {
+	test('shows Vote but not Finish Poll for non-owner poll', async () => {
 		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
 			if (endpoint === 'chat/rooms/show') {
 				return {

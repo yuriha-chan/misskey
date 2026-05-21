@@ -41,7 +41,7 @@ vi.mock('@/os.js', async () => {
 		confirm: vi.fn(),
 		popup: vi.fn(),
 		popupMenu: vi.fn(),
-		popupAsyncWithDialog: vi.fn().mockResolvedValue({ dispose: 'closed' }),
+		popupAsyncWithDialog: vi.fn().mockResolvedValue({ dispose: vi.fn() }),
 		launchUploader: vi.fn(),
 	};
 });
@@ -53,21 +53,15 @@ vi.mock('@/i18n.js', () => ({
 			send: 'Send',
 			attachFile: 'Attach File',
 			attachSecret: 'Attach Secret',
+			attach: 'Attach',
+			selectFile: 'Select file',
+			onlyOneFileCanBeAttached: 'Only one file can be attached',
 			inputMessageHere: 'Input message here',
 			_chat: {
 				thisRoomIsArchived: 'This room is archived',
 				startPoll: 'Start Poll',
 				deliverCards: 'Deliver Cards',
-			},
-			_time: {
-				day: 'day',
-				hour: 'hour',
-				minute: 'minute',
-				second: 'second',
-			},
-			_theme: {
-				alreadyInstalled: 'already installed',
-				invalid: 'invalid',
+				secretAttached: 'Secret attached',
 			},
 		},
 		tsx: {},
@@ -109,6 +103,8 @@ async function mountRoomForm(extraProps: Record<string, unknown> = {}) {
 			});
 		},
 	});
+	const MkLoading = (await import('@/components/global/MkLoading.vue')).default;
+	app.component('MkLoading', MkLoading);
 	app.mount(container);
 	await nextTick();
 	return { container, app };
@@ -137,10 +133,13 @@ beforeEach(() => {
 });
 
 describe('room.form', () => {
-	test('renders', async () => {
+	test('renders textarea input and send button', async () => {
 		const { container } = await mountRoomForm();
-		expect(container.querySelector('textarea')).not.toBeNull();
-		expect(container.querySelector('button')).not.toBeNull();
+		const textarea = container.querySelector('textarea');
+		expect(textarea).not.toBeNull();
+		expect(textarea!.getAttribute('placeholder')).toBe('Input message here');
+		const sendBtn = getSendButton(container);
+		expect(sendBtn).not.toBeNull();
 	});
 
 	test('send button is disabled when empty', async () => {
@@ -203,7 +202,8 @@ describe('room.form', () => {
 		const sendBtn = getSendButton(container);
 		sendBtn!.click();
 		await nextTick();
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await nextTick();
+		await nextTick();
 
 		const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
 		expect(textarea.value).toBe('');

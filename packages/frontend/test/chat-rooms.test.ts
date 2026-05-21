@@ -23,12 +23,18 @@ vi.mock('@/utility/misskey-api.js', () => ({
 vi.mock('@/i.js', () => ({
 	$i,
 	ensureSignin: () => $i,
+	iAmModerator: false,
+	iAmAdmin: false,
 }));
 
 vi.mock('@/i18n.js', () => ({
 	i18n: {
 		ts: {
 			noRooms: 'No rooms',
+			nothing: 'Nothing',
+			notFound: 'Not found',
+			openInWindow: 'Open in window',
+			_ago: { invalid: 'Invalid date', justNow: 'just now' },
 			_chat: {
 				joiningRooms: 'Joining Rooms',
 				noRooms: 'No rooms',
@@ -39,7 +45,26 @@ vi.mock('@/i18n.js', () => ({
 				publicRooms: 'Public Rooms',
 			},
 		},
-		tsx: {},
+		tsx: {
+			_ago: {
+				yearsAgo: ({ n }: any) => `${n}y ago`,
+				monthsAgo: ({ n }: any) => `${n}mo ago`,
+				weeksAgo: ({ n }: any) => `${n}w ago`,
+				daysAgo: ({ n }: any) => `${n}d ago`,
+				hoursAgo: ({ n }: any) => `${n}h ago`,
+				minutesAgo: ({ n }: any) => `${n}min ago`,
+				secondsAgo: ({ n }: any) => `${n}s ago`,
+			},
+			_timeIn: {
+				years: ({ n }: any) => `${n}y`,
+				months: ({ n }: any) => `${n}mo`,
+				weeks: ({ n }: any) => `${n}w`,
+				days: ({ n }: any) => `${n}d`,
+				hours: ({ n }: any) => `${n}h`,
+				minutes: ({ n }: any) => `${n}min`,
+				seconds: ({ n }: any) => `${n}s`,
+			},
+		},
 	},
 	updateI18n: vi.fn(),
 	lang: 'en-US',
@@ -52,6 +77,10 @@ vi.mock('@/os.js', () => ({
 	popupMenu: vi.fn(),
 	apiWithDialog: (ep: string, p: any) => apiMock(ep, p),
 	pageFolderTeleportCount: { value: 0 },
+}));
+
+vi.mock('@/utility/copy-to-clipboard.js', () => ({
+	copyToClipboard: vi.fn(),
 }));
 
 vi.mock('@/theme.js', () => ({
@@ -91,18 +120,17 @@ vi.mock('@@/js/use-interval.js', () => ({
 	useInterval: vi.fn(),
 }));
 
-vi.mock('@/components/MkAvatars.vue', () => ({
-	default: {
-		template: '<span class="mk-avatars"></span>',
-		props: ['userIds', 'indicator', 'preview'],
-	},
+vi.mock('@/composables/use-lowres-time.js', () => ({
+	useLowresTime: () => ({ value: Date.now() }),
 }));
 
-vi.mock('@/pages/chat/XRoom.vue', () => ({
-	default: {
-		template: '<div class="x-room" :data-room-id="room.id">{{ room.name }} - {{ room.description }}</div>',
-		props: ['room'],
-	},
+vi.mock('@@/js/intl-const.js', () => {
+	const fmt = { format: vi.fn(() => '2024-01-01T00:00:00Z') };
+	return { dateTimeFormat: fmt, numberFormat: fmt, hemisphere: 'N' };
+});
+
+vi.mock('@/filters/user.js', () => ({
+	userPage: vi.fn(() => '/@user'),
 }));
 
 let JoiningRoomsVue: any;
@@ -119,18 +147,10 @@ async function mountJoining() {
 			return h(JoiningRoomsVue);
 		},
 	});
-	app.component('MkSwitch', {
-		props: ['modelValue'],
-		emits: ['update:modelValue'],
-		template: '<label><slot name="label"/><input type="checkbox" :checked="modelValue"/></label>',
-	});
-	app.component('MkResult', {
-		props: ['type', 'text'],
-		template: '<div class="mk-result">{{ text }}</div>',
-	});
-	app.component('MkLoading', {
-		template: '<div class="mk-loading">Loading...</div>',
-	});
+	const MkResult = (await import('@/components/global/MkResult.vue')).default;
+	const MkLoading = (await import('@/components/global/MkLoading.vue')).default;
+	app.component('MkResult', MkResult);
+	app.component('MkLoading', MkLoading);
 	app.mount(container);
 	await nextTick();
 	await new Promise(r => setTimeout(r, 0));
@@ -148,18 +168,10 @@ async function mountOwned() {
 			return h(OwnedRoomsVue);
 		},
 	});
-	app.component('MkSwitch', {
-		props: ['modelValue'],
-		emits: ['update:modelValue'],
-		template: '<label><slot name="label"/><input type="checkbox" :checked="modelValue"/></label>',
-	});
-	app.component('MkResult', {
-		props: ['type', 'text'],
-		template: '<div class="mk-result">{{ text }}</div>',
-	});
-	app.component('MkLoading', {
-		template: '<div class="mk-loading">Loading...</div>',
-	});
+	const MkResult = (await import('@/components/global/MkResult.vue')).default;
+	const MkLoading = (await import('@/components/global/MkLoading.vue')).default;
+	app.component('MkResult', MkResult);
+	app.component('MkLoading', MkLoading);
 	app.mount(container);
 	await nextTick();
 	await new Promise(r => setTimeout(r, 0));
@@ -177,21 +189,12 @@ async function mountPublic() {
 			return h(PublicRoomsVue);
 		},
 	});
-	app.component('MkA', {
-		props: ['to'],
-		template: '<a :href="to" class="mk-a"><slot/></a>',
-	});
-	app.component('MkAvatars', {
-		props: ['userIds', 'indicator', 'preview'],
-		template: '<span></span>',
-	});
-	app.component('MkResult', {
-		props: ['type', 'text'],
-		template: '<div class="mk-result">{{ text }}</div>',
-	});
-	app.component('MkLoading', {
-		template: '<div class="mk-loading">Loading...</div>',
-	});
+	const MkA = (await import('@/components/global/MkA.vue')).default;
+	const MkResult = (await import('@/components/global/MkResult.vue')).default;
+	const MkLoading = (await import('@/components/global/MkLoading.vue')).default;
+	app.component('MkA', MkA);
+	app.component('MkResult', MkResult);
+	app.component('MkLoading', MkLoading);
 	app.mount(container);
 	await nextTick();
 	await new Promise(r => setTimeout(r, 0));
@@ -263,13 +266,17 @@ describe('home.joiningRooms', () => {
 		});
 
 		const { container } = await mountJoining();
+
 		const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
 		expect(checkbox).not.toBeNull();
 
-		checkbox.dispatchEvent(new Event('change'));
 		checkbox.checked = true;
+		checkbox.click();
 		await new Promise(r => setTimeout(r, 0));
 		await nextTick();
+
+		expect(apiMock).toHaveBeenCalledWith('chat/rooms/joining', { includeLeft: true });
+		expect(container.textContent).toContain('Charlie');
 	});
 });
 
@@ -316,15 +323,29 @@ describe('home.ownedRooms', () => {
 		expect(container.textContent).toContain('Second');
 	});
 
-	test('toggles includeArchived', async () => {
+	test('toggles includeArchived and refetches', async () => {
+		apiMock.mockImplementation(async (endpoint: string, params: any) => {
+			if (endpoint === 'chat/rooms/owned') {
+				if (params?.includeArchived) {
+					return [{ id: 'r1', name: 'Archived Room', description: '', owner: { id: 'me-1' }, ownerId: 'me-1' }];
+				}
+				return [{ id: 'r2', name: 'Active Room', description: '', owner: { id: 'me-1' }, ownerId: 'me-1' }];
+			}
+			return [];
+		});
+
 		const { container } = await mountOwned();
+
 		const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
 		expect(checkbox).not.toBeNull();
 
-		checkbox.dispatchEvent(new Event('change'));
 		checkbox.checked = true;
+		checkbox.click();
 		await new Promise(r => setTimeout(r, 0));
 		await nextTick();
+
+		expect(apiMock).toHaveBeenCalledWith('chat/rooms/owned', { includeArchived: true });
+		expect(container.textContent).toContain('Archived Room');
 	});
 });
 
@@ -355,8 +376,7 @@ describe('home.publicRooms', () => {
 		const { container } = await mountPublic();
 		expect(container.textContent).toContain('Public Room');
 		expect(container.textContent).toContain('A public chat');
-		expect(container.textContent).toContain('3');
-		expect(container.textContent).toContain('30');
+		expect(container.textContent).toContain('(3 / 30)');
 	});
 
 	test('renders multiple public rooms', async () => {

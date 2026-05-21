@@ -4,7 +4,6 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { ref } from 'vue';
 import {
 	getDateText,
 	isSeparatorNeeded,
@@ -22,7 +21,7 @@ describe('getDateText', () => {
 		expect(getDateText(d)).toBe('12/5');
 	});
 
-	test('edge date', () => {
+	test('returns date text for first day of year', () => {
 		const d = new Date('2024-01-01T00:00:00Z');
 		expect(getDateText(d)).toBe('1/1');
 	});

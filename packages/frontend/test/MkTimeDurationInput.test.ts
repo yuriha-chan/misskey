@@ -9,25 +9,11 @@ import { createApp, h, nextTick } from 'vue';
 vi.mock('@/i18n.js', () => ({
 	i18n: {
 		ts: {
-			somethingHappened: 'Something happened.',
-			send: 'Send',
-			attachFile: 'Attach File',
-			attachSecret: 'Attach Secret',
-			inputMessageHere: 'Input message here',
-			_chat: {
-				thisRoomIsArchived: 'This room is archived',
-				startPoll: 'Start Poll',
-				deliverCards: 'Deliver Cards',
-			},
 			_time: {
 				day: 'day',
 				hour: 'hour',
 				minute: 'minute',
 				second: 'second',
-			},
-			_theme: {
-				alreadyInstalled: 'already installed',
-				invalid: 'invalid',
 			},
 		},
 		tsx: {},
@@ -67,6 +53,14 @@ async function mountComponent(props: Record<string, unknown> = {}) {
 	return { container, emitSpy };
 }
 
+function findButton(container: HTMLElement, iconSelector: string): HTMLButtonElement | null {
+	const buttons = container.querySelectorAll('button');
+	for (const button of buttons) {
+		if (button.querySelector(iconSelector)) return button as HTMLButtonElement;
+	}
+	return null;
+}
+
 beforeEach(() => {
 	vi.resetModules();
 	MkTimeDurationInput = null;
@@ -94,23 +88,55 @@ describe('MkTimeDurationInput', () => {
 		expect(container.textContent).not.toContain('minute');
 	});
 
-	test('buttons are clickable', async () => {
+	test('decrement buttons decrease and large-step decreases more than small-step', async () => {
 		const { container, emitSpy } = await mountComponent({ modelValue: 60 });
-		const buttons = container.querySelectorAll('button');
-		expect(buttons.length).toBe(4);
+
+		emitSpy.mockClear();
+		findButton(container, '.ti-chevron-left')!.click();
+		await nextTick();
+		const smallDec = emitSpy.mock.calls[0][0] as number;
+
+		emitSpy.mockClear();
+		findButton(container, '.ti-chevrons-left')!.click();
+		await nextTick();
+		const largeDec = emitSpy.mock.calls[0][0] as number;
+
+		expect(smallDec).toBeLessThan(60);
+		expect(largeDec).toBeLessThan(60);
+		expect(60 - largeDec).toBeGreaterThan(60 - smallDec);
 	});
 
-	test('clamps modelValue when min is set', async () => {
-		const { container } = await mountComponent({ modelValue: 10, min: 15 });
+	test('increment buttons increase and large-step increases more than small-step', async () => {
+		const { container, emitSpy } = await mountComponent({ modelValue: 60 });
+
+		emitSpy.mockClear();
+		findButton(container, '.ti-chevron-right')!.click();
 		await nextTick();
-		expect(container.textContent).toContain('minute');
+		const smallInc = emitSpy.mock.calls[0][0] as number;
+
+		emitSpy.mockClear();
+		findButton(container, '.ti-chevrons-right')!.click();
+		await nextTick();
+		const largeInc = emitSpy.mock.calls[0][0] as number;
+
+		expect(smallInc).toBeGreaterThan(60);
+		expect(largeInc).toBeGreaterThan(60);
+		expect(largeInc - 60).toBeGreaterThan(smallInc - 60);
+	});
+
+	test('decrement clamps modelValue to min', async () => {
+		const { container, emitSpy } = await mountComponent({ modelValue: 10, min: 15 });
+		await nextTick();
+
+		findButton(container, '.ti-chevrons-left')!.click();
+		await nextTick();
+		expect(emitSpy).toHaveBeenCalledWith(15);
 	});
 
 	test('disabled prop disables inputs', async () => {
 		const { container } = await mountComponent({ disabled: true });
 		const inputs = container.querySelectorAll('input');
-		if (inputs.length > 0) {
-			expect(inputs[0].disabled).toBe(true);
-		}
+		expect(inputs.length).toBeGreaterThan(0);
+		expect(inputs[0].disabled).toBe(true);
 	});
 });
