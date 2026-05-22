@@ -9428,6 +9428,7 @@ export interface operations {
                         sensitiveWords: string[];
                         prohibitedWords: string[];
                         prohibitedWordsForNameOfUser: string[];
+                        r18Filter: string[];
                         bannedEmailDomains?: string[];
                         preservedUsernames: string[];
                         hcaptchaSecretKey: string | null;
@@ -12728,6 +12729,7 @@ export interface operations {
                     sensitiveWords?: string[] | null;
                     prohibitedWords?: string[] | null;
                     prohibitedWordsForNameOfUser?: string[] | null;
+                    r18Filter?: string[] | null;
                     themeColor?: string | null;
                     mascotImageUrl?: string | null;
                     bannerUrl?: string | null;

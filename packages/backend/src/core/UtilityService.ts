@@ -76,9 +76,9 @@ export class UtilityService {
 	}
 
 	@bindThis
-	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string, files: string[]): boolean {
+	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string, files: { isSensitive: boolean }[], instance: string | null): boolean {
 		if (keyWords.length === 0) return false;
-		if (text === '' && cw === '' && pollChoices === '' && files.length === 0) {
+		if (text === '' && cw === '' && pollChoices === '' && files.length === 0 && instance === null) {
 			return false;
 		}
 
@@ -104,7 +104,9 @@ export class UtilityService {
 					case 'shorterThan': return testText.length < coerceFloat(node[1]);
 					case 'longerThan': return testText.length > coerceFloat(node[1]);
 					case 'hasFile': return files.length > 0;
-					case 'cw': return node.slice(1).every((n: any) => apply(n, cw));
+				case 'hasSensitiveFile': return files.some(f => f.isSensitive);
+			case 'instance': return node.slice(1).every((n: any) => apply(n, instance ?? ''));
+			case 'cw': return node.slice(1).every((n: any) => apply(n, cw));
 					case 'text': return node.slice(1).every((n: any) => apply(n, text));
 					case 'pollChoices': return node.slice(1).every((n: any) => apply(n, pollChoices));
 					case 'textAndChoices': return node.slice(1).every((n: any) => apply(n, textAndChoices));

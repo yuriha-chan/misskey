@@ -62,6 +62,11 @@ export const paramDef = {
 				type: 'string',
 			},
 		},
+		r18Filter: {
+			type: 'array', nullable: true, items: {
+				type: 'string',
+			},
+		},
 		themeColor: { type: 'string', nullable: true, pattern: '^#[0-9a-fA-F]{6}$' },
 		mascotImageUrl: { type: 'string', nullable: true },
 		bannerUrl: { type: 'string', nullable: true },
@@ -284,6 +289,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				const filtered = ps.prohibitedWordsForNameOfUser.filter(Boolean);
 				validateFilters(filtered);
 				set.prohibitedWordsForNameOfUser = filtered;
+			}
+			if (Array.isArray(ps.r18Filter)) {
+				const filtered = ps.r18Filter.filter(Boolean);
+				validateFilters(filtered);
+				set.r18Filter = filtered;
 			}
 			if (Array.isArray(ps.silencedHosts)) {
 				let lastValue = '';
