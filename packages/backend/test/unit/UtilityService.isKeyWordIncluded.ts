@@ -6,6 +6,7 @@
 import { describe, expect, test } from 'vitest';
 import { parseFilter } from '@/misc/parse-filter.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { LoggerService } from '@/core/LoggerService.js';
 import type { Config } from '@/config.js';
 import type { MiMeta } from '@/models/Meta.js';
 
@@ -14,7 +15,7 @@ function makeService() {
 		prohibitedWords: [],
 		sensitiveWords: [],
 		prohibitedWordsForNameOfUser: [],
-	} as unknown as MiMeta);
+	} as unknown as MiMeta, new LoggerService());
 }
 
 // ── parseFilter (parser unit) ─────────────────────────────────────────────

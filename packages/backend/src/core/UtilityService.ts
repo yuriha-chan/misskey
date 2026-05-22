@@ -10,20 +10,27 @@ import semver from 'semver';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
+import type Logger from '@/logger.js';
 import { MiMeta, SoftwareSuspension } from '@/models/Meta.js';
 import { MiInstance } from '@/models/Instance.js';
 
+import { LoggerService } from '@/core/LoggerService.js';
 import { parseFilter } from '@/misc/parse-filter.js';
 
 @Injectable()
 export class UtilityService {
+	private logger: Logger;
+
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
 
 		@Inject(DI.meta)
 		private meta: MiMeta,
+
+		private loggerService: LoggerService,
 	) {
+		this.logger = this.loggerService.getLogger('filter');
 	}
 
 	@bindThis
@@ -69,9 +76,9 @@ export class UtilityService {
 	}
 
 	@bindThis
-	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string | '', files: string[] | []): boolean {
+	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string, files: string[]): boolean {
 		if (keyWords.length === 0) return false;
-		if (text === '' && cw === '' && files.length === 0) {
+		if (text === '' && cw === '' && pollChoices === '' && files.length === 0) {
 			return false;
 		}
 
@@ -82,7 +89,7 @@ export class UtilityService {
 			(typeof v === 'string') ? parseFloat(v) :
 			v ? 1 : 0;
 
-		const apply = function(node: any[], testText: string): any {
+		const apply = (node: any[], testText: string): any => {
 			try {
 				switch (node[0]) {
 					case 'keyword': return testText.includes && testText.includes(node[1]);
@@ -103,23 +110,23 @@ export class UtilityService {
 					case 'textAndChoices': return node.slice(1).every((n: any) => apply(n, textAndChoices));
 					default: return false;
 				}
-			} catch {
-				// evaluate node failure → treat as no-match (safe default for filtering)
+			} catch (err) {
+				this.logger.warn('filter eval error', { err, node });
 				return false;
 			}
 		};
 		const nodes = keyWords.map(filter => {
 			try {
 				return parseFilter(filter, {});
-			} catch {
-				// parse failure → ["or"] yields always-false, silently skip invalid filter
+			} catch (err) {
+				this.logger.warn('filter parse error', { err, filter });
 				return ['or'];
 			}
 		});
 		try {
 			return nodes.some(n => apply(n, cw === '' ? textAndChoices : cw));
-		} catch {
-			// unexpected evaluation failure → do not flag content
+		} catch (err) {
+			this.logger.error('unexpected filter eval error', { err });
 			return false;
 		}
 	}
