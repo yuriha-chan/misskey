@@ -1481,6 +1481,10 @@ export interface Locale extends ILocale {
      */
     "r18ConsentOver18": string;
     /**
+     * R18コンテンツは表示できません
+     */
+    "r18ContentCannotBeDisplayed": string;
+    /**
      * サーバーとの接続が失われたとき
      */
     "whenServerDisconnected": string;
@@ -4449,7 +4453,7 @@ export interface Locale extends ILocale {
      */
     "r18ContentFilter": string;
     /**
-     * 設定した条件に一致するノートにR18フラグを自動付与します。スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。演算子: hasSensitiveFile, instance
+     * 設定した条件に一致するノートにR18フラグを自動付与します。スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。
      */
     "r18ContentFilterDescription": string;
     /**

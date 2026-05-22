@@ -161,7 +161,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</article>
 </div>
-<div v-else-if="!hardMuted && !hideByPlugin" :class="$style.muted" @click="muted = false">
+<div v-else-if="!hardMuted && !hideByPlugin && !isR18Hidden" :class="$style.muted" @click="muted = false">
 	<I18n v-if="muted === 'sensitiveMute'" :src="i18n.ts.userSaysSomethingSensitive" tag="small">
 		<template #name>
 			<MkA v-user-preview="appearNote.userId" :to="userPage(appearNote.user)">
@@ -310,7 +310,7 @@ const isLong = shouldCollapsed(appearNote, urls.value ?? []);
 const collapsed = ref(appearNote.cw == null && isLong);
 const muted = ref(checkMute(appearNote, $i?.mutedWords));
 const hardMuted = ref(props.withHardMute && checkMute(appearNote, $i?.hardMutedWords, true));
-const isR18Hidden = computed(() => prefer.s.hideR18Content && !!appearNote.isR18);
+const isR18Hidden = computed(() => (! $i || prefer.s.hideR18Content) && !!appearNote.isR18);
 const showSoftWordMutedWord = computed(() => prefer.s.showSoftWordMutedWord);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
 const translating = ref(false);

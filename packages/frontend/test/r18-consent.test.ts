@@ -143,6 +143,22 @@ describe('MkR18ConsentDialog', () => {
 	});
 });
 
+let fakeI: Misskey.entities.MeDetailed | null = {
+	id: 'test-user',
+	username: 'testuser',
+	host: null,
+	policies: { canSearchNotes: false },
+} as Misskey.entities.MeDetailed;
+
+vi.mock('@/i.js', () => ({
+	get $i() { return fakeI; },
+	get iAmModerator() { return false; },
+	get iAmAdmin() { return false; },
+	ensureSignin: () => {},
+	get notesCount() { return 0; },
+	incNotesCount: () => {},
+}));
+
 describe('MkNote R18 filtering', () => {
 	const baseNote: Misskey.entities.Note = {
 		id: 'test-note-id',
@@ -209,6 +225,17 @@ describe('MkNote R18 filtering', () => {
 		});
 	};
 
+	const defaultFakeI: Misskey.entities.MeDetailed = {
+		id: 'test-user',
+		username: 'testuser',
+		host: null,
+		policies: { canSearchNotes: false },
+	} as Misskey.entities.MeDetailed;
+
+	beforeEach(() => {
+		fakeI = defaultFakeI;
+	});
+
 	afterEach(() => {
 		cleanup();
 	});
@@ -239,5 +266,13 @@ describe('MkNote R18 filtering', () => {
 		const screen = await renderNote(makeNote(false));
 		assert.ok(screen.container.textContent && screen.container.textContent.trim() !== '',
 			'non-R18 note should be rendered when hideR18Content is false');
+	});
+
+	test('R18 note is hidden for visitors', async () => {
+		fakeI = null;
+		preferState.hideR18Content = false;
+		const screen = await renderNote(makeNote(true));
+		assert.ok(!screen.container.textContent || screen.container.textContent.trim() === '',
+			'R18 note should not be rendered for visitors even when hideR18Content is false');
 	});
 });

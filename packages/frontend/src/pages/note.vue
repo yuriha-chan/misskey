@@ -37,6 +37,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkNotesTimeline :withControl="false" :pullToRefresh="false" class="" :paginator="showPrev === 'channel' ? prevChannelPaginator : prevUserPaginator" :noGap="true"/>
 				</div>
 			</div>
+			<div v-else-if="r18Blocked" class="_fullinfo">
+				<img src="/client-assets/not-found.svg" class="_ghost"/>
+				<div>{{ i18n.ts.r18ContentCannotBeDisplayed }}</div>
+			</div>
 			<MkError v-else-if="error" @retry="fetchNote()"/>
 			<MkLoading v-else/>
 		</Transition>
@@ -77,6 +81,7 @@ const clips = ref<Misskey.entities.Clip[]>();
 const showPrev = ref<'user' | 'channel' | false>(false);
 const showNext = ref<'user' | 'channel' | false>(false);
 const error = ref();
+const r18Blocked = ref(false);
 
 const prevUserPaginator = markRaw(new Paginator('users/notes', {
 	limit: 10,
@@ -116,6 +121,7 @@ function fetchNote() {
 	showPrev.value = false;
 	showNext.value = false;
 	note.value = null;
+	r18Blocked.value = false;
 
 	if (CTX_NOTE && CTX_NOTE.id === props.noteId) {
 		note.value = CTX_NOTE;
@@ -127,6 +133,17 @@ function fetchNote() {
 	}).then(res => {
 		note.value = res;
 		const appearNote = getAppearNote(res) ?? res;
+		if (appearNote.isR18) {
+			if (!$i) {
+				pleaseLogin({ path: '/' });
+				return;
+			}
+			if (prefer.s.hideR18Content) {
+				note.value = null;
+				r18Blocked.value = true;
+				return;
+			}
+		}
 		// 古いノートは被クリップ数をカウントしていないので、2023-10-01以前のものは強制的にnotes/clipsを叩く
 		if ((appearNote.clippedCount ?? 0) > 0 || new Date(appearNote.createdAt).getTime() < new Date('2023-10-01').getTime()) {
 			misskeyApi('notes/clips', {
