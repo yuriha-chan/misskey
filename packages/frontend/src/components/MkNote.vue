@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div
-	v-if="!hardMuted && !hideByPlugin && muted === false"
+	v-if="!hardMuted && !hideByPlugin && muted === false && !isR18Hidden"
 	ref="rootEl"
 	v-hotkey="keymap"
 	:class="[$style.root, { [$style.showActionsOnlyHover]: prefer.s.showNoteActionsOnlyHover, [$style.skipRender]: prefer.s.skipNoteRender }]"
@@ -310,6 +310,7 @@ const isLong = shouldCollapsed(appearNote, urls.value ?? []);
 const collapsed = ref(appearNote.cw == null && isLong);
 const muted = ref(checkMute(appearNote, $i?.mutedWords));
 const hardMuted = ref(props.withHardMute && checkMute(appearNote, $i?.hardMutedWords, true));
+const isR18Hidden = computed(() => prefer.s.hideR18Content && !!appearNote.isR18);
 const showSoftWordMutedWord = computed(() => prefer.s.showSoftWordMutedWord);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
 const translating = ref(false);

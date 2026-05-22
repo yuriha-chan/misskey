@@ -1461,6 +1461,26 @@ export interface Locale extends ILocale {
      */
     "displayOfSensitiveMedia": string;
     /**
+     * R18コンテンツを隠す
+     */
+    "hideR18Content": string;
+    /**
+     * R18コンテンツの設定
+     */
+    "r18ConsentTitle": string;
+    /**
+     * あなたは18歳以上ですか？
+     */
+    "r18ConsentAreYouOver18": string;
+    /**
+     * 17歳以下
+     */
+    "r18ConsentUnder17": string;
+    /**
+     * 18歳以上
+     */
+    "r18ConsentOver18": string;
+    /**
      * サーバーとの接続が失われたとき
      */
     "whenServerDisconnected": string;
@@ -6542,6 +6562,10 @@ export interface Locale extends ILocale {
          * プライバシー設定
          */
         "privacySetting": string;
+        /**
+         * R18コンテンツ設定
+         */
+        "r18ContentSetting": string;
         /**
          * これらの設定は後から変更できます。
          */

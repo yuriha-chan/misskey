@@ -4468,6 +4468,7 @@ export type components = {
                 allowRenoteToExternal: boolean;
                 userId: string | null;
             } | null;
+            isR18?: boolean;
             localOnly?: boolean;
             /** @enum {string|null} */
             reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
