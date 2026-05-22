@@ -19,13 +19,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div :class="$style.root">
 		<div :class="$style.question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
 		<div :class="$style.toggle">
-			<div :class="$style.slider">
-				<input id="r18-under17" data-testid="radio-under17" v-model="iAmAdult" type="radio" :value="false" :class="$style.radio"/>
-				<input id="r18-over18" data-testid="radio-over18" v-model="iAmAdult" type="radio" :value="true" :class="$style.radio"/>
-				<label for="r18-under17" :class="[$style.hit, iAmAdult === false ? $style.hitActive : null]"/>
-				<label for="r18-over18" :class="[$style.hit, iAmAdult === true ? $style.hitActive : null]"/>
-			</div>
+			<input id="r18-under17" data-testid="radio-under17" v-model="iAmAdult" type="radio" :value="false" :class="$style.radio"/>
+			<input id="r18-over18" data-testid="radio-over18" v-model="iAmAdult" type="radio" :value="true" :class="$style.radio"/>
 			<label for="r18-under17" :class="$style.labelUnder">{{ i18n.ts.r18ConsentUnder17 }}</label>
+			<div :class="$style.slider">
+				<label for="r18-under17" :class="$style.hit"/>
+				<span :class="$style.hit"/>
+				<label for="r18-over18" :class="$style.hit"/>
+				<div :class="$style.knob"></div>
+			</div>
 			<label for="r18-over18" :class="$style.labelOver">{{ i18n.ts.r18ConsentOver18 }}</label>
 		</div>
 
@@ -66,20 +68,20 @@ function ok() {
 
 <style lang="scss" module>
 .root {
-	padding: 0 32px;
+	padding: 32px 32px 0;
 }
 
 .question {
 	font-weight: bold;
-	margin-bottom: 16px;
+	text-align: center;
+	margin-bottom: 20px;
 }
 
 .toggle {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	position: relative;
+	gap: 12px;
 	padding: 8px 0;
 }
 
@@ -90,13 +92,14 @@ function ok() {
 
 .slider {
 	position: relative;
-	width: 180px;
-	height: 36px;
-	background: var(--MI_THEME-buttonBg);
+	width: 130px;
+	height: 40px;
+	background: rgba(127, 127, 127, 0.12);
 	border: solid 1px var(--MI_THEME-divider);
 	border-radius: 999px;
 	overflow: hidden;
 	transition: background-color 0.3s;
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle:has(.radio[value="true"]:checked) .slider {
@@ -107,22 +110,47 @@ function ok() {
 	background: #d6ffe0;
 }
 
+.knob {
+	position: absolute;
+	z-index: 3;
+	top: 3px;
+	width: 30px;
+	height: 30px;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+	transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	left: calc(50% - 15px);
+}
+
+.toggle:has(.radio[value="false"]:checked) .knob {
+	left: 3px;
+}
+
+.toggle:has(.radio[value="true"]:checked) .knob {
+	left: calc(100% - 33px);
+}
+
 .hit {
 	position: absolute;
 	top: 0;
-	width: 50%;
+	width: calc(100% / 3);
 	height: 100%;
 	cursor: pointer;
+	z-index: 4;
 
 	&:nth-child(1) { left: 0; }
-	&:nth-child(2) { left: 50%; }
+	&:nth-child(2) { left: calc(100% / 3); }
+	&:nth-child(3) { left: calc(200% / 3); }
 }
 
 .labelUnder,
 .labelOver {
-	font-size: 0.9em;
+	font-size: 1.3em;
 	font-weight: bold;
 	opacity: 0.5;
+	cursor: pointer;
+	transition: opacity 0.2s, color 0.2s;
 }
 
 .toggle:has(.radio[value="false"]:checked) .labelUnder {
