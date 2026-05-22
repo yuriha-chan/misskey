@@ -45,20 +45,6 @@ describe('MkR18ConsentDialog', () => {
 							},
 						},
 					},
-					MkRadios: {
-						template: `
-							<div data-testid="radios">
-								<button
-									v-for="opt in options"
-									:key="opt.value"
-									:data-testid="'radio-' + opt.value"
-									@click="$emit('update:modelValue', opt.value)"
-								>{{ opt.label }}</button>
-							</div>
-						`,
-						props: ['modelValue', 'options'],
-						emits: ['update:modelValue'],
-					},
 					MkSwitch: {
 						template: `
 							<label data-testid="r18-toggle">
@@ -86,7 +72,7 @@ describe('MkR18ConsentDialog', () => {
 
 	test('selecting under 17 hides R18 toggle and enables OK', async () => {
 		const screen = await renderDialog();
-		const under17 = screen.getByTestId('radio-false');
+		const under17 = screen.getByTestId('radio-under17');
 		await fireEvent.click(under17);
 		const toggle = screen.queryByTestId('r18-toggle');
 		assert.ok(!toggle, 'R18 toggle should not appear when under 17');
@@ -96,7 +82,7 @@ describe('MkR18ConsentDialog', () => {
 
 	test('selecting over 18 shows R18 toggle and enables OK', async () => {
 		const screen = await renderDialog();
-		const over18 = screen.getByTestId('radio-true');
+		const over18 = screen.getByTestId('radio-over18');
 		await fireEvent.click(over18);
 		const toggle = screen.getByTestId('r18-toggle');
 		assert.ok(toggle, 'R18 toggle should appear when over 18');
@@ -108,7 +94,7 @@ describe('MkR18ConsentDialog', () => {
 		commitSpy.mockClear();
 		const screen = await renderDialog();
 		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
-		const under17 = screen.getByTestId('radio-false');
+		const under17 = screen.getByTestId('radio-under17');
 		await fireEvent.click(under17);
 		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const okBtn = screen.getByTestId('modal-ok');
@@ -122,7 +108,7 @@ describe('MkR18ConsentDialog', () => {
 		commitSpy.mockClear();
 		const screen = await renderDialog();
 		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
-		const over18 = screen.getByTestId('radio-true');
+		const over18 = screen.getByTestId('radio-over18');
 		await fireEvent.click(over18);
 		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const okBtn = screen.getByTestId('modal-ok');
@@ -136,7 +122,7 @@ describe('MkR18ConsentDialog', () => {
 		commitSpy.mockClear();
 		const screen = await renderDialog();
 		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
-		const over18 = screen.getByTestId('radio-true');
+		const over18 = screen.getByTestId('radio-over18');
 		await fireEvent.click(over18);
 		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const toggle = screen.getByTestId('r18-toggle').querySelector('input')!;
@@ -150,7 +136,7 @@ describe('MkR18ConsentDialog', () => {
 
 	test('R18 toggle is checked when hideR18Content is true', async () => {
 		const screen = await renderDialog();
-		const over18 = screen.getByTestId('radio-true');
+		const over18 = screen.getByTestId('radio-over18');
 		await fireEvent.click(over18);
 		const toggleInput = screen.getByTestId('r18-toggle').querySelector('input')!;
 		assert.ok(toggleInput.checked, 'toggle should be checked when hideR18Content is true');
@@ -176,11 +162,13 @@ describe('MkNote R18 filtering', () => {
 		files: [],
 		fileIds: [],
 		emojis: {},
+		reactionEmojis: {},
+		reactionCount: 0,
 		channelId: null,
 		localOnly: false,
 		reactions: {},
-		uri: null,
-		url: null,
+		uri: undefined,
+		url: undefined,
 		isR18: false,
 	};
 

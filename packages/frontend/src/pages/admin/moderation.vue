@@ -147,6 +147,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</MkFolder>
 				</SearchMarker>
+
+				<SearchMarker :keywords="['r18', 'content', 'filter', 'moderation']">
+					<MkFolder>
+						<template #icon><SearchIcon><i class="ti ti-rating-18-plus"></i></SearchIcon></template>
+						<template #label><SearchLabel>{{ i18n.ts.r18ContentFilter }}</SearchLabel></template>
+
+						<div class="_gaps">
+							<MkTextarea v-model="r18Filter">
+								<template #caption>{{ i18n.ts.r18ContentFilterDescription }}</template>
+							</MkTextarea>
+							<MkButton primary @click="save_r18Filter">{{ i18n.ts.save }}</MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
 			</div>
 		</SearchMarker>
 	</div>
@@ -194,6 +208,7 @@ const preservedUsernames = ref(meta.preservedUsernames.join('\n'));
 const blockedHosts = ref(meta.blockedHosts.join('\n'));
 const silencedHosts = ref(meta.silencedHosts?.join('\n') ?? '');
 const mediaSilencedHosts = ref(meta.mediaSilencedHosts.join('\n'));
+const r18Filter = ref(meta.r18Filter?.join('\n') ?? '');
 
 async function onChange_enableRegistration(value: boolean) {
 	if (value) {
@@ -288,6 +303,14 @@ function save_silencedHosts() {
 function save_mediaSilencedHosts() {
 	os.apiWithDialog('admin/update-meta', {
 		mediaSilencedHosts: mediaSilencedHosts.value.split('\n') || [],
+	}).then(() => {
+		fetchInstance(true);
+	});
+}
+
+function save_r18Filter() {
+	os.apiWithDialog('admin/update-meta', {
+		r18Filter: r18Filter.value.split('\n') || [],
 	}).then(() => {
 		fetchInstance(true);
 	});

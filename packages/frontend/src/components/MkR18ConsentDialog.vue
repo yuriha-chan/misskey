@@ -18,7 +18,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<div :class="$style.root">
 		<div :class="$style.question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
-		<MkRadios v-model="iAmAdult" :options="ageOptions"/>
+		<div :class="$style.toggle">
+			<div :class="$style.slider">
+				<input id="r18-under17" data-testid="radio-under17" v-model="iAmAdult" type="radio" :value="false" :class="$style.radio"/>
+				<input id="r18-over18" data-testid="radio-over18" v-model="iAmAdult" type="radio" :value="true" :class="$style.radio"/>
+				<label for="r18-under17" :class="[$style.hit, iAmAdult === false ? $style.hitActive : null]"/>
+				<label for="r18-over18" :class="[$style.hit, iAmAdult === true ? $style.hitActive : null]"/>
+			</div>
+			<label for="r18-under17" :class="$style.labelUnder">{{ i18n.ts.r18ConsentUnder17 }}</label>
+			<label for="r18-over18" :class="$style.labelOver">{{ i18n.ts.r18ConsentOver18 }}</label>
+		</div>
 
 		<template v-if="iAmAdult === true">
 			<div :class="$style.divider"/>
@@ -31,9 +40,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, useTemplateRef } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import MkModalWindow from '@/components/MkModalWindow.vue';
-import MkRadios from '@/components/MkRadios.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
@@ -45,11 +53,6 @@ const emit = defineEmits<{
 const dialog = useTemplateRef('dialog');
 const iAmAdult = ref<boolean | null>(null);
 const hideR18Value = ref(prefer.s.hideR18Content as boolean);
-
-const ageOptions = computed(() => [
-	{ value: false, label: i18n.ts.r18ConsentUnder17 },
-	{ value: true, label: i18n.ts.r18ConsentOver18 },
-]);
 
 function ok() {
 	if (iAmAdult.value === false) {
@@ -69,6 +72,67 @@ function ok() {
 .question {
 	font-weight: bold;
 	margin-bottom: 16px;
+}
+
+.toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	position: relative;
+	padding: 8px 0;
+}
+
+.radio {
+	position: absolute;
+	left: -99em;
+}
+
+.slider {
+	position: relative;
+	width: 180px;
+	height: 36px;
+	background: var(--MI_THEME-buttonBg);
+	border: solid 1px var(--MI_THEME-divider);
+	border-radius: 999px;
+	overflow: hidden;
+	transition: background-color 0.3s;
+}
+
+.toggle:has(.radio[value="true"]:checked) .slider {
+	background: #ffd0dc;
+}
+
+.toggle:has(.radio[value="false"]:checked) .slider {
+	background: #d6ffe0;
+}
+
+.hit {
+	position: absolute;
+	top: 0;
+	width: 50%;
+	height: 100%;
+	cursor: pointer;
+
+	&:nth-child(1) { left: 0; }
+	&:nth-child(2) { left: 50%; }
+}
+
+.labelUnder,
+.labelOver {
+	font-size: 0.9em;
+	font-weight: bold;
+	opacity: 0.5;
+}
+
+.toggle:has(.radio[value="false"]:checked) .labelUnder {
+	opacity: 1;
+	color: var(--MI_THEME-accent);
+}
+
+.toggle:has(.radio[value="true"]:checked) .labelOver {
+	opacity: 1;
+	color: var(--MI_THEME-accent);
 }
 
 .divider {

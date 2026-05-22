@@ -81,7 +81,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
 							<div class="_gaps_s">
 								<div :class="$style.r18Question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
-								<MkRadios v-model="r18Age" :options="r18AgeOptions"/>
+								<div :class="$style.r18Toggle">
+									<input v-model="r18Age" type="radio" :value="false" :class="$style.r18Radio"/>
+									<input v-model="r18Age" type="radio" :value="true" :class="$style.r18Radio"/>
+									<div :class="$style.r18Slider">
+										<label :class="$style.r18Hit" @click="r18Age = false"/>
+										<label :class="$style.r18Hit" @click="r18Age = true"/>
+									</div>
+									<span :class="$style.r18LabelUnder">{{ i18n.ts.r18ConsentUnder17 }}</span>
+									<span :class="$style.r18LabelOver">{{ i18n.ts.r18ConsentOver18 }}</span>
+								</div>
 								<template v-if="r18Age === true">
 									<MkSwitch v-model="r18HideValue">
 										{{ i18n.ts.hideR18Content }}
@@ -156,16 +165,15 @@ import { ref, useTemplateRef, watch, nextTick, defineAsyncComponent, computed } 
 import { host } from '@@/js/config.js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkButton from '@/components/MkButton.vue';
-import MkRadios from '@/components/MkRadios.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
+import MkAnimBg from '@/components/MkAnimBg.vue';
+import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
 import XProfile from '@/components/MkUserSetupDialog.Profile.vue';
 import XFollow from '@/components/MkUserSetupDialog.Follow.vue';
 import XPrivacy from '@/components/MkUserSetupDialog.Privacy.vue';
-import MkAnimBg from '@/components/MkAnimBg.vue';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import { prefer } from '@/preferences.js';
-import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
 import { store } from '@/store.js';
 import * as os from '@/os.js';
 
@@ -178,10 +186,6 @@ const dialog = useTemplateRef('dialog');
 const page = ref(store.s.accountSetupWizard);
 
 const r18Age = ref<boolean | null>(null);
-const r18AgeOptions = computed(() => [
-	{ value: false, label: i18n.ts.r18ConsentUnder17 },
-	{ value: true, label: i18n.ts.r18ConsentOver18 },
-]);
 const r18HideValue = ref(prefer.s.hideR18Content as boolean);
 
 function saveR18AndContinue() {
@@ -303,5 +307,67 @@ async function later(later: boolean) {
 	font-weight: bold;
 	text-align: center;
 	padding: 12px 0;
+}
+
+.r18Toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	position: relative;
+	padding: 12px 0;
+}
+
+.r18Radio {
+	position: absolute;
+	left: -99em;
+}
+
+.r18Slider {
+	position: relative;
+	width: 200px;
+	height: 40px;
+	background: var(--MI_THEME-buttonBg);
+	border: solid 1px var(--MI_THEME-divider);
+	border-radius: 999px;
+	overflow: hidden;
+	transition: background-color 0.3s;
+}
+
+.r18Toggle:has(.r18Radio[value="true"]:checked) .r18Slider {
+	background: #ffd0dc;
+}
+
+.r18Toggle:has(.r18Radio[value="false"]:checked) .r18Slider {
+	background: #d6ffe0;
+}
+
+.r18Hit {
+	position: absolute;
+	top: 0;
+	width: 50%;
+	height: 100%;
+	cursor: pointer;
+	z-index: 2;
+
+	&:nth-child(1) { left: 0; }
+	&:nth-child(2) { left: 50%; }
+}
+
+.r18LabelUnder,
+.r18LabelOver {
+	font-size: 0.9em;
+	font-weight: bold;
+	opacity: 0.5;
+}
+
+.r18Toggle:has(.r18Radio[value="false"]:checked) .r18LabelUnder {
+	opacity: 1;
+	color: var(--MI_THEME-accent);
+}
+
+.r18Toggle:has(.r18Radio[value="true"]:checked) .r18LabelOver {
+	opacity: 1;
+	color: var(--MI_THEME-accent);
 }
 </style>

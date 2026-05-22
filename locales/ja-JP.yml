@@ -1108,6 +1108,8 @@ prohibitedWordsDescription: "設定したワードが含まれるノートを投
 prohibitedWordsDescription2: "スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。"
 hiddenTags: "非表示ハッシュタグ"
 hiddenTagsDescription: "設定したタグをトレンドに表示させないようにします。改行で区切って複数設定できます。"
+r18ContentFilter: "R18コンテンツフィルター"
+r18ContentFilterDescription: "設定した条件に一致するノートにR18フラグを自動付与します。スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。"
 notesSearchNotAvailable: "ノート検索は利用できません。"
 usersSearchNotAvailable: "ユーザー検索は利用できません。"
 license: "ライセンス"

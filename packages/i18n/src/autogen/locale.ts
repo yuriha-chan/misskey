@@ -4445,6 +4445,14 @@ export interface Locale extends ILocale {
      */
     "hiddenTagsDescription": string;
     /**
+     * R18コンテンツフィルター
+     */
+    "r18ContentFilter": string;
+    /**
+     * 設定した条件に一致するノートにR18フラグを自動付与します。スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。演算子: hasSensitiveFile, instance
+     */
+    "r18ContentFilterDescription": string;
+    /**
      * ノート検索は利用できません。
      */
     "notesSearchNotAvailable": string;
