@@ -781,6 +781,37 @@ describe('Note', () => {
 			assert.strictEqual(note1.status, 400);
 		});
 
+		test('フィルタ書式が無効な場合は保存でエラーになる', async () => {
+			const res = await api('admin/update-meta', {
+				sensitiveWords: [
+					'(unclosed',
+				],
+			}, root);
+
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body as any).error.code, 'INVALID_FILTER');
+		});
+
+		test('フィルタ書式が有効な場合は保存できる', async () => {
+			const res = await api('admin/update-meta', {
+				sensitiveWords: [
+					'(and hello world)',
+				],
+			}, root);
+
+			assert.strictEqual(res.status, 204);
+		});
+
+		test('フィルタに空文字列を含めても保存できる', async () => {
+			const res = await api('admin/update-meta', {
+				sensitiveWords: [
+					'',
+				],
+			}, root);
+
+			assert.strictEqual(res.status, 204);
+		});
+
 		test('メンションの数が上限を超えるとエラーになる', async () => {
 			const res = await api('admin/roles/create', {
 				name: 'test',

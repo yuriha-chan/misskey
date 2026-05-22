@@ -75,6 +75,9 @@ export const apiWithDialog = (<E extends keyof Misskey.Endpoints>(
 		} else if (err.code === 'INVALID_PARAM') {
 			title = i18n.ts.invalidParamError;
 			text = i18n.ts.invalidParamErrorDescription;
+		} else if (err.code === 'INVALID_FILTER') {
+			title = i18n.ts.invalidParamError;
+			text = i18n.tsx._dialog.filterSyntaxError({ filter: String(err.info ?? '') });
 		} else if (err.code === 'ROLE_PERMISSION_DENIED') {
 			title = i18n.ts.permissionDeniedError;
 			text = i18n.ts.permissionDeniedErrorDescription;

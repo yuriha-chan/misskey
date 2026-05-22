@@ -11200,6 +11200,10 @@ export interface Locale extends ILocale {
          * 最小文字数を下回っています！ 現在 {current} / 制限 {min}
          */
         "charactersBelow": ParameterizedString<"current" | "min">;
+        /**
+         * フィルター書式が無効です: "{filter}"
+         */
+        "filterSyntaxError": ParameterizedString<"filter">;
     };
     "_disabledTimeline": {
         /**
