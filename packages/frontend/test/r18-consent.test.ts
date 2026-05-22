@@ -29,8 +29,21 @@ describe('MkR18ConsentDialog', () => {
 			global: {
 				stubs: {
 					MkModalWindow: {
-						template: '<div data-testid="modal"><slot name="header"/><slot/></div>',
-						emits: ['close', 'closed'],
+						template: `
+							<div data-testid="modal">
+								<button data-testid="modal-close" @click="$emit('close')">X</button>
+								<button data-testid="modal-ok" :disabled="okButtonDisabled" @click="$emit('ok')">OK</button>
+								<slot name="header"/>
+								<slot/>
+							</div>
+						`,
+						props: ['withOkButton', 'okButtonDisabled', 'width', 'height', 'canClose'],
+						emits: ['close', 'closed', 'ok'],
+						methods: {
+							close() {
+								this.$emit('closed');
+							},
+						},
 					},
 					MkRadios: {
 						template: `
@@ -60,85 +73,76 @@ describe('MkR18ConsentDialog', () => {
 						props: ['modelValue'],
 						emits: ['update:modelValue'],
 					},
-					MkButton: {
-						template: '<button data-testid="save-btn" :disabled="disabled" @click="$emit(\'click\')"><slot/></button>',
-						props: ['primary', 'rounded', 'gradate', 'disabled'],
-						emits: ['click'],
-					},
-					MkInfo: {
-						template: '<div data-testid="info"><slot/></div>',
-					},
 				},
 			},
 		});
 	};
 
-	test('save button is disabled when age is not selected', async () => {
+	test('OK button is disabled when age is not selected', async () => {
 		const screen = await renderDialog();
-		const saveBtn = screen.getByTestId('save-btn');
-		assert.ok(saveBtn.hasAttribute('disabled') || (saveBtn as HTMLButtonElement).disabled,
-			'save button should be disabled initially');
+		const okBtn = screen.getByTestId('modal-ok') as HTMLButtonElement;
+		assert.ok(okBtn.disabled, 'OK button should be disabled initially');
 	});
 
-	test('selecting under 17 hides R18 toggle and enables save', async () => {
+	test('selecting under 17 hides R18 toggle and enables OK', async () => {
 		const screen = await renderDialog();
 		const under17 = screen.getByTestId('radio-false');
 		await fireEvent.click(under17);
 		const toggle = screen.queryByTestId('r18-toggle');
 		assert.ok(!toggle, 'R18 toggle should not appear when under 17');
-		const saveBtn = screen.getByTestId('save-btn');
-		assert.ok(!saveBtn.hasAttribute('disabled'), 'save button should be enabled');
+		const okBtn = screen.getByTestId('modal-ok') as HTMLButtonElement;
+		assert.ok(!okBtn.disabled, 'OK button should be enabled');
 	});
 
-	test('selecting over 18 shows R18 toggle and enables save', async () => {
+	test('selecting over 18 shows R18 toggle and enables OK', async () => {
 		const screen = await renderDialog();
 		const over18 = screen.getByTestId('radio-true');
 		await fireEvent.click(over18);
 		const toggle = screen.getByTestId('r18-toggle');
 		assert.ok(toggle, 'R18 toggle should appear when over 18');
-		const saveBtn = screen.getByTestId('save-btn');
-		assert.ok(!saveBtn.hasAttribute('disabled'), 'save button should be enabled');
+		const okBtn = screen.getByTestId('modal-ok') as HTMLButtonElement;
+		assert.ok(!okBtn.disabled, 'OK button should be enabled');
 	});
 
-	test('clicking save when under 17 commits hideR18Content=true', async () => {
+	test('clicking OK when under 17 commits hideR18Content=true', async () => {
 		commitSpy.mockClear();
 		const screen = await renderDialog();
-		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before save');
+		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const under17 = screen.getByTestId('radio-false');
 		await fireEvent.click(under17);
-		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before save');
-		const saveBtn = screen.getByTestId('save-btn');
-		await fireEvent.click(saveBtn);
+		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
+		const okBtn = screen.getByTestId('modal-ok');
+		await fireEvent.click(okBtn);
 		assert.strictEqual(commitSpy.mock.calls.length, 1);
 		assert.strictEqual(commitSpy.mock.calls[0][0], 'hideR18Content');
 		assert.strictEqual(commitSpy.mock.calls[0][1], true);
 	});
 
-	test('clicking save when over 18 commits selected toggle value', async () => {
+	test('clicking OK when over 18 commits selected toggle value', async () => {
 		commitSpy.mockClear();
 		const screen = await renderDialog();
-		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before save');
+		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const over18 = screen.getByTestId('radio-true');
 		await fireEvent.click(over18);
-		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before save');
-		const saveBtn = screen.getByTestId('save-btn');
-		await fireEvent.click(saveBtn);
+		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
+		const okBtn = screen.getByTestId('modal-ok');
+		await fireEvent.click(okBtn);
 		assert.strictEqual(commitSpy.mock.calls.length, 1);
 		assert.strictEqual(commitSpy.mock.calls[0][0], 'hideR18Content');
 		assert.strictEqual(commitSpy.mock.calls[0][1], true);
 	});
 
-	test('clicking save when over 18 with toggle toggled commits toggled value', async () => {
+	test('clicking OK when over 18 with toggle toggled commits toggled value', async () => {
 		commitSpy.mockClear();
 		const screen = await renderDialog();
-		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before save');
+		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const over18 = screen.getByTestId('radio-true');
 		await fireEvent.click(over18);
-		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before save');
+		assert.strictEqual(commitSpy.mock.calls.length, 0, 'no commit before OK');
 		const toggle = screen.getByTestId('r18-toggle').querySelector('input')!;
 		await fireEvent.click(toggle);
-		const saveBtn = screen.getByTestId('save-btn');
-		await fireEvent.click(saveBtn);
+		const okBtn = screen.getByTestId('modal-ok');
+		await fireEvent.click(okBtn);
 		assert.strictEqual(commitSpy.mock.calls.length, 1);
 		assert.strictEqual(commitSpy.mock.calls[0][0], 'hideR18Content');
 		assert.strictEqual(commitSpy.mock.calls[0][1], false);
