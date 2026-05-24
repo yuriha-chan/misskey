@@ -1461,29 +1461,49 @@ export interface Locale extends ILocale {
      */
     "displayOfSensitiveMedia": string;
     /**
-     * R18コンテンツを隠す
+     * 成人向けコンテンツを完全に非表示にする
      */
     "hideR18Content": string;
     /**
-     * R18コンテンツの設定
+     * 成人向けコンテンツが含まれていると判定されたノートを完全に隠すかどうかを設定します。
+     */
+    "hideR18ContentDescription1": string;
+    /**
+     * 成人向けコンテンツとは、性的に露骨であるなどの理由により、未成年の閲覧には適していないと投稿者が位置付けた内容を指します。
+     */
+    "hideR18ContentDescription2": string;
+    /**
+     * この設定をオフにしても、「センシティブなメディアが含まれたノートをミュートする」設定には影響しません。
+     */
+    "hideR18ContentDescription3": string;
+    /**
+     * 成人向けコンテンツの設定
      */
     "r18ConsentTitle": string;
+    /**
+     * 未成年の閲覧に適していないコンテンツを一律に非表示にするかどうかを設定します。選択した年齢は保存されず、表示するかどうかの設定のみが保存されます。この設定は後から変更可能です。
+     */
+    "r18ConsentDescription": string;
     /**
      * あなたは18歳以上ですか？
      */
     "r18ConsentAreYouOver18": string;
     /**
-     * 17歳以下
+     * 17歳以下 / 年齢は言いたくない
      */
-    "r18ConsentUnder17": string;
+    "r18ConsentUnder17OrNotToSay": string;
     /**
      * 18歳以上
      */
     "r18ConsentOver18": string;
     /**
-     * R18コンテンツは表示できません
+     * 未成年の閲覧に適していないと投稿者が位置づけた内容は、画面に表示されないように設定します。
      */
-    "r18ContentCannotBeDisplayed": string;
+    "r18ConsentUnder17Description": string;
+    /**
+     * このノートは成人向けの内容を含むため、表示しません。
+     */
+    "r18ContentIncludedNotDisplayed": string;
     /**
      * サーバーとの接続が失われたとき
      */
@@ -4449,7 +4469,7 @@ export interface Locale extends ILocale {
      */
     "hiddenTagsDescription": string;
     /**
-     * R18コンテンツフィルター
+     * 成人向けコンテンツフィルター
      */
     "r18ContentFilter": string;
     /**
@@ -6575,7 +6595,7 @@ export interface Locale extends ILocale {
          */
         "privacySetting": string;
         /**
-         * R18コンテンツ設定
+         * 成人向けコンテンツの表示設定
          */
         "r18ContentSetting": string;
         /**

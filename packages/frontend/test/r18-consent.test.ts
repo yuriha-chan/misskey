@@ -3,12 +3,20 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { describe, test, assert, afterEach, vi } from 'vitest';
+import { describe, test, assert, afterEach, beforeEach, vi } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/vue';
 import type { RenderResult } from '@testing-library/vue';
+import { ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import './init';
 import { preferState } from './init';
+import { components } from '@/components/index.js';
+import { directives } from '@/directives/index.js';
+
+vi.mock('@/utility/misskey-api.js', () => ({
+	misskeyApi: vi.fn().mockResolvedValue([]),
+	pendingApiRequestsCount: ref(0),
+}));
 
 const commitSpy = vi.fn();
 
@@ -143,7 +151,8 @@ describe('MkR18ConsentDialog', () => {
 	});
 });
 
-let fakeI: Misskey.entities.MeDetailed | null = {
+	// var: static import cascade above triggers $i getter before let would exit TDZ
+	var fakeI: Misskey.entities.MeDetailed | null = {
 	id: 'test-user',
 	username: 'testuser',
 	host: null,
@@ -197,31 +206,7 @@ describe('MkNote R18 filtering', () => {
 		const mod = await import('@/components/MkNote.vue');
 		return render(mod.default, {
 			props: { note, mock: true },
-			global: {
-				stubs: {
-					MkNoteSub: { template: '<div/>' },
-					MkNoteHeader: { template: '<div/>' },
-					MkNoteSimple: { template: '<div/>' },
-					MkReactionsViewer: { template: '<div/>' },
-					MkReactionsViewerDetails: { template: '<div/>' },
-					MkMediaList: { template: '<div/>' },
-					MkCwButton: { template: '<div/>' },
-					MkPoll: { template: '<div/>' },
-					MkUsersTooltip: { template: '<div/>' },
-					MkUrlPreview: { template: '<div/>' },
-					MkInstanceTicker: { template: '<div/>' },
-					MkRippleEffect: { template: '<div/>' },
-					MkA: { template: '<a><slot/></a>' },
-					MkAvatar: { template: '<div/>' },
-					MkTime: { template: '<time/>' },
-					MkUserName: { template: '<span>{{user?.username}}</span>', props: ['user'] },
-					Mfm: { template: '<span>{{text}}</span>', props: ['text'] },
-					MkButton: { template: '<button/>' },
-					I18n: { template: '<span><slot/></span>' },
-					MkSignin: { template: '<div/>' },
-					MkSignup: { template: '<div/>' },
-				},
-			},
+			global: { directives, components },
 		});
 	};
 

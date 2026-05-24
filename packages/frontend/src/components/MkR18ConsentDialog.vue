@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.toggle">
 			<input id="r18-under17" data-testid="radio-under17" v-model="iAmAdult" type="radio" :value="false" :class="$style.radio"/>
 			<input id="r18-over18" data-testid="radio-over18" v-model="iAmAdult" type="radio" :value="true" :class="$style.radio"/>
-			<label for="r18-under17" :class="$style.labelUnder">{{ i18n.ts.r18ConsentUnder17 }}</label>
+			<label for="r18-under17" :class="$style.labelUnder">{{ i18n.ts.r18ConsentUnder17OrNotToSay }}</label>
 			<div :class="$style.slider">
 				<label for="r18-under17" :class="$style.hit"/>
 				<span :class="$style.hit"/>
@@ -30,12 +30,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<label for="r18-over18" :class="$style.labelOver">{{ i18n.ts.r18ConsentOver18 }}</label>
 		</div>
-
 		<template v-if="iAmAdult === true">
 			<div :class="$style.divider"/>
 			<MkSwitch v-model="hideR18Value">
 				{{ i18n.ts.hideR18Content }}
 			</MkSwitch>
+			<div>{{ i18n.ts.hideR18ContentDescription1 }}</div>
+			<MkInfo>{{ i18n.ts.hideR18ContentDescription2 }}</MkInfo>
+			<MkInfo>{{ i18n.ts.hideR18ContentDescription3 }}</MkInfo>
+		</template>
+		<template v-else>
+			<MkInfo>{{ i18n.ts.r18ConsentUnder17Description }}</MkInfo>
 		</template>
 	</div>
 </MkModalWindow>
@@ -45,6 +50,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref, useTemplateRef } from 'vue';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
+import MkInfo from '@/components/MkInfo.vue';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
 
@@ -151,6 +157,7 @@ function ok() {
 	opacity: 0.5;
 	cursor: pointer;
 	transition: opacity 0.2s, color 0.2s;
+	flex: 1;
 }
 
 .toggle:has(.radio[value="false"]:checked) .labelUnder {

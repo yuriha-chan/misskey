@@ -38,7 +38,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 			<div v-else-if="r18Blocked" class="_fullinfo">
-				<img src="/client-assets/not-found.svg" class="_ghost"/>
 				<div>{{ i18n.ts.r18ContentCannotBeDisplayed }}</div>
 			</div>
 			<MkError v-else-if="error" @retry="fetchNote()"/>
@@ -134,11 +133,7 @@ function fetchNote() {
 		note.value = res;
 		const appearNote = getAppearNote(res) ?? res;
 		if (appearNote.isR18) {
-			if (!$i) {
-				pleaseLogin({ path: '/' });
-				return;
-			}
-			if (prefer.s.hideR18Content) {
+			if (prefer.s.hideR18Content || !$i) {
 				note.value = null;
 				r18Blocked.value = true;
 				return;

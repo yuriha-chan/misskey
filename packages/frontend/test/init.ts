@@ -19,6 +19,15 @@ updateI18n(locales['en-US']);
 // XXX: misskey-js panics if WebSocket is not defined
 vi.stubGlobal('WebSocket', class WebSocket extends EventTarget { static CLOSING = 2; });
 
+vi.stubGlobal('BroadcastChannel', class BroadcastChannel {
+	name: string;
+	constructor(name: string) { this.name = name; }
+	postMessage() {}
+	addEventListener() {}
+	removeEventListener() {}
+	close() {}
+});
+
 export const preferState: Record<string, unknown> = {
 
 	// なんかtestがうまいこと動かないのでここに書く

@@ -80,11 +80,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div :class="$style.pageRoot">
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
 							<div class="_gaps_s">
+								<div :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription }}</div>
 								<div :class="$style.r18Question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
 								<div :class="$style.r18Toggle">
 									<input v-model="r18Age" type="radio" :value="false" :class="$style.r18Radio"/>
 									<input v-model="r18Age" type="radio" :value="true" :class="$style.r18Radio"/>
-									<label :class="$style.r18LabelUnder" @click="r18Age = false">{{ i18n.ts.r18ConsentUnder17 }}</label>
+									<label :class="$style.r18LabelUnder" @click="r18Age = false">{{ i18n.ts.r18ConsentUnder17OrNotToSay }}</label>
 									<div :class="$style.r18Slider">
 										<label :class="$style.r18Hit" @click="r18Age = false"/>
 										<span :class="$style.r18Hit"/>
@@ -97,6 +98,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<MkSwitch v-model="r18HideValue">
 										{{ i18n.ts.hideR18Content }}
 									</MkSwitch>
+									<div>{{ i18n.ts.hideR18ContentDescription1 }}</div>
+									<MkInfo>{{ i18n.ts.hideR18ContentDescription2 }}</MkInfo>
+									<MkInfo>{{ i18n.ts.hideR18ContentDescription3 }}</MkInfo>
+								</template>
+								<template v-else>
+									<MkInfo>{{ i18n.ts.r18ConsentUnder17Description }}</MkInfo>
 								</template>
 							</div>
 						</div>
@@ -170,6 +177,7 @@ import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkAnimBg from '@/components/MkAnimBg.vue';
 import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
+import MkInfo from '@/components/MkInfo.vue';
 import XProfile from '@/components/MkUserSetupDialog.Profile.vue';
 import XFollow from '@/components/MkUserSetupDialog.Follow.vue';
 import XPrivacy from '@/components/MkUserSetupDialog.Privacy.vue';
@@ -188,7 +196,7 @@ const dialog = useTemplateRef('dialog');
 const page = ref(store.s.accountSetupWizard);
 
 const r18Age = ref<boolean | null>(null);
-const r18HideValue = ref(prefer.s.hideR18Content as boolean);
+const r18HideValue = ref(false);
 
 function saveR18AndContinue() {
 	if (r18Age.value === false) {
