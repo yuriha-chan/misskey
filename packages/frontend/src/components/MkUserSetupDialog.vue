@@ -82,18 +82,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<div class="_gaps_s">
 								<div :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription }}</div>
 								<div :class="$style.r18Question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
-								<div :class="$style.r18Toggle">
-									<input v-model="r18Age" type="radio" :value="false" :class="$style.r18Radio"/>
-									<input v-model="r18Age" type="radio" :value="true" :class="$style.r18Radio"/>
-									<label :class="$style.r18LabelUnder" @click="r18Age = false">{{ i18n.ts.r18ConsentUnder17OrNotToSay }}</label>
-									<div :class="$style.r18Slider">
-										<label :class="$style.r18Hit" @click="r18Age = false"/>
-										<span :class="$style.r18Hit"/>
-										<label :class="$style.r18Hit" @click="r18Age = true"/>
-										<div :class="$style.r18Knob"></div>
-									</div>
-									<label :class="$style.r18LabelOver" @click="r18Age = true">{{ i18n.ts.r18ConsentOver18 }}</label>
-								</div>
+								<MkR18Toggle v-model="r18Age"/>
 								<template v-if="r18Age === true">
 									<MkSwitch v-model="r18HideValue">
 										{{ i18n.ts.hideR18Content }}
@@ -102,7 +91,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<MkInfo>{{ i18n.ts.hideR18ContentDescription2 }}</MkInfo>
 									<MkInfo>{{ i18n.ts.hideR18ContentDescription3 }}</MkInfo>
 								</template>
-								<template v-else>
+								<template v-else-if="r18Age === false">
 									<MkInfo>{{ i18n.ts.r18ConsentUnder17Description }}</MkInfo>
 								</template>
 							</div>
@@ -178,6 +167,7 @@ import MkSwitch from '@/components/MkSwitch.vue';
 import MkAnimBg from '@/components/MkAnimBg.vue';
 import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
+import MkR18Toggle from '@/components/MkR18Toggle.vue';
 import XProfile from '@/components/MkUserSetupDialog.Profile.vue';
 import XFollow from '@/components/MkUserSetupDialog.Follow.vue';
 import XPrivacy from '@/components/MkUserSetupDialog.Privacy.vue';
@@ -317,92 +307,5 @@ async function later(later: boolean) {
 	font-weight: bold;
 	text-align: center;
 	padding: 12px 0;
-}
-
-.r18Toggle {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
-	position: relative;
-	padding: 12px 0;
-}
-
-.r18Radio {
-	position: absolute;
-	left: -99em;
-}
-
-.r18Slider {
-	position: relative;
-	width: 200px;
-	height: 40px;
-	background: rgba(127, 127, 127, 0.12);
-	border: solid 1px var(--MI_THEME-divider);
-	border-radius: 999px;
-	overflow: hidden;
-	transition: background-color 0.3s;
-	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.r18Toggle:has(.r18Radio[value="true"]:checked) .r18Slider {
-	background: #ffd0dc;
-}
-
-.r18Toggle:has(.r18Radio[value="false"]:checked) .r18Slider {
-	background: #d6ffe0;
-}
-
-.r18Knob {
-	position: absolute;
-	z-index: 3;
-	top: 3px;
-	width: 34px;
-	height: 34px;
-	background: #fff;
-	border-radius: 50%;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-	transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-	left: calc(50% - 17px);
-}
-
-.r18Toggle:has(.r18Radio[value="false"]:checked) .r18Knob {
-	left: 3px;
-}
-
-.r18Toggle:has(.r18Radio[value="true"]:checked) .r18Knob {
-	left: calc(100% - 37px);
-}
-
-.r18Hit {
-	position: absolute;
-	top: 0;
-	width: calc(100% / 3);
-	height: 100%;
-	cursor: pointer;
-	z-index: 4;
-
-	&:nth-child(1) { left: 0; }
-	&:nth-child(2) { left: calc(100% / 3); }
-	&:nth-child(3) { left: calc(200% / 3); }
-}
-
-.r18LabelUnder,
-.r18LabelOver {
-	font-size: 0.9em;
-	font-weight: bold;
-	opacity: 0.5;
-	cursor: pointer;
-	transition: opacity 0.2s, color 0.2s;
-}
-
-.r18Toggle:has(.r18Radio[value="false"]:checked) .r18LabelUnder {
-	opacity: 1;
-	color: var(--MI_THEME-accent);
-}
-
-.r18Toggle:has(.r18Radio[value="true"]:checked) .r18LabelOver {
-	opacity: 1;
-	color: var(--MI_THEME-accent);
 }
 </style>
