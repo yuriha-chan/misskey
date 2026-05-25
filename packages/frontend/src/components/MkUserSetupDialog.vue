@@ -80,7 +80,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div :class="$style.pageRoot">
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
 							<div class="_gaps_s">
-								<div :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription }}</div>
+								<div :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription1 }}</div>
+								<MkInfo>{{ i18n.ts.r18ConsentDescription2 }}</MkInfo>
 								<div :class="$style.r18Question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
 								<div :class="$style.r18Toggle">
 									<input v-model="r18Age" type="radio" :value="false" :class="$style.r18Radio"/>
