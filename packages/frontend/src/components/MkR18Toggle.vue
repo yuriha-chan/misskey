@@ -101,7 +101,7 @@ function onKnobUp() {
 
 .knob {
 	position: absolute;
-	z-index: 3;
+	z-index: 5;
 	top: 3px;
 	width: 30px;
 	height: 30px;
