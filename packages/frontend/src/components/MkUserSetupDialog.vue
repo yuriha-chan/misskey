@@ -80,8 +80,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div :class="$style.pageRoot">
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
 							<div class="_gaps_s">
-								<p :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription1 }}</p>
-								<p :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription2 }}</p>
+								<div :class="$style.r18Description">{{ i18n.ts.r18ConsentDescription1 }}</div>
+								<MkInfo>{{ i18n.ts.r18ConsentDescription2 }}</MkInfo>
 								<div :class="$style.r18Question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
 								<MkR18Toggle v-model="r18Age"/>
 								<template v-if="r18Age === true">
@@ -93,7 +93,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<MkInfo>{{ i18n.ts.hideR18ContentDescription3 }}</MkInfo>
 								</template>
 								<template v-else-if="r18Age === false">
-									<MkInfo>{{ i18n.ts.r18ConsentUnder17Description }}</MkInfo>
+									<MkInfo>{{ i18n.ts.r18ConsentUnder17Description1 }}</MkInfo>
+									<MkInfo>{{ i18n.ts.r18ConsentUnder17Description2 }}</MkInfo>
 								</template>
 							</div>
 						</div>
