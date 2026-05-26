@@ -129,10 +129,12 @@ export class InboxProcessorService implements OnApplicationShutdown {
 				httpSignatureError = `failed to resolve user ${getApId(activity.actor)}`;
 			} else if (authUser.key == null) {
 				httpSignatureError = `failed to resolve user publicKey ${getApId(activity.actor)}`;
+			} else if (authUser.user.uri !== getApId(activity.actor)) {
+				httpSignatureError = `public key owner does not match the activity actor ${getApId(activity.actor)}`;
 			} else {
 				// HTTP-Signatureの検証: activity.actor の公開鍵でsignature が検証できるかを確かめる
 				const errorLogger = (message: any) => this.logger.error(message);
-				httpSignatureValidated = await verifyDraftSignature(signature, authUser.key.keyPem, errorLogger) && authUser.user.uri !== getApId(activity.actor);
+				httpSignatureValidated = await verifyDraftSignature(signature, authUser.key.keyPem, errorLogger);
 			}
 		} else {
 			httpSignatureError = "no signature found";
@@ -217,7 +219,7 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		if (authUser === null || authUser.user === null) {
 			return 'failed';
 		}
-		let signVerifiedUser: MiRemoteUser = authUser.user;
+		const signVerifiedUser: MiRemoteUser = authUser.user;
 
 		// Security: activity.idがあればホストが署名者のホストと一致することを確認する
 		if (typeof activity.id === 'string') {
