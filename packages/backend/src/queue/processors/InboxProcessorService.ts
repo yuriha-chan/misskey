@@ -76,7 +76,7 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		delete info['@context'];
 		this.logger.debug(JSON.stringify(info, null, 2));
 		//#endregion
-		
+
 		let httpSignatureValidated = false;
 		let httpSignatureError = "";
 		let authUser: {
