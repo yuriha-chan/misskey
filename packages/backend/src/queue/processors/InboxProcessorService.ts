@@ -85,18 +85,19 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			} | null = null;
 		const actorUri = getApId(activity.actor);
 
+		// inbox blocking based on actorUri
+		const actorHost = this.utilityService.toPuny(new URL(actorUri).hostname);
+
+		if (!this.utilityService.isFederationAllowedHost(actorHost)) {
+			return `Blocked request: ${actorHost}`;
+		}
+
 		if (signature) {
+			// inbox blocking based on signature keyId
 			const host = this.utilityService.toPuny(new URL(signature.keyId).hostname);
 
 			if (!this.utilityService.isFederationAllowedHost(host)) {
 				return `Blocked request: ${host}`;
-			}
-
-			// inbox blocking based on actorUri
-			const actorHost = this.utilityService.toPuny(new URL(actorUri).hostname);
-
-			if (!this.utilityService.isFederationAllowedHost(actorHost)) {
-				return `Blocked request: ${actorHost}`;
 			}
 
 			const keyIdLower = signature.keyId.toLowerCase();
