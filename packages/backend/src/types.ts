@@ -24,6 +24,7 @@
  * createToken - トークン作成
  * app - アプリ通知
  * test - テスト通知（サーバー側）
+ * reset-password - パスワードリセット要求
  */
 export const notificationTypes = [
 	'note',
@@ -46,6 +47,7 @@ export const notificationTypes = [
 	'createToken',
 	'app',
 	'test',
+	'reset-password',
 ] as const;
 
 export const groupedNotificationTypes = [
@@ -134,6 +136,7 @@ export const moderationLogTypes = [
 	'deleteChatRoom',
 	'archiveChatRoom',
 	'updateProxyAccountDescription',
+	'showNote',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -404,6 +407,10 @@ export type ModerationLogPayloads = {
 	updateProxyAccountDescription: {
 		before: string | null;
 		after: string | null;
+	};
+	showNote: {
+		noteId: string;
+		note: any;
 	};
 };
 

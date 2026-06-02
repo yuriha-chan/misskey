@@ -82,8 +82,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.excludeTypes) {
+				const excludeTypes = ps.excludeTypes;
 				query.andWhere(new Brackets(qb => {
-					ps.excludeTypes.forEach((type, i) => {
+					excludeTypes.forEach((type, i) => {
 						const slot = `excludeType_${i}`;
 						if (type.endsWith('/*')) {
 							qb.andWhere(`file.type NOT LIKE :${slot}`, { [slot]: type.replace('/*', '/') + '%' });

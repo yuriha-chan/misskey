@@ -13,6 +13,7 @@ import { IdService } from '@/core/IdService.js';
 export const meta = {
 	tags: ['revoke reset password'],
 	requireCredential: true,
+	kind: 'write:account',
 	description: 'Revoke the password reset that was previously requested.',
 	errors: { },
 } as const;

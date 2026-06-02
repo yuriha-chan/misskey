@@ -564,8 +564,9 @@ export class ApInboxService {
 			targetUserId: users[0].id,
 			targetUserHost: users[0].host,
 			reporterId: actor.id,
-			reporterHost: actor.host,
+			reporterHost: actor.host ?? null,
 			comment: `${activity.content}\n${JSON.stringify(uris, null, 2)}`,
+			reason: 'abuseOther',
 		}]);
 
 		return 'ok';

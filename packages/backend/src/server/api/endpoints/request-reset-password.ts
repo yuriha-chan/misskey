@@ -12,6 +12,7 @@ import { IdService } from '@/core/IdService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { EmailService } from '@/core/EmailService.js';
+import { NotificationService } from '@/core/NotificationService.js';
 import { L_CHARS, secureRndstr } from '@/misc/secure-rndstr.js';
 
 export const meta = {
@@ -96,7 +97,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				delay,
 			});
 
-			this.notificationService.createNotification(user.id, 'request-password-reset', {});
+			this.notificationService.createNotification(user.id, 'reset-password', {});
 
 			const link = `${this.config.url}/reset-password/${token}`;
 
