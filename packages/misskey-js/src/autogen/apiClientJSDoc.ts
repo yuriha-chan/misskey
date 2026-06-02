@@ -4513,7 +4513,7 @@ declare module '../api.js' {
     /**
      * Revoke the password reset that was previously requested.
      * 
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:account*
      */
     request<E extends 'revoke-reset-password', P extends Endpoints[E]['req']>(
       endpoint: E,
