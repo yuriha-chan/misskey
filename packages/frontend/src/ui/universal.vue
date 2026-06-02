@@ -77,6 +77,7 @@ const MOBILE_THRESHOLD = 500;
 const showWidgetsSide = window.innerWidth >= DESKTOP_THRESHOLD;
 
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
 window.addEventListener('resize', () => {
 	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
 });
@@ -123,18 +124,18 @@ if (window.innerWidth > 1024) {
 let scrollHistory: {time: Date, position: number} [] = [];
 
 if (prefer.s.hideNavFooter) {
-	provide('onContentScroll', (e) => {
-    const elem = e.target;
+	provide('onContentScroll', (e: Event) => {
+		const elem = e.target as HTMLElement;
 		const now = new Date();
-		scrollHistory = scrollHistory.filter(x => (now - x.time < 2000) && (now > x.time));
-		let scrollPosition = elem.scrollTop;
+		scrollHistory = scrollHistory.filter(x => (now.getTime() - x.time.getTime() < 2000) && (now > x.time));
+		const scrollPosition = elem.scrollTop;
 		scrollHistory.push({ time: now, position: scrollPosition });
 		if (scrollHistory.length === 1) {
 			return;
 		}
-		let diffPosition = scrollPosition - scrollHistory[0].position;
-		let diffTime = now - scrollHistory[0].time;
-		let scrollSpeed = diffPosition / diffTime;
+		const diffPosition = scrollPosition - scrollHistory[0].position;
+		const diffTime = now.getTime() - scrollHistory[0].time.getTime();
+		const scrollSpeed = diffPosition / diffTime;
 		if (scrollPosition === 0) {
 			navFooterShowing.value = true;
 			scrollHistory = [];
@@ -143,7 +144,7 @@ if (prefer.s.hideNavFooter) {
 		} else if (-0.2 < scrollSpeed && scrollSpeed < 0.02) {
 			navFooterShowing.value = true;
 		}
-	}, { passive: true });
+	});
 }
 
 onMounted(() => {

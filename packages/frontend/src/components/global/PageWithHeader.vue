@@ -75,9 +75,9 @@ defineExpose({
 });
 
 onMounted(() => {
-  const onContentScroll = inject("onContentScroll");
-  if (onContentScroll) {
-    rootEl.value.addEventListener("scroll", onContentScroll);
+  const onContentScroll = inject<(e: Event) => void>('onContentScroll');
+  if (onContentScroll && rootEl.value) {
+    rootEl.value.addEventListener('scroll', onContentScroll, { passive: true });
   }
 })
 
