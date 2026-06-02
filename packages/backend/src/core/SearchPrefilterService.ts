@@ -65,7 +65,7 @@ export class SearchPrefilterService {
 	async index(id: string, text: string) {
 		const socket = new net.Socket();
 		socket.setTimeout(this.timeout);
-		const connect = () => new Promise((res, rej) => {
+		const connect = () => new Promise<void>((res, rej) => {
 			socket.on('connect', () => { res(); });
 			socket.on('error', (err) => {
 				rej(new Error(`SearchPrefilterService connection error: ${err.message}`));
@@ -76,7 +76,7 @@ export class SearchPrefilterService {
 			});
 			socket.connect(this.port, this.host);
 		});
-		const post = (command) => new Promise((res, rej) => {
+		const post = (command: string) => new Promise((res, rej) => {
 			let responseData = '';
 			socket.once('data', (chunk) => {
 				responseData += chunk.toString();

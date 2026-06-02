@@ -15,7 +15,7 @@ import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
-import { FanoutTimelineService } from './FanoutTimelineService.js';
+import { FanoutTimelineName, FanoutTimelineService } from './FanoutTimelineService.js';
 import { SearchPrefilterService } from './SearchPrefilterService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
@@ -157,7 +157,7 @@ export class SearchService {
 		me: MiUser | null,
 		opts: SearchOpts,
 		pagination: SearchPagination,
-	): MiNote[] {
+	): Promise<MiNote[]> {
 		switch (this.provider) {
 			case 'sqlLike':
 			case 'sqlPgroonga': {
@@ -181,9 +181,9 @@ export class SearchService {
 		me: MiUser | null,
 		opts: SearchOpts,
 		pagination: SearchPagination,
-	): MiNote[] {
+	): Promise<MiNote[]> {
 		const ascending = (pagination.sinceId && (pagination.untilId == null));
-		let result: MiNote[];
+		let result: MiNote[] = [];
 		let lastId: MiNote['id'] | null = null;
 
 		for (let i = 0; i < 10; i++) {
@@ -193,7 +193,7 @@ export class SearchService {
 			} else if (opts.channelId) {
 				query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
 			} else if (opts.timeline && me) {
-				const timeline = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
+				const timeline: FanoutTimelineName = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
 				const idCompare: (a: string, b: string) => number = ascending ? (a, b) => a < b ? -1 : 1 : (a, b) => a > b ? -1 : 1;
 				const redisResult = await this.fanoutTimelineService.get(timeline, pagination.sinceId, pagination.untilId);
 				if (redisResult.length === 0) {
