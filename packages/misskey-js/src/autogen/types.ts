@@ -32308,6 +32308,12 @@ export interface operations {
                      * @default null
                      */
                     channelId?: string | null;
+                    /** @default null */
+                    timeline?: string | null;
+                    /** @default null */
+                    specified?: boolean | null;
+                    /** @default null */
+                    excludeBot?: boolean | null;
                 };
             };
         };

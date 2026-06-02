@@ -1485,7 +1485,7 @@ export interface Locale extends ILocale {
      */
     "hideR18Content": string;
     /**
-     * 成人向けコンテンツが含まれていると判定されたノートを完全に隠すかどうかを設定します。
+     * このオプションをオンにすると、成人向けコンテンツが含まれていると判定されたノートが完全に隠されます。
      */
     "hideR18ContentDescription1": string;
     /**
@@ -1493,17 +1493,25 @@ export interface Locale extends ILocale {
      */
     "hideR18ContentDescription2": string;
     /**
-     * この設定をオフにしても、「センシティブなメディアが含まれたノートをミュートする」設定には影響しません。
+     * 成人向けコンテンツの表示設定にかかわらず、すべてのセンシティブな画像(刺激的な画像)はぼかしで表示され、クリックすると内容が表示されます。
      */
     "hideR18ContentDescription3": string;
+    /**
+     * センシティブなメディアとは、刺激が伴うため、心理的に無防備な状況や、公共の場での閲覧には注意が必要であると投稿者が設定した画像や音声などのファイルを指します。
+     */
+    "sensitiveMediaDescription": string;
     /**
      * 成人向けコンテンツの設定
      */
     "r18ConsentTitle": string;
     /**
-     * 未成年の閲覧に適していないコンテンツを一律に非表示にするかどうかを設定します。選択した年齢は保存されず、表示するかどうかの設定のみが保存されます。この設定は後から変更可能です。
+     * 未成年の閲覧に適していないコンテンツを一律に非表示にするかどうかを設定します。
      */
-    "r18ConsentDescription": string;
+    "r18ConsentDescription1": string;
+    /**
+     * 選択した年齢は保存されず、表示するかどうかの設定のみが保存されます。この設定は後から変更可能です。
+     */
+    "r18ConsentDescription2": string;
     /**
      * あなたは18歳以上ですか？
      */
@@ -1519,7 +1527,11 @@ export interface Locale extends ILocale {
     /**
      * 未成年の閲覧に適していないと投稿者が位置づけた内容は、画面に表示されないように設定します。
      */
-    "r18ConsentUnder17Description": string;
+    "r18ConsentUnder17Description1": string;
+    /**
+     * 成人向けではないセンシティブな画像(刺激的な画像)についてはぼかしで表示され、クリックすると内容が表示されます。
+     */
+    "r18ConsentUnder17Description2": string;
     /**
      * このノートは成人向けの内容を含むため、表示しません。
      */
