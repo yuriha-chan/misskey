@@ -1,3 +1,15 @@
+## Unreleased
+
+### General
+
+### Client
+- Enhance: R18コンテンツを非表示にする設定を追加 (設定画面から専用ダイアログで設定可能、初期設定ウィザードにも統合)
+
+### Server
+- Enhance: ノートのR18フラグ設定機能を追加 (管理者向けr18Filter, hasSensitiveFile/instance演算子)
+- Enhance: ノートフィルタリングにDSLベースの照合エンジンを導入 (旧キーワード/正規表現構文は廃止。詳細はドキュメント参照)
+- Fix: pollフィルタ演算子が2件以上カウントできないバグを修正
+
 ## 2026.5.4
 
 ### General

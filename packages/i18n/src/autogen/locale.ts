@@ -1481,6 +1481,50 @@ export interface Locale extends ILocale {
      */
     "displayOfSensitiveMedia": string;
     /**
+     * 成人向けコンテンツを完全に非表示にする
+     */
+    "hideR18Content": string;
+    /**
+     * 成人向けコンテンツが含まれていると判定されたノートを完全に隠すかどうかを設定します。
+     */
+    "hideR18ContentDescription1": string;
+    /**
+     * 成人向けコンテンツとは、性的に露骨であるなどの理由により、未成年の閲覧には適していないと投稿者が位置付けた内容を指します。
+     */
+    "hideR18ContentDescription2": string;
+    /**
+     * この設定をオフにしても、「センシティブなメディアが含まれたノートをミュートする」設定には影響しません。
+     */
+    "hideR18ContentDescription3": string;
+    /**
+     * 成人向けコンテンツの設定
+     */
+    "r18ConsentTitle": string;
+    /**
+     * 未成年の閲覧に適していないコンテンツを一律に非表示にするかどうかを設定します。選択した年齢は保存されず、表示するかどうかの設定のみが保存されます。この設定は後から変更可能です。
+     */
+    "r18ConsentDescription": string;
+    /**
+     * あなたは18歳以上ですか？
+     */
+    "r18ConsentAreYouOver18": string;
+    /**
+     * 17歳以下 / 年齢は言いたくない
+     */
+    "r18ConsentUnder17OrNotToSay": string;
+    /**
+     * 18歳以上
+     */
+    "r18ConsentOver18": string;
+    /**
+     * 未成年の閲覧に適していないと投稿者が位置づけた内容は、画面に表示されないように設定します。
+     */
+    "r18ConsentUnder17Description": string;
+    /**
+     * このノートは成人向けの内容を含むため、表示しません。
+     */
+    "r18ContentIncludedNotDisplayed": string;
+    /**
      * サーバーとの接続が失われたとき
      */
     "whenServerDisconnected": string;
@@ -4481,6 +4525,14 @@ export interface Locale extends ILocale {
      */
     "hiddenTagsDescription": string;
     /**
+     * 成人向けコンテンツフィルター
+     */
+    "r18ContentFilter": string;
+    /**
+     * 設定した条件に一致するノートにR18フラグを自動付与します。スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。
+     */
+    "r18ContentFilterDescription": string;
+    /**
      * ノート検索は利用できません。
      */
     "notesSearchNotAvailable": string;
@@ -6878,6 +6930,10 @@ export interface Locale extends ILocale {
          * プライバシー設定
          */
         "privacySetting": string;
+        /**
+         * 成人向けコンテンツの表示設定
+         */
+        "r18ContentSetting": string;
         /**
          * これらの設定は後から変更できます。
          */
@@ -11536,6 +11592,10 @@ export interface Locale extends ILocale {
          * 最小文字数を下回っています！ 現在 {current} / 制限 {min}
          */
         "charactersBelow": ParameterizedString<"current" | "min">;
+        /**
+         * フィルター書式が無効です: "{filter}"
+         */
+        "filterSyntaxError": ParameterizedString<"filter">;
     };
     "_disabledTimeline": {
         /**

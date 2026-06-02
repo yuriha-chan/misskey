@@ -163,7 +163,7 @@ export class HashtagService {
 	public async updateHashtagsRanking(hashtag: string, userId: MiUser['id']): Promise<void> {
 		const hiddenTags = this.meta.hiddenTags.map(t => normalizeForSearch(t));
 		if (hiddenTags.includes(hashtag)) return;
-		if (this.utilityService.isKeyWordIncluded(hashtag, this.meta.sensitiveWords)) return;
+		if (this.utilityService.isKeyWordIncluded(this.meta.sensitiveWords, hashtag, '', '', [], null)) return;
 
 		// YYYYMMDDHHmm (10分間隔)
 		const now = new Date();
