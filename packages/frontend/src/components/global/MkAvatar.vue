@@ -8,15 +8,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template v-if="showDecoration">
 		<img
 			v-for="decoration in backgroundDecorations"
-			:class="[$style.decoration, { [$style.decorationBlink]: decoration.blink }]"
+			:class="[$style.decoration, { [$style.decorationBlink]: getDecorationIsBrink(decoration) }]"
 			:src="getDecorationUrl(decoration, 'bg')"
-			:style="{
-				rotate: getDecorationAngle(decoration),
-				scale: getDecorationScale(decoration),
-				translate: getDecorationOffset(decoration),
-				mixBlendMode: getDecorationMixBlendMode(decoration, 'bg'),
-				animation: getDecorationAnimation(decoration, 'bg'),
-			}"
+			:style="decorationStyle(decoration, 'bg')"
 			alt=""
 		>
 	</template>
@@ -44,13 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			v-for="decoration in foregroundDecorations"
 			:class="[$style.decoration, { [$style.decorationBlink]: getDecorationIsBrink(decoration) }]"
 			:src="getDecorationUrl(decoration, 'fg')"
-			:style="{
-				rotate: getDecorationAngle(decoration),
-				scale: getDecorationScale(decoration),
-				translate: getDecorationOffset(decoration),
-				mixBlendMode: getDecorationMixBlendMode(decoration, 'fg'),
-				animation: getDecorationAnimation(decoration, 'fg'),
-			}"
+			:style="decorationStyle(decoration, 'fg')"
 			alt=""
 			draggable="false"
 			style="-webkit-user-drag: none;"
@@ -164,6 +152,16 @@ function getDecorationAnimation(decoration: Decoration | DecorationEditorDecorat
 
 function getDecorationIsBrink(decoration: Decoration | DecorationEditorDecoration) {
 	return 'blink' in decoration && decoration.blink === true;
+}
+
+function decorationStyle(decoration: Decoration | DecorationEditorDecoration, slot: string): Record<string, string | number | undefined> {
+	return {
+		rotate: getDecorationAngle(decoration),
+		scale: getDecorationScale(decoration),
+		translate: getDecorationOffset(decoration),
+		mixBlendMode: getDecorationMixBlendMode(decoration, slot),
+		animation: getDecorationAnimation(decoration, slot),
+	};
 }
 
 const color = ref<string | undefined>();

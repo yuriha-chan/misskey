@@ -366,15 +366,6 @@ export const PREF_DEF = definePreferences({
 	enableSeasonalScreenEffect: {
 		default: false,
 	},
-	reduceMargin: {
-		default: true,
-	},
-	largeNoteText: {
-		default: true,
-	},
-	hideNavFooter: {
-		default: false,
-	},
 	enableHorizontalSwipe: {
 		default: false,
 	},

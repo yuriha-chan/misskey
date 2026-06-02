@@ -29,7 +29,22 @@ export const meta = {
 		items: {
 			type: 'object',
 			optional: false, nullable: false,
-			ref: 'Note',
+			properties: {
+				id: {
+					type: 'string',
+					optional: false, nullable: false,
+					format: 'id',
+				},
+				notes: {
+					type: 'array',
+					optional: false, nullable: false,
+					items: {
+						type: 'object',
+						optional: false, nullable: false,
+						ref: 'Note',
+					},
+				},
+			},
 		},
 	},
 } as const;

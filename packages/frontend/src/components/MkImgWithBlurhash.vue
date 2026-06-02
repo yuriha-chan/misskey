@@ -40,7 +40,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			decoding="async"
 			draggable="false"
 			tabindex="-1"
-			:style="{ animation: animations.join(','), webkitUserDrag: 'none'}"
+			:style="imgStyle"
 		/>
 	</TransitionGroup>
 </div>
@@ -121,7 +121,7 @@ const props = withDefaults(defineProps<{
 	cover: true,
 	forceBlurhash: false,
 	onlyAvgColor: false,
-	animations: ['none'],
+	animations: () => ['none'],
 });
 
 const viewId = genId();
@@ -135,6 +135,11 @@ const imgWidth = ref(props.width);
 const imgHeight = ref(props.height);
 const bitmapTmp = ref<CanvasImageSource | undefined>();
 const hide = computed(() => !loaded.value || props.forceBlurhash);
+
+const imgStyle = computed((): Record<string, string | number | undefined> => ({
+	animation: props.animations.join(','),
+	webkitUserDrag: 'none',
+}));
 
 function waitForDecode() {
 	if (props.src != null && props.src !== '') {

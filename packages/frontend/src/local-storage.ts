@@ -38,6 +38,8 @@ export type Keys = (
 	`ui:folder:${string}` |
 	`themes:${string}` | // DEPRECATED
 	`aiscript:${string}` |
+	'locale' |
+	'localeVersion' |
 	'lastEmojisFetchedAt' | // DEPRECATED, stored in indexeddb (13.9.0~)
 	'emojis' | // DEPRECATED, stored in indexeddb (13.9.0~);
 	`channelLastReadedAt:${string}` |

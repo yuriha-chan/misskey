@@ -21,7 +21,7 @@ import { clipsCache, favoritedChannelsCache } from '@/cache.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { isSupportShare } from '@/utility/navigator.js';
 import { getAppearNote } from '@/utility/get-appear-note.js';
-import { genEmbedCode } from '@/utility/get-embed-code.js';
+import { genEmbedCode, getEmbedCode } from '@/utility/get-embed-code.js';
 import { prefer } from '@/preferences.js';
 import { getPluginHandlers } from '@/plugin.js';
 import { globalEvents } from '@/events.js';
@@ -182,6 +182,7 @@ export function getNoteMenu(props: {
 	translation: Ref<Misskey.entities.NotesTranslateResponse | null>;
 	translating: Ref<boolean>;
 	currentClip?: Misskey.entities.Clip;
+	embed?: boolean;
 }) {
 	const appearNote = getAppearNote(props.note) ?? props.note;
 	const link = appearNote.url ?? appearNote.uri;
@@ -348,8 +349,9 @@ export function getNoteMenu(props: {
 	}
 
 	function copyEmbedCode(): void {
-		console.log(getEmbedCode({ entityType: 'notes', id: appearNote.id }));
-		copyToClipboard(getEmbedCode({ entityType: 'notes', id: appearNote.id }));
+		const code = getEmbedCode(`/embed/notes/${appearNote.id}`);
+		console.log(code);
+		copyToClipboard(code);
 		os.success();
 	}
 

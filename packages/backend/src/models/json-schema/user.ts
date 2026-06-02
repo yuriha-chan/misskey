@@ -104,6 +104,31 @@ export const packedUserLiteSchema = {
 						type: 'number',
 						nullable: false, optional: true,
 					},
+					bgUrl: {
+						type: 'string',
+						format: 'url',
+						nullable: false, optional: false,
+					},
+					animation: {
+						type: 'string',
+						nullable: false, optional: false,
+					},
+					imgAnimation: {
+						type: 'string',
+						nullable: false, optional: false,
+					},
+					bgAnimation: {
+						type: 'string',
+						nullable: false, optional: false,
+					},
+					mixBlendMode: {
+						type: 'string',
+						nullable: false, optional: false,
+					},
+					bgMixBlendMode: {
+						type: 'string',
+						nullable: false, optional: false,
+					},
 				},
 			},
 		},

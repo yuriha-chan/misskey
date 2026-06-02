@@ -11,25 +11,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</template>
 	<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
 		<div class="_gaps_m" :class="$style.root">
-	                <MkSelect v-model="reason" large>
-				<template #label>{{ i18n.ts.contactAdminReason }}</template>
-				<optgroup :label="i18n.ts._contactAdminReason.abuse">
-					<option key="abuse:spam" value="spam">{{ i18n.ts._contactAdminReason.spam }}</option>
-					<option key="abuse:privacy" value="privacy">{{ i18n.ts._contactAdminReason.privacy }}</option>
-					<option key="abuse:attack" value="attack">{{ i18n.ts._contactAdminReason.attack }}</option>
-					<option key="abuse:obscene" value="obscene">{{ i18n.ts._contactAdminReason.obscene }}</option>
-					<option key="abuse:abuseOther" value="abuseOther">{{ i18n.ts._contactAdminReason.abuseOther }}</option>
-				</optgroup>
-				<optgroup :label="i18n.ts._contactAdminReason.help">
-					<option key="help:technical" value="technical">{{ i18n.ts._contactAdminReason.technical }}</option>
-					<option key="help:mental" value="mental">{{ i18n.ts._contactAdminReason.mental }}</option>
-					<option key="help:falsePositive" value="falsePositive">{{ i18n.ts._contactAdminReason.falsePositive }}</option>
-					<option key="help:helpOther" value="helpOther">{{ i18n.ts._contactAdminReason.helpOther }}</option>
-				</optgroup>
-				<optgroup :label="i18n.ts._contactAdminReason.good">
-					<option key="good:ethical" value="ethical">{{ i18n.ts._contactAdminReason.ethical }}</option>
-				</optgroup>
-			</MkSelect>
+		<MkSelect v-model="reason" :items="reasonItems" large>
+			<template #label>{{ i18n.ts.contactAdminReason }}</template>
+		</MkSelect>
 			<div class="">
 				<MkTextarea v-model="comment">
 					<template #label>{{ i18n.ts.details }}</template>
@@ -46,9 +30,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue';
+import { ref, useTemplateRef, computed } from 'vue';
 import * as Misskey from 'misskey-js';
-import MkSelect from '@/components/MkSelect.vue';
+import MkSelect, { type MkSelectItem } from '@/components/MkSelect.vue';
 import MkWindow from '@/components/MkWindow.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -68,6 +52,25 @@ const emit = defineEmits<{
 const uiWindow = useTemplateRef('uiWindow');
 const comment = ref(props.initialComment ?? '');
 const reason = ref();
+
+const reasonItems = computed<MkSelectItem<string>[]>(() => [
+	{ type: 'group', label: i18n.ts._contactAdminReason.abuse, items: [
+		{ value: 'spam', label: i18n.ts._contactAdminReason.spam },
+		{ value: 'privacy', label: i18n.ts._contactAdminReason.privacy },
+		{ value: 'attack', label: i18n.ts._contactAdminReason.attack },
+		{ value: 'obscene', label: i18n.ts._contactAdminReason.obscene },
+		{ value: 'abuseOther', label: i18n.ts._contactAdminReason.abuseOther },
+	]},
+	{ type: 'group', label: i18n.ts._contactAdminReason.help, items: [
+		{ value: 'technical', label: i18n.ts._contactAdminReason.technical },
+		{ value: 'mental', label: i18n.ts._contactAdminReason.mental },
+		{ value: 'falsePositive', label: i18n.ts._contactAdminReason.falsePositive },
+		{ value: 'helpOther', label: i18n.ts._contactAdminReason.helpOther },
+	]},
+	{ type: 'group', label: i18n.ts._contactAdminReason.good, items: [
+		{ value: 'ethical', label: i18n.ts._contactAdminReason.ethical },
+	]},
+]);
 
 function send() {
 	os.apiWithDialog('users/report-abuse', {

@@ -20,10 +20,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div class="_gaps_m">
 				<div :class="$style.preview">
 					<div :class="[$style.previewItem, $style.light]">
-						<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="url != '' ? [{ url }] : []" forceShowDecoration/>
+						<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="previewDecorations" forceShowDecoration/>
 					</div>
 					<div :class="[$style.previewItem, $style.dark]">
-						<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="url != '' ? [{ url }] : []" forceShowDecoration/>
+						<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="previewDecorations" forceShowDecoration/>
 					</div>
 				</div>
 				<MkInput v-model="name">
@@ -50,13 +50,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInput v-model="bgAnimation">
 					<template #label>{{ i18n.ts.animationCSS }} ({{ i18n.ts.background }})</template>
 				</MkInput>
-				<MkSelect v-model="mixBlendMode">
+				<MkSelect v-model="mixBlendMode" :items="mixBlendModeItems">
 					<template #label>{{ i18n.ts.mixBlendMode }}</template>
-					<option v-for="mode in mixBlendModeOptions" :value="mode">{{ mode }}</option>
 				</MkSelect>
-				<MkSelect v-model="bgMixBlendMode">
+				<MkSelect v-model="bgMixBlendMode" :items="mixBlendModeItems">
 					<template #label>{{ i18n.ts.mixBlendMode }} ({{ i18n.ts.background }}) </template>
-					<option v-for="mode in mixBlendModeOptions" :value="mode">{{ mode }}</option>
 				</MkSelect>
 				<MkFolder>
 					<template #label>{{ i18n.ts.availableRoles }}</template>
@@ -112,6 +110,21 @@ const emit = defineEmits<{
 }>();
 
 const mixBlendModeOptions = ["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]
+
+const mixBlendModeItems = computed(() => mixBlendModeOptions.map(mode => ({ value: mode, label: mode })));
+
+const previewDecorations = computed(() => {
+	if (url.value === '') return [];
+	return [{
+		url: url.value,
+		bgUrl: bgUrl.value,
+		animation: animation.value,
+		imgAnimation: imgAnimation.value,
+		bgAnimation: bgAnimation.value,
+		mixBlendMode: mixBlendMode.value,
+		bgMixBlendMode: bgMixBlendMode.value,
+	}];
+});
 
 const windowEl = useTemplateRef('windowEl');
 const name = ref<string>(props.avatarDecoration ? props.avatarDecoration.name : '');

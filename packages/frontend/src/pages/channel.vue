@@ -291,7 +291,7 @@ const headerActions = computed(() => {
 			});
 		}
 
-		if (!channel.value.isMuting) {
+		if (!channel.value?.isMuting) {
 			headerItems.push({
 				icon: 'ti ti-volume',
 				text: i18n.ts.mute,

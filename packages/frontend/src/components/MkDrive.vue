@@ -261,20 +261,20 @@ const filesPaginator = markRaw(new Paginator('drive/files', {
 			video: "video/*",
 			audio: "audio/*",
 		};
-		const availableTypes = Object.keys(MEDIA_TYPES);
-	
-	
-		let types = null;
-		let excludeTypes = null;
-	
+
+		let types: string[] | null = null;
+		let excludeTypes: string[] | null = null;
+
 		if (filter.value.other) {
-			excludeTypes = availableTypes
-				.filter(type => !filter.value[type])
-				.map(type => MEDIA_TYPES[type]);
+			excludeTypes = [];
+			if (!filter.value.image) excludeTypes.push(MEDIA_TYPES.image);
+			if (!filter.value.video) excludeTypes.push(MEDIA_TYPES.video);
+			if (!filter.value.audio) excludeTypes.push(MEDIA_TYPES.audio);
 		} else {
-			types = availableTypes
-				.filter(type => filter.value[type])
-				.map(type => MEDIA_TYPES[type]);
+			types = [];
+			if (filter.value.image) types.push(MEDIA_TYPES.image);
+			if (filter.value.video) types.push(MEDIA_TYPES.video);
+			if (filter.value.audio) types.push(MEDIA_TYPES.audio);
 		}
 	
 		return {

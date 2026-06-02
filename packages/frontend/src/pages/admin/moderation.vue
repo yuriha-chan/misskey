@@ -126,10 +126,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #label><SearchLabel>{{ i18n.ts.gtlMutedInstances }}</SearchLabel></template>
 
 						<div class="_gaps">
-							<MkTextarea v-model="gtlMutedInstances">
+							<MkTextarea v-model="gtlMutedHosts">
 								<template #caption>{{ i18n.ts.gtlMutedInstances }}</template>
 							</MkTextarea>
-							<MkButton primary @click="save_gltMutedInstances">{{ i18n.ts.save }}</MkButton>
+							<MkButton primary @click="save_gtlMutedHosts">{{ i18n.ts.save }}</MkButton>
 						</div>
 					</MkFolder>
 
@@ -315,7 +315,7 @@ function save_silencedHosts() {
 
 function save_gtlMutedHosts() {
 	os.apiWithDialog('admin/update-meta', {
-		gtlMutedHosts: silencedHosts.value.split('\n') || [],
+		gtlMutedHosts: gtlMutedHosts.value.split('\n') || [],
 	}).then(() => {
 		fetchInstance(true);
 	});

@@ -160,13 +160,13 @@ function save() {
 		bannerId: bannerId.value,
 		color: color.value,
 		isSensitive: isSensitive.value,
-		isExplorable: isExplorable.value,
 		allowRenoteToExternal: allowRenoteToExternal.value,
 	} satisfies Misskey.entities.ChannelsCreateRequest;
 
 	if (props.channelId != null) {
 		os.apiWithDialog('channels/update', {
 			...params,
+			isExplorable: isExplorable.value,
 			channelId: props.channelId,
 			pinnedNoteIds: pinnedNoteIds.value,
 		});

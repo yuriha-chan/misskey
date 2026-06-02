@@ -25,7 +25,7 @@ import { i18n } from '@/i18n.js';
 
 const $i = ensureSignin();
 
-const instanceGtlMutes = ref($i!.gtlMutedInstances.join('\n'));
+const instanceGtlMutes = ref(($i!.gtlMutedInstances ?? []).join('\n'));
 const changed = ref(false);
 
 async function save() {
@@ -41,7 +41,7 @@ async function save() {
 	changed.value = false;
 
 	// Refresh filtered list to signal to the user how they've been saved
-	instanceGtlMutes.value = mutes.join('\n');
+	instanceGtlMutes.value = gtlMutes.join('\n');
 }
 
 watch(instanceGtlMutes, () => {

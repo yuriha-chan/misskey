@@ -4170,6 +4170,13 @@ export type components = {
                 url: string;
                 offsetX?: number;
                 offsetY?: number;
+                /** Format: url */
+                bgUrl: string;
+                animation: string;
+                imgAnimation: string;
+                bgAnimation: string;
+                mixBlendMode: string;
+                bgMixBlendMode: string;
             }[];
             isBot?: boolean;
             isCat?: boolean;
@@ -31561,7 +31568,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['Note'][];
+                    'application/json': {
+                        /** Format: id */
+                        id: string;
+                        notes: components['schemas']['Note'][];
+                    }[];
                 };
             };
             /** @description Client error */

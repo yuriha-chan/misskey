@@ -6,18 +6,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_gaps_m" :class="$style.extInstallerRoot">
 	<div :class="$style.extInstallerIconWrapper">
-		<i v-if="isPlugin" class="ti ti-plug"></i>
-		<i v-else-if="isTheme" class="ti ti-palette"></i>
+		<i v-if="extension.type === 'plugin'" class="ti ti-plug"></i>
+		<i v-else-if="extension.type === 'theme'" class="ti ti-palette"></i>
 		<!-- 拡張用？ -->
 		<i v-else class="ti ti-download"></i>
 	</div>
 
-	<h2 v-if="isPlugin" :class="$style.extInstallerTitle">{{ i18n.ts._externalResourceInstaller._plugin.title }}</h2>
-	<h2 v-else-if="isTheme" :class="$style.extInstallerTitle">{{ i18n.ts._externalResourceInstaller._theme.title }}</h2>
+	<h2 v-if="extension.type === 'plugin'" :class="$style.extInstallerTitle">{{ i18n.ts._externalResourceInstaller._plugin.title }}</h2>
+	<h2 v-else-if="extension.type === 'theme'" :class="$style.extInstallerTitle">{{ i18n.ts._externalResourceInstaller._theme.title }}</h2>
 
 	<MkInfo :warn="true">{{ i18n.ts._externalResourceInstaller.checkVendorBeforeInstall }}</MkInfo>
 
-	<div v-if="isPlugin" class="_gaps_s">
+	<div v-if="extension.type === 'plugin'" class="_gaps_s">
 		<MkFolder :defaultOpen="true">
 			<template #icon><i class="ti ti-info-circle"></i></template>
 			<template #label>{{ i18n.ts.metadata }}</template>
@@ -60,7 +60,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkCode :code="extension.raw"/>
 		</MkFolder>
 	</div>
-	<div v-else-if="isTheme" class="_gaps_s">
+	<div v-else-if="extension.type === 'theme'" class="_gaps_s">
 		<MkFolder :defaultOpen="true">
 			<template #icon><i class="ti ti-info-circle"></i></template>
 			<template #label>{{ i18n.ts.metadata }}</template>
@@ -125,7 +125,6 @@ export type Extension = {
 };
 </script>
 <script lang="ts" setup>
-import { computed } from 'vue';
 import MkButton from '@/components/MkButton.vue';
 import FormSplit from '@/components/form/split.vue';
 import MkCode from '@/components/MkCode.vue';
@@ -133,9 +132,6 @@ import MkInfo from '@/components/MkInfo.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkKeyValue from '@/components/MkKeyValue.vue';
 import { i18n } from '@/i18n.js';
-
-const isPlugin = computed(() => props.extension.type === 'plugin');
-const isTheme = computed(() => props.extension.type === 'theme');
 
 const props = defineProps<{
 	extension: Extension;

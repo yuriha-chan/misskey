@@ -69,7 +69,7 @@ export function migrateOldSettings() {
 		prefer.commit('nsfw', store.s.nsfw);
 		prefer.commit('highlightSensitiveMedia', store.s.highlightSensitiveMedia);
 		prefer.commit('reduceMargin', store.s.reduceMargin);
-		prefer.commit('largerNoteText', store.s.largerNoteText);
+		prefer.commit('largeNoteText', store.s.largeNoteText);
 		prefer.commit('hideNavFooter', store.s.hideNavFooter);
 		prefer.commit('animation', store.s.animation);
 		prefer.commit('animatedMfm', store.s.animatedMfm);

@@ -79,6 +79,8 @@ export type Channels = {
 		params: {
 			withRenotes?: boolean;
 			withFiles?: boolean;
+			withHashtags?: boolean;
+			excludeFiles?: boolean;
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -90,6 +92,8 @@ export type Channels = {
 			withRenotes?: boolean;
 			withReplies?: boolean;
 			withFiles?: boolean;
+			withHashtags?: boolean;
+			excludeFiles?: boolean;
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -101,6 +105,8 @@ export type Channels = {
 			withRenotes?: boolean;
 			withReplies?: boolean;
 			withFiles?: boolean;
+			withHashtags?: boolean;
+			excludeFiles?: boolean;
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -111,6 +117,8 @@ export type Channels = {
 		params: {
 			withRenotes?: boolean;
 			withFiles?: boolean;
+			withHashtags?: boolean;
+			excludeFiles?: boolean;
 		};
 		events: {
 			note: (payload: Note) => void;

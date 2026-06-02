@@ -34,6 +34,7 @@ const props = defineProps<{
 		mixBlendMode: string;
 		bgMixBlendMode: string;
 		name: string;
+		description: string;
 		roleIdsThatCanBeUsedThisDecoration: string[];
 	};
 	angle?: number;

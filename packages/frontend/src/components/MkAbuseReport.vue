@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i v-else class="ti ti-exclamation-circle" style="color: var(--MI_THEME-warn)"></i>
 	</template>
 	<template #label><MkAcct :user="report.targetUser"/> (by <MkAcct :user="report.reporter"/>)</template>
-	<template #caption><span :class="['reason', report.reason]">{{ i18n.ts._contactAdminReason[report.reason] }}</span>{{ report.comment }}</template>
+	<template #caption><span :class="['reason', report.reason]">{{ contactAdminReasonText }}</span>{{ report.comment }}</template>
 	<template #suffix><MkTime :time="report.createdAt"/></template>
 	<template #footer>
 		<div class="_buttons">
@@ -42,7 +42,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<MkFolder :defaultOpen="true">
 			<template #icon><i class="ti ti-message-2"></i></template>
-			<template #label><span :class="['reason', report.reason]">{{ i18n.ts._contactAdminReason[report.reason] }}</span></template>
+			<template #label><span :class="['reason', report.reason]">{{ contactAdminReasonText }}</span></template>
 			<div class="_gaps_s">
 				<Mfm :text="report.comment" :linkNavigationBehavior="'window'"/>
 			</div>
@@ -78,7 +78,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { provide, ref, watch } from 'vue';
+import { provide, ref, watch, computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -95,6 +95,13 @@ import { createRouter } from '@/router.js';
 const props = defineProps<{
 	report: Misskey.entities.AdminAbuseUserReportsResponse[number];
 }>();
+
+const contactAdminReasonText = computed(() => {
+	for (const [key, value] of Object.entries(i18n.ts._contactAdminReason)) {
+		if (key === props.report.reason) return value;
+	}
+	return props.report.reason;
+});
 
 const emit = defineEmits<{
 	(ev: 'resolved', reportId: string): void;

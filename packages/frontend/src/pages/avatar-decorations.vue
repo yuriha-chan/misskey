@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						@click="edit(avatarDecoration)"
 					>
 						<div :class="$style.decorationName"><MkCondensedLine :minScale="0.5">{{ avatarDecoration.name }}</MkCondensedLine></div>
-						<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: avatarDecoration.url }]" forceShowDecoration/>
+						<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: avatarDecoration.url, bgUrl: avatarDecoration.bgUrl, animation: avatarDecoration.animation, imgAnimation: avatarDecoration.imgAnimation, bgAnimation: avatarDecoration.bgAnimation, mixBlendMode: avatarDecoration.mixBlendMode, bgMixBlendMode: avatarDecoration.bgMixBlendMode }]" forceShowDecoration/>
 					</div>
 				</div>
 			</MkFoldableSection>

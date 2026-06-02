@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div :class="$style.decorations">
 					<XDecoration
 						v-for="(avatarDecoration, i) in $i.avatarDecorations"
-						:decoration="avatarDecorations.find(d => d.id === avatarDecoration.id) ?? { id: '', url: '', name: '?', roleIdsThatCanBeUsedThisDecoration: [] }"
+						:decoration="avatarDecorations.find(d => d.id === avatarDecoration.id) ?? { id: '', url: '', name: '?', roleIdsThatCanBeUsedThisDecoration: [], description: '', bgUrl: '', animation: '', imgAnimation: '', bgAnimation: '', mixBlendMode: '', bgMixBlendMode: '' }"
 						:angle="avatarDecoration.angle"
 						:flipH="avatarDecoration.flipH"
 						:offsetX="avatarDecoration.offsetX"
@@ -75,15 +75,10 @@ misskeyApi('get-avatar-decorations').then(_avatarDecorations => {
 });
 
 function openAttachedDecoration(index: number) {
-	openDecoration(avatarDecorations.value.find(d => d.id === $i.avatarDecorations[index].id) ?? { id: '', url: '', name: '?', roleIdsThatCanBeUsedThisDecoration: [] }, index);
+	openDecoration(avatarDecorations.value.find(d => d.id === $i.avatarDecorations[index].id) ?? { id: '', url: '', name: '?', roleIdsThatCanBeUsedThisDecoration: [], description: '', bgUrl: '', animation: '', imgAnimation: '', bgAnimation: '', mixBlendMode: '', bgMixBlendMode: '' }, index);
 }
 
-async function openDecoration(avatarDecoration: {
-	id: string;
-	url: string;
-	name: string;
-	roleIdsThatCanBeUsedThisDecoration: string[];
-}, index?: number) {
+async function openDecoration(avatarDecoration: Misskey.entities.GetAvatarDecorationsResponse[number], index?: number) {
 	const { dispose } = os.popup(XDialog, {
 		decoration: avatarDecoration,
 		usingIndex: index ?? null,
@@ -96,6 +91,12 @@ async function openDecoration(avatarDecoration: {
 				flipH: payload.flipH,
 				offsetX: payload.offsetX,
 				offsetY: payload.offsetY,
+				bgUrl: avatarDecoration.bgUrl,
+				animation: avatarDecoration.animation,
+				imgAnimation: avatarDecoration.imgAnimation,
+				bgAnimation: avatarDecoration.bgAnimation,
+				mixBlendMode: avatarDecoration.mixBlendMode,
+				bgMixBlendMode: avatarDecoration.bgMixBlendMode,
 			};
 			const update = [...$i.avatarDecorations, decoration];
 			await os.apiWithDialog('i/update', {
@@ -111,6 +112,12 @@ async function openDecoration(avatarDecoration: {
 				flipH: payload.flipH,
 				offsetX: payload.offsetX,
 				offsetY: payload.offsetY,
+				bgUrl: avatarDecoration.bgUrl,
+				animation: avatarDecoration.animation,
+				imgAnimation: avatarDecoration.imgAnimation,
+				bgAnimation: avatarDecoration.bgAnimation,
+				mixBlendMode: avatarDecoration.mixBlendMode,
+				bgMixBlendMode: avatarDecoration.bgMixBlendMode,
 			};
 			const update = [...$i.avatarDecorations];
 			update[index!] = decoration;
