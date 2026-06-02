@@ -12541,6 +12541,22 @@ export interface Locale extends ILocale {
          * 例: misskey.example.com
          */
         "serverHostPlaceholder": string;
+        /**
+         * 最近のローカルタイムライン
+         */
+        "recentLocalTimeline": string;
+        /**
+         * 最近のホームタイムライン
+         */
+        "recentHomeTimeline": string;
+        /**
+         * 自分宛ての指名投稿
+         */
+        "specifiedToMe": string;
+        /**
+         * ボットの投稿を含める
+         */
+        "includeBot": string;
     };
     "_serverSetupWizard": {
         /**
