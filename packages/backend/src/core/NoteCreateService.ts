@@ -467,7 +467,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && data.channel == null) {
 			const sensitiveWords = this.meta.sensitiveWords;
-			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join('\n') : '', data.files ? data.files.map((f => ({ isSensitive: f.isSensitive })) : [], user.host)) {
+			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join('\n') : '', data.files ? data.files.map((f => ({ isSensitive: f.isSensitive }))) : [], user.host)) {
 				data.visibility = 'home';
 			} else if ((await this.roleService.getUserPolicies(user.id)).canPublicNote === false) {
 				data.visibility = 'home';

@@ -64,10 +64,6 @@ type Source = {
 		index: string;
 		scope?: 'local' | 'global' | string[];
 	};
-	prefilter?: {
-		host?: string;
-		port?: string;
-	};
 	imageSearch?: {
 		host: string;
 		port: string;
@@ -165,10 +161,6 @@ export type Config = {
 		ssl?: boolean;
 		index: string;
 		scope?: 'local' | 'global' | string[];
-	} | undefined;
-	prefilter: {
-		host?: string;
-		port?: string;
 	} | undefined;
 	imageSearch: {
 		host: string;
