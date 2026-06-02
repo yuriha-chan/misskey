@@ -661,7 +661,7 @@ export class UserEntityService implements OnModuleInit {
 		return await awaitAll(packed);
 	}
 
-	public async packMany<S extends 'MeDetailed' | 'UserDetailedNotMe' | 'UserDetailed' | 'UserLite' = 'UserLite'>(
+	public packMany<S extends 'MeDetailed' | 'UserDetailedNotMe' | 'UserDetailed' | 'UserLite' = 'UserLite'>(
 		users: (MiUser['id'] | MiUser)[],
 		me?: { id: MiUser['id'] } | null | undefined,
 		options?: {
@@ -669,17 +669,30 @@ export class UserEntityService implements OnModuleInit {
 			includeSecrets?: boolean,
 		},
 	): Promise<Packed<S>[]> {
-		// -- IDのみの要素を補完して完全なエンティティ一覧を作る
+		return this.packManyNullable(users, me, options) as Promise<Packed<S>[]>;
+	}
 
-		const _users = users.filter((user): user is MiUser => typeof user !== 'string');
-		if (_users.length !== users.length) {
-			_users.push(
-				...await this.usersRepository.findBy({
+	public async packManyNullable<S extends 'MeDetailed' | 'UserDetailedNotMe' | 'UserDetailed' | 'UserLite' = 'UserLite'>(
+		users: (MiUser['id'] | MiUser)[],
+		me?: { id: MiUser['id'] } | null | undefined,
+		options?: {
+			schema?: S,
+			includeSecrets?: boolean,
+			nullable?: boolean,
+		},
+	): Promise<(Packed<S> | null)[]> {
+		let _userIds: MiUser['id'][] = users.map(user => typeof user === 'string' ? (user as string) : (user.id as MiUser['id']));
+
+		// -- IDのみの要素を補完して完全なエンティティ一覧を作る
+		const _users: Map<MiUser['id'], MiUser> = new Map(users.filter((user): user is MiUser => typeof user !== 'string').map((u: MiUser) => [u.id, u]));
+		if (_users.size !== users.length) {
+			const foundUsers = await this.usersRepository.findBy({
 					id: In(users.filter((user): user is string => typeof user === 'string')),
-				}),
-			);
+				});
+			for (const u of foundUsers) {
+				_users.set(u.id, u);
+			}
 		}
-		const _userIds = _users.map(u => u.id);
 
 		// -- 実行者の有無や指定スキーマの種別によって要否が異なる値群を取得
 
@@ -720,18 +733,25 @@ export class UserEntityService implements OnModuleInit {
 			}
 		}
 
-		return Promise.all(
-			_users.map(u => this.pack(
-				u,
+		const result = await Promise.all(
+			_userIds.map(uid => _users.has(uid) ? this.pack(
+				_users.get(uid) as MiUser,
 				me,
 				{
 					...options,
-					userProfile: profilesMap?.get(u.id),
+					userProfile: profilesMap?.get(uid),
 					userRelations: userRelations,
 					userMemos: userMemos,
 					pinNotes: pinNotes,
 				},
-			)),
+			) : null),
 		);
+
+		if (options?.nullable) {
+			return result;
+		} else {
+			return result.filter((u) => u !== null);
+		}
 	}
 }
+

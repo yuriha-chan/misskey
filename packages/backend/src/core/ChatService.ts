@@ -5,18 +5,20 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { Brackets } from 'typeorm';
+import { DataSource, Brackets, IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { ChatPollService } from '@/core/ChatPollService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { ChatEntityService } from '@/core/entities/ChatEntityService.js';
+import { ChatEntityService, type MiChatPollWithVotes } from '@/core/entities/ChatEntityService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { PushNotificationService } from '@/core/PushNotificationService.js';
 import { bindThis } from '@/decorators.js';
-import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, MiChatMessage, MiChatRoom, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
+import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, ChatSecretsRepository, ChatPollsRepository, ChatCardsRepository, MiChatMessage, MiChatRoom, MiChatPoll, MiChatPollVote, MiChatSecret, MiChatCard, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -28,8 +30,8 @@ import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { emojiRegex } from '@/misc/emoji-regex.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { shuffle } from '@/misc/shuffle.js';
 
-const MAX_ROOM_MEMBERS = 50;
 const MAX_REACTIONS_PER_MESSAGE = 100;
 const isCustomEmojiRegexp = /^:([\w+-]+)(?:@\.)?:$/;
 
@@ -56,6 +58,9 @@ export class ChatService {
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
+		@Inject(DI.db)
+		private db: DataSource,
+
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
 
@@ -67,6 +72,15 @@ export class ChatService {
 
 		@Inject(DI.chatRoomsRepository)
 		private chatRoomsRepository: ChatRoomsRepository,
+
+		@Inject(DI.chatSecretsRepository)
+		private chatSecretsRepository: ChatSecretsRepository,
+
+		@Inject(DI.chatPollsRepository)
+		private chatPollsRepository: ChatPollsRepository,
+
+		@Inject(DI.chatCardsRepository)
+		private chatCardsRepository: ChatCardsRepository,
 
 		@Inject(DI.chatRoomInvitationsRepository)
 		private chatRoomInvitationsRepository: ChatRoomInvitationsRepository,
@@ -240,21 +254,171 @@ export class ChatService {
 	}
 
 	@bindThis
+	public async listSecret(roomId: MiChatRoom['id'], me?: MiUser) {
+		const secrets = await this.chatSecretsRepository.find({ where: { roomId, revealedId: IsNull() }});
+		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt?.toISOString() ?? null, createdAt: this.idService.parse(s.id).date.toISOString() }));
+	}
+
+	@bindThis
+	public async listPoll(roomId: MiChatPoll['id'], me?: MiUser) {
+		const [scheduledPolls, startedPolls] = await Promise.all([
+			this.chatPollsRepository.findBy({ roomId, startedId: IsNull() })
+				.then((p) => this.chatEntityService.packPollsScheduled(p)), 
+			this.chatPollsRepository.findBy({ roomId, startedId: Not(IsNull()), finishedId: IsNull() })
+				.then((p) => this.chatEntityService.packPollsStarted(p)),
+		]);
+		return { scheduledPolls, startedPolls };
+	}
+
+	@bindThis
+	public async listCard(roomId: MiChatRoom['id'], user: { id: MiUser['id'] }) {
+		const cards = await this.chatCardsRepository.findBy({ roomId, userId: user.id, revealedId: IsNull() });
+		return this.chatEntityService.packCards(cards);
+	}
+
+	@bindThis
+	public async revealSecret(id: MiChatSecret['id'], user?: MiUser) {
+		const secret = await this.chatSecretsRepository.findOneBy({ id });
+		if (secret == null) {
+			throw new IdentifiableError('c2b21243-e687-4e71-9b87-b60031874fcc', 'no such secret');
+		}
+		if (user) {
+			if (secret.userId !== user.id) {
+				throw new IdentifiableError('f16f7e8b-044c-498b-8946-1bb52718663d', 'not permitted to disclose secret');
+			}
+		}
+		if (secret.revealedId) {
+			return;
+		}
+		const revealedId = this.idService.gen();
+		await this.chatSecretsRepository.update(id, { revealedId });
+		const packedSecret: Packed<'ChatSecretRevealed'> = await this.chatEntityService.packSecretRevealed({ ...secret, revealedId });
+		this.globalEventService.publishChatRoomStream(secret.roomId, 'secretRevealed', packedSecret);
+	}
+
+	@bindThis
+	public async revealCard(deliverId: MiChatCard['deliverId'], cardId: MiChatCard['cardId'], user?: MiUser) {
+		const card = await this.chatCardsRepository.findOneBy({ deliverId, cardId });
+		if (card == null) {
+			throw new IdentifiableError('e2cdba26-87c9-43bb-98d5-5c28b0329c9c', 'no such card');
+		}
+		if (user) {
+			if (card.userId !== user.id) {
+				throw new IdentifiableError('b56c91ef-b1ee-48e7-bfb0-bee1025cb905', 'not permitted to disclose card');
+			}
+		}
+		if (card.revealedId) {
+			return;
+		}
+		const revealedId = this.idService.gen();
+		await this.chatCardsRepository.update({ deliverId, cardId }, { revealedId });
+		const packedCard: Packed<'ChatCardRevealed'> = await this.chatEntityService.packCardRevealed({ ...card, revealedId });
+		this.globalEventService.publishChatRoomStream(card.roomId, 'cardRevealed', packedCard);
+	}
+
+	@bindThis
+	public async schedulePoll(poll: MiChatPoll) {
+		const packedPollScheduled: Packed<'ChatPollScheduled'> = await this.chatEntityService.packPollScheduled(poll);
+		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollScheduled', packedPollScheduled);
+		if (poll.startsAt) {
+			const delay = poll.startsAt.getTime() - new Date().getTime();
+			if (delay <= 0) {
+				throw new Error("invalid startTime");
+			}
+			this.queueService.endChatPollQueue.add('end', {
+				pollId: poll.id,
+				action: 'start'
+			}, {
+				delay,
+				removeOnComplete: true,
+			});
+		}
+	}
+
+	@bindThis
+	public async startPoll(pollId: MiChatPoll['id'], user?: { id: MiUser["id"] }) {
+		const poll = await this.chatPollsRepository.findOneByOrFail({ id: pollId });
+		if (user) {
+			if (poll.ownerId !== user.id) {
+				throw new Error("not permitted to start poll");
+			}
+		}
+		if (poll.startedId != null) {
+			return;
+		}
+		const startedId = this.idService.gen();
+		await this.chatPollsRepository.update(poll.id, { startedId });
+		const packedPollStarted: Packed<'ChatPollStarted'> = await this.chatEntityService.packPollStarted({ ...poll, startedId });
+		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollStarted', packedPollStarted);
+		if (poll.duration) {
+			const delay = poll.duration * 1000;
+			if (delay <= 0) {
+				throw new Error("invalid duration");
+			}
+			this.queueService.endChatPollQueue.add('end', {
+				pollId: poll.id,
+				action: 'finish'
+			}, {
+				delay,
+				removeOnComplete: true,
+			});
+		}
+	}
+
+	@bindThis
+	public async finishPoll(pollId: MiChatPoll['id'], user?: { id: MiUser["id"] }) {
+		const poll = await this.chatPollsRepository.findOneOrFail({ where: { id: pollId }, relations: ['votes']}) as MiChatPollWithVotes;
+		if (user) {
+			if (poll.ownerId !== user.id) {
+				throw new Error("not permitted to close poll");
+			}
+		}
+		if (poll.finishedId != null) {
+			return;
+		}
+		const finishedId = this.idService.gen();
+		await this.chatPollsRepository.update(poll.id, { finishedId });
+		const packedPoll: Packed<'ChatPollFinished'> = await this.chatEntityService.packPollFinished({ ...poll, finishedId });
+		this.globalEventService.publishChatRoomStream(poll.roomId, 'pollFinished', packedPoll);
+	}
+
+	@bindThis
 	public async createMessageToRoom(fromUser: { id: MiUser['id']; host: MiUser['host']; }, toRoom: MiChatRoom, params: {
 		text?: string | null;
 		file?: MiDriveFile | null;
 		uri?: string | null;
-	}): Promise<Packed<'ChatMessageLiteForRoom'>> {
-		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: toRoom.id })).map(m => ({
+		poll?: {
+			title: string;
+			choices: string[];
+			startsAt?: Date;
+			duration?: number;
+			voteForUsers: boolean;
+			anonymous: boolean;
+		};
+		commitSecret?: {
+			title: string;
+			plaintext: string;
+			revealsAt?: Date;
+		}
+		deliverCards?: {
+			title: string;
+			cards: { name: string; count: number }[];
+			deliver: { [key: MiUser['id']]: number };
+		};
+		visibleUserIds?: MiUser['id'][];
+		channel?: string | null;
+	}): Promise<Packed<'ChatMessageLiteForRoom'> | null> {
+		if (toRoom.isArchived) {
+			throw new Error("the room is archived");
+		}
+
+		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: toRoom.id, hasLeft: false })).map(m => ({
 			userId: m.userId,
 			isMuted: m.isMuted,
-		})).concat({ // ownerはmembershipレコードを作らないため
-			userId: toRoom.ownerId,
-			isMuted: false,
-		});
+		}))
 
 		if (!memberships.some(member => member.userId === fromUser.id)) {
-			throw new Error('you are not a member of the room');
+			throw new IdentifiableError('d62635ea-26b0-43e5-84af-fbf6c6dcd08a', 'you are not a member of the room');
 		}
 
 		const membershipsOtherThanMe = memberships.filter(member => member.userId !== fromUser.id);
@@ -267,13 +431,125 @@ export class ChatService {
 			fileId: params.file ? params.file.id : null,
 			reads: [],
 			uri: params.uri ?? null,
+			visibleUserIds: params.visibleUserIds ?? null,
 		} satisfies Partial<MiChatMessage>;
 
-		const inserted = await this.chatMessagesRepository.insertOne(message);
+		let inserted = null;
+		let packedMessage = null;
 
-		const packedMessage = await this.chatEntityService.packMessageLiteForRoom(inserted);
+		if (message.text || message.fileId) {
+			inserted = await this.chatMessagesRepository.insertOne(message);
 
-		this.globalEventService.publishChatRoomStream(toRoom.id, 'message', packedMessage);
+			packedMessage = await this.chatEntityService.packMessageLiteForRoom(inserted);
+
+			if (!message.visibleUserIds) {
+				this.globalEventService.publishChatRoomStream(toRoom.id, 'message', packedMessage);
+			} else {
+				for (const userId of message.visibleUserIds) {
+					this.globalEventService.publishChatRoomUserStream(toRoom.id, userId, 'message', packedMessage);
+				}
+			}
+		}
+
+		if (params.commitSecret) {
+			const now = new Date();
+			const secret = {
+				id: message.id,
+				plaintext: params.commitSecret.plaintext,
+				roomId: toRoom.id,
+				room: null,
+				userId: fromUser.id,
+				user: null,
+				title: params.commitSecret.title,
+				revealsAt: params.commitSecret.revealsAt ?? null,
+				revealedId: null,
+			} satisfies Partial<MiChatSecret>;
+			await this.chatSecretsRepository.insertOne(secret);
+			const packedSecret: Packed<'ChatSecret'> = await this.chatEntityService.packSecret(secret);
+			this.globalEventService.publishChatRoomStream(toRoom.id, 'secretCommitted', packedSecret);
+			if (secret.revealsAt) {
+				const delay = secret.revealsAt.getTime() - now.getTime();
+				if (delay <= 0) {
+					throw new Error("invalid expiration");
+				}
+				this.queueService.revealChatSecretQueue.add('reveal', {
+					id: message.id,
+				}, {
+					delay,
+					removeOnComplete: true,
+				});
+			}
+		}
+
+		if (params.poll) {
+			const poll = {
+				id: message.id,
+				roomId: toRoom.id,
+				room: null,
+				ownerId: fromUser.id,
+				owner: null,
+				title: params.poll.title,
+				choices: params.poll.choices,
+				voteForUsers: params.poll.voteForUsers ?? false,
+				anonymous: params.poll.anonymous ?? false,
+				startsAt: params.poll.startsAt ?? null,
+				startedId: null,
+				duration: params.poll.duration ?? null,
+				finishedId: null,
+				votes: null,
+			} satisfies Partial<MiChatPoll>;
+			await this.chatPollsRepository.insertOne(poll);
+			if (poll.startsAt != null) {
+				this.schedulePoll(poll);
+			} else {
+				await this.startPoll(poll.id);
+			}
+		}
+
+		if (params.deliverCards) {
+			const cards = params.deliverCards.cards;
+			const deck = [];
+			for (const c of cards) {
+				for (let i = 0; i < c.count; i++) {
+					deck.push(c.name);
+				}
+			}
+			const deliver = params.deliverCards.deliver;
+			const title = params.deliverCards.title;
+
+			const destinations = memberships.map((m) => m.userId).filter((member) => deliver[member] != null && deliver[member] > 0);
+
+			const cardsToDeliver = destinations.reduce((sum, key) => deliver[key] + sum, 0);
+			if (deck.length < cardsToDeliver) {
+				throw new Error('not enough cards');
+			}
+
+			const cardsPerUser: { [key: MiUser['id']]: string[] }  = {};
+			const shuffledCards = shuffle(deck);
+			destinations.forEach(dest => {
+            const count = deliver[dest];
+            cardsPerUser[dest] = shuffledCards.splice(0, count);
+			});
+			let i = 0;
+			for (const userId of destinations) {
+				for (const cardKind of cardsPerUser[userId]) {
+					const card = {
+						deliverId: message.id,
+						cardId: i,
+						userId,
+						user: null,
+						roomId: toRoom.id,
+						room: null,
+						cardKind,
+						revealedId: null,
+					} satisfies Partial<MiChatCard>;
+					await this.chatCardsRepository.insertOne(card);
+					const packedCard: Packed<'ChatCard'> = await this.chatEntityService.packCard(card);
+					this.globalEventService.publishChatRoomUserStream(toRoom.id, userId, 'cardDelivered', packedCard);
+					i++;
+				}
+			}
+		}
 
 		const redisPipeline = this.redisClient.pipeline();
 		for (const membership of membershipsOtherThanMe) {
@@ -286,6 +562,7 @@ export class ChatService {
 
 		// 3秒経っても既読にならなかったらイベント発行
 		setTimeout(async () => {
+			if (inserted == null) { return }
 			const redisPipeline = this.redisClient.pipeline();
 			for (const membership of membershipsOtherThanMe) {
 				redisPipeline.get(`newRoomChatMessageExists:${membership.userId}:${toRoom.id}`);
@@ -411,16 +688,150 @@ export class ChatService {
 		return messages;
 	}
 
+
+	private mergeSorted<T>(
+		arrays: T[][],
+		ascending: boolean,
+		getKey: (item: T) => number
+	): T[] {
+		const mergeHeads = new Array(arrays.length).fill(0);
+		const result: T[] = [];
+	
+		while (true) {
+			let bestItem: T | null = null;
+			let bestKey: number = -Infinity;
+			let bestIndex: number = -1;
+	
+			for (let i = 0; i < arrays.length; i++) {
+				if (mergeHeads[i] >= arrays[i].length) {
+					continue;
+				}
+	
+				const currentItem = arrays[i][mergeHeads[i]];
+				const currentKey = (ascending ? -1 : 1) * getKey(currentItem);
+				if (currentKey > bestKey) {
+					bestIndex = i;
+					bestKey = currentKey;
+					bestItem = currentItem;
+				}
+			}
+	
+			/* all scanned */
+			if (bestItem === null) {
+				break;
+			}
+			result.push(bestItem);
+			mergeHeads[bestIndex]++;
+		}
+		return result;
+	}
+
+	/**
+	 * limit is a soft limit -- when multiple entries are found in the last ID, then entries having the last IDs are returned beyond the provided limit
+	 */
 	@bindThis
-	public async roomTimeline(roomId: MiChatRoom['id'], limit: number, sinceId?: MiChatMessage['id'] | null, untilId?: MiChatMessage['id'] | null) {
-		const query = this.queryService.makePaginationQuery(this.chatMessagesRepository.createQueryBuilder('message'), sinceId, untilId)
-			.andWhere('message.toRoomId = :roomId', { roomId })
-			.leftJoinAndSelect('message.file', 'file')
-			.leftJoinAndSelect('message.fromUser', 'fromUser');
+	public async roomTimeline(
+		roomId: MiChatRoom['id'],
+		limit: number,
+		meId: MiUser['id'],
+		sinceId: MiChatMessage['id'] | null,
+		untilId: MiChatMessage['id'] | null
+	) {
+		const ascending = (sinceId != null);
+		const noId = sinceId == null && untilId == null;
+		// calculate the last Id
+		const otherIds: { id: string }[] = await this.db.query(`
+			SELECT "id" FROM (
+				SELECT "id", 'message' AS "type", 0 AS "subkey" FROM "chat_message" WHERE "toRoomId" = $1
+			   UNION ALL
+				SELECT "startedId" as "id", 'pollStarted' AS "type", 0::smallint AS "subkey" FROM "chat_poll" WHERE "roomId" = $1 AND "startedId" IS NOT NULL
+			   UNION ALL
+				SELECT "finishedId" as "id", 'pollFinished' AS "type", 0::smallint AS "subkey" FROM "chat_poll" WHERE "roomId" = $1 AND "finishedId" IS NOT NULL
+			   UNION ALL
+				SELECT "id", 'secretComitted' AS "type", 0::smallint AS "subkey" FROM "chat_secret" WHERE "roomId" = $1
+			   UNION ALL
+				SELECT "revealedId" as "id", 'secretRevealed' AS "type", 0::smallint AS "subkey" FROM "chat_secret" WHERE "roomId" = $1 AND "revealedId" IS NOT NULL
+			   UNION ALL
+				SELECT "deliverId" as "id", 'cardDelivered' AS "type", "cardId" AS "subkey" FROM "chat_card" WHERE "roomId" = $1 AND "userId" = $2
+			   UNION ALL
+				SELECT "revealedId" as "id", 'cardRevealed' AS "type", 0::smallint AS "subkey" FROM "chat_card" WHERE "roomId" = $1 AND "revealedId" IS NOT NULL
+			) as "tiimeline" ${ noId ? "" : `WHERE ("id" ${ascending ? '>' : '<'} $4)` } ORDER BY "id" DESC, "type" DESC, "subkey" DESC
+			LIMIT $3
+		`, [roomId, meId, limit, ...(noId ? [] : [ascending ? sinceId : untilId])]);
 
-		const messages = await query.take(limit).getMany();
+		if (otherIds.length === 0) {
+			return [];
+		}
 
-		return messages;
+		if (ascending) {
+			untilId = otherIds[otherIds.length - 1].id;
+		} else {
+			sinceId = otherIds[otherIds.length - 1].id;
+		}
+	
+		const [messages, polls, finishedPolls, secrets, revealedSecrets, cards, revealedCards] = await Promise.all([
+			this.queryService
+				.getRange(this.chatMessagesRepository.createQueryBuilder('message'), sinceId, untilId, ascending, 'id')
+				.andWhere('message.toRoomId = :roomId', { roomId })
+				.andWhere(new Brackets(qb => {
+					qb.where('message.visibleUserIds IS NULL')
+						.orWhere('message.fromUserId = :meId')
+						.orWhere(':meIdAsList <@ message.visibleUserIds');
+				}), { meId, meIdAsList: [meId] })
+				.leftJoinAndSelect('message.file', 'file')
+				.leftJoinAndSelect('message.fromUser', 'fromUser')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatPollsRepository.createQueryBuilder('poll'), sinceId, untilId, ascending, 'startedId')
+				.andWhere('poll.roomId = :roomId', { roomId })
+				.andWhere('poll.startedId IS NOT NULL')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatPollsRepository.createQueryBuilder('poll'), sinceId, untilId, ascending, 'finishedId')
+				.leftJoinAndSelect('poll.votes', 'vote')
+				.andWhere('poll.roomId = :roomId', { roomId })
+				.andWhere('poll.finishedId IS NOT NULL')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatSecretsRepository.createQueryBuilder('secret'), sinceId, untilId, ascending, 'id')
+				.andWhere('secret.roomId = :roomId', { roomId })
+				.getMany(),
+			this.queryService
+				.getRange(this.chatSecretsRepository.createQueryBuilder('secret'), sinceId, untilId, ascending, 'revealedId')
+				.andWhere('secret.roomId = :roomId', { roomId })
+				.andWhere('secret.revealedId IS NOT NULL')
+				.getMany(),
+			this.queryService
+				.getRange(this.chatCardsRepository.createQueryBuilder('card'), sinceId, untilId, ascending, 'deliverId')
+				.andWhere('card.roomId = :roomId', { roomId })
+				.andWhere('card.userId = :userId', { userId: meId })
+				.getMany(),
+			this.queryService
+				.getRange(this.chatCardsRepository.createQueryBuilder('card'), sinceId, untilId, ascending, 'revealedId')
+				.andWhere('card.roomId = :roomId', { roomId })
+				.andWhere('card.revealedId IS NOT NULL')
+				.getMany()]);
+
+		const [packedMessages, packedPolls, packedPollsFinished, packedSecrets, packedSecretsRevealed, packedCards, packedCardsRevealed] = await Promise.all([
+			this.chatEntityService.packMessagesLiteForRoom(messages),
+			this.chatEntityService.packPollsStarted(polls),
+			this.chatEntityService.packPollsFinished(finishedPolls as MiChatPollWithVotes[]),
+			this.chatEntityService.packSecrets(secrets),
+			this.chatEntityService.packSecretsRevealed(revealedSecrets),
+			this.chatEntityService.packCards(cards),
+			this.chatEntityService.packCardsRevealed(revealedCards)]);
+
+		const events: Packed<'ChatEvent'>[][] = [
+			packedMessages.map(x => ({ type: 'message', data: x })),
+			packedPolls.map(x => ({ type: 'pollStarted', data: x })),
+			packedPollsFinished.map(x => ({ type: 'pollFinished', data: x })),
+			packedSecrets.map(x => ({ type: 'secretCommitted', data: x })),
+			packedSecretsRevealed.map(x => ({ type: 'secretRevealed', data: x })),
+			packedCards.map(x => ({ type: 'cardDelivered', data: x })),
+			packedCardsRevealed.map(x => ({ type: 'cardRevealed', data: x })),
+		];
+	
+		return this.mergeSorted(events, ascending, x => Date.parse(x.data.createdAt))
 	}
 
 	@bindThis
@@ -466,19 +877,9 @@ export class ChatService {
 
 	@bindThis
 	public async roomHistory(meId: MiUser['id'], limit: number): Promise<MiChatMessage[]> {
-		// TODO: 一回のクエリにまとめられるかも
-		const [memberRoomIds, ownedRoomIds] = await Promise.all([
-			this.chatRoomMembershipsRepository.findBy({
-				userId: meId,
-			}).then(xs => xs.map(x => x.roomId)),
-			this.chatRoomsRepository.findBy({
-				ownerId: meId,
-			}).then(xs => xs.map(x => x.id)),
-		]);
+		const roomIds = await this.chatRoomMembershipsRepository.findBy({ userId: meId, hasLeft: false }).then(xs => xs.map(x => x.roomId))
 
-		const roomIds = memberRoomIds.concat(ownedRoomIds);
-
-		if (memberRoomIds.length === 0 && ownedRoomIds.length === 0) {
+		if (roomIds.length === 0) {
 			return [];
 		}
 
@@ -559,15 +960,39 @@ export class ChatService {
 	public async createRoom(owner: MiUser, params: Partial<{
 		name: string;
 		description: string;
+		capacity: number;
+		expiration: number | null;
+		isPublic: boolean;
+		theme: string | null;
 	}>) {
 		const room = {
 			id: this.idService.gen(),
 			name: params.name,
 			description: params.description,
 			ownerId: owner.id,
+			capacity: params.capacity,
+			expiration: params.expiration,
+			isPublic: params.isPublic,
+			theme: params.theme,
 		} satisfies Partial<MiChatRoom>;
 
 		const created = await this.chatRoomsRepository.insertOne(room);
+		if (room.expiration) {
+			this.queueService.closeExpiredChatRoomQueue.add(room.id, {
+				id: room.id,
+			}, {
+				delay: room.expiration,
+				removeOnComplete: {
+					age: 3600 * 24 * 7, // keep up to 7 days
+					count: 30,
+				},
+				removeOnFail: {
+					age: 3600 * 24 * 7, // keep up to 7 days
+					count: 100,
+				},
+			});
+		}
+		await this.joinToRoom(owner.id, room.id);
 
 		return created;
 	}
@@ -608,12 +1033,18 @@ export class ChatService {
 	}
 
 	@bindThis
+	public async hasPermissionToKick(meId: MiUser['id'], room: MiChatRoom) {
+		if (room.ownerId === meId) {
+			return true;
+		}
+		return false;
+	}
+
+	@bindThis
 	public async deleteRoom(room: MiChatRoom, deleter?: MiUser) {
 		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: room.id })).map(m => ({
 			userId: m.userId,
-		})).concat({ // ownerはmembershipレコードを作らないため
-			userId: room.ownerId,
-		});
+		}))
 
 		// 未読フラグ削除
 		const redisPipeline = this.redisClient.pipeline();
@@ -638,19 +1069,36 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async findMyRoomById(ownerId: MiUser['id'], roomId: MiChatRoom['id']) {
-		return this.chatRoomsRepository.findOneBy({ id: roomId, ownerId: ownerId });
+	public async archiveRoom(roomId: MiChatRoom['id'], archiver?: MiUser) {
+		await this.chatRoomsRepository.update(roomId, { isArchived: true });
+
+		if (archiver) {
+			const archiverIsModerator = await this.roleService.isModerator(archiver);
+
+			if (archiverIsModerator) {
+				this.moderationLogService.log(archiver, 'archiveChatRoom', {
+					roomId,
+				});
+			}
+		}
+
+		this.globalEventService.publishChatRoomStream(roomId, 'roomArchived', { archiverId: archiver?.id });
 	}
 
 	@bindThis
-	public async findRoomById(roomId: MiChatRoom['id']) {
-		return this.chatRoomsRepository.findOne({ where: { id: roomId }, relations: ['owner'] });
+	public async findMyRoomById(ownerId: MiUser['id'], roomId: MiChatRoom['id'], includeArchived: boolean = true) {
+		return this.chatRoomsRepository.findOneBy({ id: roomId, ownerId: ownerId, isArchived: includeArchived ? undefined : false });
+	}
+
+	@bindThis
+	public async findRoomById(roomId: MiChatRoom['id'], includeArchived: boolean = true) {
+		return this.chatRoomsRepository.findOne({ where: { id: roomId, isArchived: includeArchived ? undefined : false  }, relations: ['owner'] });
 	}
 
 	@bindThis
 	public async isRoomMember(room: MiChatRoom, userId: MiUser['id']) {
 		if (room.ownerId === userId) return true;
-		const membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId });
+		const membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId: room.id, userId, hasLeft: false });
 		return membership != null;
 	}
 
@@ -660,7 +1108,7 @@ export class ChatService {
 			throw new Error('yourself');
 		}
 
-		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, ownerId: inviterId });
+		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, ownerId: inviterId, isArchived: false });
 
 		if (await this.isRoomMember(room, inviteeId)) {
 			throw new Error('already member');
@@ -671,8 +1119,8 @@ export class ChatService {
 			throw new Error('already invited');
 		}
 
-		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId });
-		if (membershipsCount >= MAX_ROOM_MEMBERS) {
+		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId, hasLeft: false });
+		if (membershipsCount >= room.capacity) {
 			throw new Error('room is full');
 		}
 
@@ -704,9 +1152,12 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async getOwnedRoomsWithPagination(ownerId: MiUser['id'], limit: number, sinceId?: MiChatRoom['id'] | null, untilId?: MiChatRoom['id'] | null) {
+	public async getOwnedRoomsWithPagination(ownerId: MiUser['id'], limit: number, includeArchived?: boolean, sinceId?: MiChatRoom['id'] | null, untilId?: MiChatRoom['id'] | null) {
 		const query = this.queryService.makePaginationQuery(this.chatRoomsRepository.createQueryBuilder('room'), sinceId, untilId)
 			.andWhere('room.ownerId = :ownerId', { ownerId });
+		if (!includeArchived) {
+			query.andWhere('room.isArchived = FALSE');
+		}
 
 		const rooms = await query.take(limit).getMany();
 
@@ -725,23 +1176,54 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async joinToRoom(userId: MiUser['id'], roomId: MiChatRoom['id']) {
-		const invitation = await this.chatRoomInvitationsRepository.findOneByOrFail({ roomId, userId });
+	public async joinToRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], params?: { bubbleColor?: string, bubbleStyle?: string }) {
+		const room = await this.chatRoomsRepository.findOneBy({ id: roomId, isArchived: false });
+		if (room == null) {
+			throw new IdentifiableError('6c9dec02-d228-43a5-978c-a53e8bba889c', 'no such room');
+		}
+		const invitation = await this.chatRoomInvitationsRepository.findOneBy({ roomId, userId });
 
-		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId });
-		if (membershipsCount >= MAX_ROOM_MEMBERS) {
+		if (!room.isPublic && !invitation && room.ownerId != userId) {
+			throw new Error('cannot join to private room without invitation');
+		}
+		const blocked = await this.userBlockingService.checkBlocked(room.ownerId, userId);
+		if (blocked) {
+			throw new Error('blocked');
+		}
+
+		const membershipsCount = await this.chatRoomMembershipsRepository.countBy({ roomId, hasLeft: false });
+		if (membershipsCount >= room.capacity) {
 			throw new Error('room is full');
 		}
 
-		const membership = {
-			id: this.idService.gen(),
-			roomId: roomId,
-			userId: userId,
-		} satisfies Partial<MiChatRoomMembership>;
+		let membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId, userId });
+		if (membership) {
+			if (membership.hasLeft) {
+				await this.chatRoomMembershipsRepository.update(membership.id, { hasLeft: false });
+				membership.hasLeft = false;
+			}
+		} else {
+			membership = {
+				id: this.idService.gen(),
+				roomId: roomId,
+				userId: userId,
+				bubbleColor: params?.bubbleColor ?? null,
+				bubbleStyle: params?.bubbleStyle ?? null,
+				user: null,
+				room: null,
+				isMuted: false,
+				hasLeft: false,
+			} satisfies Partial<MiChatRoomMembership>;
 
-		// TODO: transaction
-		await this.chatRoomMembershipsRepository.insertOne(membership);
-		await this.chatRoomInvitationsRepository.delete(invitation.id);
+			// TODO: transaction
+			await this.chatRoomMembershipsRepository.insertOne(membership!);
+		}
+		if (invitation) {
+		  await this.chatRoomInvitationsRepository.delete(invitation.id);
+		}
+
+		const packedMembership = await this.chatEntityService.packRoomMembership(membership!, { id: userId }, { populateUser: true, populateRoom: false });
+		this.globalEventService.publishChatRoomStream(roomId, 'join', { ...packedMembership, createdAt: this.idService.parse(packedMembership.id).date.toISOString() });
 	}
 
 	@bindThis
@@ -751,9 +1233,18 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async leaveRoom(userId: MiUser['id'], roomId: MiChatRoom['id']) {
-		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId });
-		await this.chatRoomMembershipsRepository.delete(membership.id);
+	public async leaveRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], kicked: boolean) {
+		const room = await this.chatRoomsRepository.findOneBy({ id: roomId, isArchived: false });
+		if (room == null) {
+			throw new IdentifiableError('d7ed9aeb-1b48-4769-bcef-081beb81c71f', 'no such room');
+		}
+		if (room.ownerId === userId) {
+			throw new Error("room owner cannot leave the room");
+		}
+
+		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
+		await this.chatRoomMembershipsRepository.update(membership.id, { hasLeft: true });
+		this.globalEventService.publishChatRoomStream(roomId, 'leave', { userId, kicked, createdAt: new Date().toISOString() } );
 
 		// 未読フラグを消す (「既読にする」というわけでもないのでreadメソッドは使わないでおく)
 		const redisPipeline = this.redisClient.pipeline();
@@ -764,18 +1255,31 @@ export class ChatService {
 
 	@bindThis
 	public async muteRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], mute: boolean) {
-		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId });
+		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
 		await this.chatRoomMembershipsRepository.update(membership.id, { isMuted: mute });
 	}
 
 	@bindThis
-	public async updateRoom(room: MiChatRoom, params: {
+	public async updateMembership(userId: MiUser['id'], roomId: MiChatRoom['id'], config: { bubbleColor?: string, bubbleStyle?: string }) {
+		const membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId, userId, hasLeft: false });
+		if (membership == null) {
+			throw new IdentifiableError('54c7c4f7-47e6-4088-9b29-69373cbab313', 'no such membership');
+		}
+		await this.chatRoomMembershipsRepository.update(membership.id, config);
+		const packedMembership = await this.chatEntityService.packRoomMembership({ ...membership!, ...config }, { id: userId }, { populateUser: true, populateRoom: false });
+		this.globalEventService.publishChatRoomStream(roomId, 'membershipUpdated', packedMembership);
+	}
+
+	@bindThis
+	public updateRoom(room: MiChatRoom, params: {
 		name?: string;
 		description?: string;
+		capacity?: number;
 	}): Promise<MiChatRoom> {
 		return this.chatRoomsRepository.createQueryBuilder().update()
 			.set(params)
 			.where('id = :id', { id: room.id })
+			.andWhere('isArchived = :isArchived', { isArchived: false })
 			.returning('*')
 			.execute()
 			.then((response) => {
@@ -784,11 +1288,14 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async getRoomMembershipsWithPagination(roomId: MiChatRoom['id'], limit: number, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
-		const query = this.queryService.makePaginationQuery(this.chatRoomMembershipsRepository.createQueryBuilder('membership'), sinceId, untilId)
+	public async getRoomMemberships(roomId: MiChatRoom['id'], includeLeftMembers?: boolean) {
+		const query = this.chatRoomMembershipsRepository.createQueryBuilder('membership')
 			.andWhere('membership.roomId = :roomId', { roomId });
+		if (!includeLeftMembers) {
+			query.andWhere('membership.hasLeft = FALSE');
+		}
 
-		const memberships = await query.take(limit).getMany();
+		const memberships = await query.getMany();
 
 		return memberships;
 	}
@@ -965,12 +1472,30 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async getMyMemberships(userId: MiUser['id'], limit: number, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
+	public async getMyMemberships(userId: MiUser['id'], limit: number, includeLeft?: boolean, sinceId?: MiChatRoomMembership['id'] | null, untilId?: MiChatRoomMembership['id'] | null) {
 		const query = this.queryService.makePaginationQuery(this.chatRoomMembershipsRepository.createQueryBuilder('membership'), sinceId, untilId)
 			.andWhere('membership.userId = :userId', { userId });
+		if (!includeLeft) {
+			query.andWhere('membership.hasLeft = FALSE');
+		}
 
 		const memberships = await query.take(limit).getMany();
 
 		return memberships;
+	}
+
+	@bindThis
+	public async getPublicRoomsWithPagination(userId: MiUser['id'], limit: number, includeArchived: boolean, sinceId?: MiChatRoom['id'] | null, untilId?: MiChatRoom['id'] | null) {
+		const query = this.queryService.makePaginationQuery(this.chatRoomsRepository.createQueryBuilder('room'), sinceId, untilId)
+			.andWhere('room.isPublic = TRUE');
+
+		if (!includeArchived) {
+			query.andWhere('room.isArchived = FALSE');
+		}
+		query.leftJoinAndSelect('room.memberships', 'membership', 'membership.hasLeft = FALSE');
+
+		const rooms = await query.take(limit).getMany();
+
+		return rooms;
 	}
 }

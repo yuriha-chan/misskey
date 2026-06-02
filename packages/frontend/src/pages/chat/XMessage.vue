@@ -4,31 +4,93 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :class="[$style.root, { [$style.isMe]: isMe }]">
-	<MkAvatar :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="message.fromUser!" :link="!isMe" :preview="false"/>
-	<div :class="[$style.body, message.file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
-		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && message.fromUser != null" :user="message.fromUser"/></div>
-		<MkFukidashi :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="message.file != null" :accented="isMe">
+<div v-if="item" :class="[$style.root, { [$style.isMe]: isMe }]">
+	<MkAvatar v-if="item.type === 'message' && props.membership?.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership.user as Misskey.entities.UserLite" :link="!isMe" :preview="false"/>
+	<div :class="[$style.body, item.type === 'message' && (item.data as Misskey.entities.ChatMessageLite).file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
+		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && props.membership?.user" :user="props.membership.user as Misskey.entities.UserLite"/></div>
+		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.data.file != null" :style="bubbleStyle">
 			<Mfm
-				v-if="message.text"
+				v-if="item.data.text"
 				ref="text"
 				class="_selectable"
-				:text="message.text"
+				:text="item.data.text"
 				:i="$i"
 				:nyaize="'respect'"
 				:enableEmojiMenu="true"
 				:enableEmojiMenuReaction="true"
 			/>
-			<MkMediaList v-if="message.file" :mediaList="[message.file]"/>
+			<MkMediaList v-if="item.data.file" :mediaList="[item.data.file]" :class="$style.file"/>
+			<MkUrlPreview v-for="url in urls" :key="url" :url="url" style="margin: 8px 0;"/>
 		</MkFukidashi>
-		<MkUrlPreview v-for="url in urls" :key="url" :url="url" style="margin: 8px 0;"/>
+		<div v-else-if="item.type === 'pollScheduled'">
+			<div :class="$style.poll">
+				<div><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollScheduled({ what: (item.data as Misskey.entities.ChatPollScheduled).title ?? '' }) }}</div>
+				<div><b>{{ i18n.ts._chat.startsIn }} {{ Math.round( (Date.parse((item.data as Misskey.entities.ChatPollScheduled).startsAt ?? item.data.createdAt) - Date.parse(item.data.createdAt)) / 1000) }} {{ i18n.ts._time.second }}</b></div>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'pollStarted'">
+			<div :class="$style.poll">
+				<div><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollStarted({ what: (item.data as Misskey.entities.ChatPollStarted).title ?? '' }) }}</div>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'pollFinished'">
+			<div><i class="ti ti-info-circle"/> {{ i18n.tsx._chat.pollFinished({ what: (item.data as Misskey.entities.ChatPollFinished).title ?? '' }) }}</div>
+			<div :class="$style.pollFinish">
+				<div v-for="(entry, i) in (item.data as Misskey.entities.ChatPollFinished).votes" :key="i" :class="$style.pollChoice">
+					<div :class="$style.choiceContainer">
+						<div v-if="(item.data as Misskey.entities.ChatPollFinished).voteForUsers" :class="$style.choice">
+							<MkUserCardMini v-if="entry.user" :class="$style.card" :user="entry.user" :withChart="false"/>
+							<div v-else :class="$style.card">(deleted user)</div>
+						</div>
+						<div v-else :class="$style.choice">{{ entry.text }}</div>
+						<div :class="$style.vote"><span :class="$style.voteCount">{{ entry.voteCount }}</span> {{ i18n.ts._chat.gotVotes }}</div>
+					</div>
+					<div :class="$style.choiceFooter" v-if="!(item.data as Misskey.entities.ChatPollFinished).anonymous">
+						<span>{{ i18n.ts._chat.voters }}:</span><MkAvatars :userIds="entry.votedUserIds ?? []"/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'secretCommitted'">
+			<div :class="$style.secret">
+				<span class="$style.message"><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.tsx._chat.secretCommited({title: (item.data as Misskey.entities.ChatSecret).title ?? ''}) }}</span>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'secretRevealed'" :class="$style.secret">
+			<div :class="$style.secret">
+				<MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}
+			</div>
+			<div>{{ (item.data as Misskey.entities.ChatSecretRevealed).title ?? '' }} ⇒ <span :class="$style.plainText">{{ (item.data as Misskey.entities.ChatSecretRevealed).plaintext }}</span></div>
+		</div>
+		<div v-else-if="item.type === 'cardDelivered'">
+			<div :class="$style.card">
+				<i class="ti ti-cards"></i>
+				{{ i18n.ts._chat.cardDelivered }}: <div :class="$style.cardContainer"><b :class="$style.cardContent">{{ item.data.cardKind }}</b><MkColorId :id="item.data.deliverId" :class="$style.deliverId"/></div>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'cardRevealed'">
+			<div :class="$style.card">
+				<MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.cardRevealed }}:
+				<i class="ti ti-cards"></i> <div :class="$style.cardContainer"><b :class="$style.cardContent">{{ item.data.cardKind }}</b><MkColorId :id="item.data.deliverId" :class="$style.deliverId"/></div>
+			</div>
+		</div>
+		<div v-else-if="item.type === 'join'">
+			{{ i18n.tsx._chat.userHasJoined({ who: `${item.data.user?.name ?? ''} (@${item.data.user?.username ?? ''})` }) }}
+		</div>
+		<div v-else-if="item.type === 'leave'">
+			{{ item.data.kicked ?
+				i18n.tsx._chat.userHasKicked({ who: `${item.data.user.name ?? ''} (@${item.data.user.username})` }) :
+				i18n.tsx._chat.userHasLeft({ who: `${item.data.user.name ?? ''} (@${item.data.user.username})` }) }}
+		</div>
+
 		<div :class="$style.footer">
-			<button class="_textButton" style="color: currentColor;" @click="showMenu"><i class="ti ti-dots-circle-horizontal"></i></button>
-			<MkTime :class="$style.time" :time="message.createdAt"/>
-			<MkA v-if="isSearchResult && 'toRoom' in message && message.toRoom != null" :to="`/chat/room/${message.toRoomId}`">{{ message.toRoom.name }}</MkA>
-			<MkA v-if="isSearchResult && 'toUser' in message && message.toUser != null && isMe" :to="`/chat/user/${message.toUserId}`">@{{ message.toUser.username }}</MkA>
+			<button v-if="item.type === 'message'" class="_textButton" style="color: currentColor;" @click="showMenu"><i class="ti ti-dots-circle-horizontal"></i></button>
+			<MkTime :class="$style.time" :time="(item.data as { createdAt: string }).createdAt"/>
+			<MkA v-if="isSearchResult && 'toRoom' in item.data && (item.data as Misskey.entities.ChatMessage).toRoom != null" :to="`/chat/room/${(item.data as Misskey.entities.ChatMessage).toRoomId}`">{{ (item.data as Misskey.entities.ChatMessage).toRoom!.name }}</MkA>
+			<MkA v-if="isSearchResult && 'toUser' in item.data && (item.data as Misskey.entities.ChatMessage).toUser != null && isMe" :to="`/chat/user/${(item.data as Misskey.entities.ChatMessage).toUserId}`">@{{ (item.data as Misskey.entities.ChatMessage).toUser!.username }}</MkA>
 		</div>
 		<TransitionGroup
+			v-if="item.type === 'message'"
 			:enterActiveClass="prefer.s.animation ? $style.transition_reaction_enterActive : ''"
 			:leaveActiveClass="prefer.s.animation ? $style.transition_reaction_leaveActive : ''"
 			:enterFromClass="prefer.s.animation ? $style.transition_reaction_enterFrom : ''"
@@ -36,7 +98,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:moveClass="prefer.s.animation ? $style.transition_reaction_move : ''"
 			tag="div" :class="$style.reactions"
 		>
-			<div v-for="record in message.reactions" :key="record.reaction + record.user.id" :class="[$style.reaction, record.user.id === $i.id ? $style.reactionMy : null]" @click="onReactionClick(record)">
+			<div v-for="record in (item.data as NormalizedChatMessage).reactions" :key="record.reaction + record.user.id" :class="[$style.reaction, record.user.id === $i.id ? $style.reactionMy : null]" @click="onReactionClick(record)">
 				<MkAvatar :user="record.user" :link="false" :class="$style.reactionAvatar"/>
 				<MkReactionIcon
 					:withTooltip="true"
@@ -51,13 +113,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, provide } from 'vue';
+import { computed, provide, ref } from 'vue';
 import * as mfm from 'mfm-js';
 import * as Misskey from 'misskey-js';
-import { url } from '@@/js/config.js';
+import { url, host as localhost } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
 import type { MenuItem } from '@/types/menu.js';
-import type { NormalizedChatMessage } from './room.vue';
+import type { TimelineItem, NormalizedChatMessage } from './room.vue';
 import { extractUrlFromMfm } from '@/utility/extract-url-from-mfm.js';
 import MkUrlPreview from '@/components/MkUrlPreview.vue';
 import { ensureSignin } from '@/i.js';
@@ -73,55 +135,88 @@ import MkReactionIcon from '@/components/MkReactionIcon.vue';
 import { prefer } from '@/preferences.js';
 import { DI } from '@/di.js';
 import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.js';
+import MkMention from '@/components/MkMention.vue';
+import MkUserCardMini from '@/components/MkUserCardMini.vue';
+import MkAvatars from '@/components/MkAvatars.vue';
+import MkColorId from '@/components/MkColorId.vue';
 
 const $i = ensureSignin();
 
 const props = defineProps<{
-	message: NormalizedChatMessage | Misskey.entities.ChatMessage;
+	item: TimelineItem;
+	membership?: Misskey.entities.ChatRoomMembership;
 	isSearchResult?: boolean;
 }>();
 
-const isMe = computed(() => props.message.fromUserId === $i.id);
-const urls = computed(() => props.message.text ? extractUrlFromMfm(mfm.parse(props.message.text)) : []);
+const isMe = computed(() => props.membership?.user!.id === $i.id);
+const urls = computed(() => (props.item.type === 'message' && props.item.data.text) ? extractUrlFromMfm(mfm.parse(props.item.data.text)) : []);
 
-provide(DI.mfmEmojiReactCallback, (reaction) => {
-	if ($i.policies.chatAvailability !== 'available') return;
+const bubbleStyle = computed(() => {
+	return {
+		'--MI_USER-fukidashi' : props.membership?.bubbleColor || (isMe ? 'var(--MI_THEME-accent)' : 'var(--MI_THEME-panel)'),
+	};
+});
 
+const revealedSecrets = ref<Record<string, string>>({});
+
+provide(DI.mfmEmojiReactCallback, (reaction: string) => {
+	if ($i.policies.chatAvailability !== 'available' || props.item.type !== 'message') return;
+	const data = props.item.data as Misskey.entities.ChatMessageLite;
 	sound.playMisskeySfx('reaction');
 	misskeyApi('chat/messages/react', {
-		messageId: props.message.id,
+		messageId: data.id,
 		reaction: reaction,
 	});
 });
 
+async function vote(choiceIndex: number) {
+	if (props.item.type !== 'pollStarted') return;
+	const data = props.item.data as Misskey.entities.ChatPollStarted;
+	await misskeyApi('chat/polls/vote', {
+		pollId: data.id,
+		choice: choiceIndex,
+	});
+}
+
+async function revealSecret(secretId: string) {
+	try {
+		const revealed = await misskeyApi('chat/secrets/reveal', { id: secretId }) as { text: string };
+		revealedSecrets.value[secretId] = revealed.text;
+	} catch (err) {
+		console.error(err);
+		os.alert({ type: 'error', text: i18n.ts.somethingHappened });
+	}
+}
+
 function react(ev: PointerEvent) {
-	if ($i.policies.chatAvailability !== 'available') return;
+	if ($i.policies.chatAvailability !== 'available' || props.item.type !== 'message') return;
 
 	const targetEl = getHTMLElementOrNull(ev.currentTarget ?? ev.target);
 	if (!targetEl) return;
 
+	const data = props.item.data as Misskey.entities.ChatMessageLite;
 	reactionPicker.show(targetEl, null, async (reaction) => {
 		sound.playMisskeySfx('reaction');
 		misskeyApi('chat/messages/react', {
-			messageId: props.message.id,
+			messageId: data.id,
 			reaction: reaction,
 		});
 	});
 }
 
 function onReactionClick(record: Misskey.entities.ChatMessage['reactions'][0]) {
-	if ($i.policies.chatAvailability !== 'available') return;
+	if ($i.policies.chatAvailability !== 'available' || props.item.type !== 'message') return;
 
 	if (record.user.id === $i.id) {
 		misskeyApi('chat/messages/unreact', {
-			messageId: props.message.id,
+			messageId: props.item.data.id,
 			reaction: record.reaction,
 		});
 	} else {
-		if (!props.message.reactions.some(r => r.user.id === $i.id && r.reaction === record.reaction)) {
+		if (!(props.item.data as NormalizedChatMessage).reactions.some(r => r.user.id === $i.id && r.reaction === record.reaction)) {
 			sound.playMisskeySfx('reaction');
 			misskeyApi('chat/messages/react', {
-				messageId: props.message.id,
+				messageId: props.item.data.id,
 				reaction: record.reaction,
 			});
 		}
@@ -131,11 +226,14 @@ function onReactionClick(record: Misskey.entities.ChatMessage['reactions'][0]) {
 function onContextmenu(ev: PointerEvent) {
 	if (ev.target && isLink(ev.target as HTMLElement)) return;
 	if (window.getSelection()?.toString() !== '') return;
+	if (props.item.type !== 'message') return;
 
 	showMenu(ev, true);
 }
 
 function showMenu(ev: PointerEvent, contextmenu = false) {
+	if (props.item.type !== 'message') return;
+
 	const menu: MenuItem[] = [];
 
 	if (!isMe.value && $i.policies.chatAvailability === 'available') {
@@ -156,7 +254,7 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 		text: i18n.ts.copyContent,
 		icon: 'ti ti-copy',
 		action: () => {
-			copyToClipboard(props.message.text ?? '');
+			copyToClipboard((props.item.data as Misskey.entities.ChatMessageLite).text ?? '');
 		},
 	});
 
@@ -171,20 +269,20 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 			danger: true,
 			action: () => {
 				misskeyApi('chat/messages/delete', {
-					messageId: props.message.id,
+					messageId: (props.item.data as Misskey.entities.ChatMessageLite).id,
 				});
 			},
 		});
 	}
 
-	if (!isMe.value && props.message.fromUser != null) {
+	if (!isMe.value && props.membership?.user != null) {
 		menu.push({
 			text: i18n.ts.reportAbuse,
 			icon: 'ti ti-exclamation-circle',
 			action: async () => {
-				const localUrl = `${url}/chat/messages/${props.message.id}`;
+				const localUrl = `${url}/chat/messages/${(props.item.data as Misskey.entities.ChatMessageLite).id}`;
 				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkAbuseReportWindow.vue').then(x => x.default), {
-					user: props.message.fromUser!,
+					user: props.membership!.user!,
 					initialComment: `${localUrl}\n-----\n`,
 				}, {
 					closed: () => dispose(),
@@ -329,4 +427,93 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 	width: 24px;
 	height: 24px;
 }
+
+.pollFinish {
+	margin-top: 3px;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 3px;
+	b {
+		display: block;
+		margin-bottom: 8px;
+	}
+}
+@media (min-width: 1440px) {
+	.pollFinish {
+		gap: 4px;
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
+
+
+.pollChoice {
+	padding: 4px;
+	border: solid 1px var(--MI_THEME-divider);
+	border-radius: 8px;
+	margin-top: 2px;
+	cursor: pointer;
+
+	&:hover {
+		background: var(--MI_THEME-panel-hover);
+	}
+	> .choiceContainer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		> .choice {
+			flex: 2;
+			> .card {
+				max-width: 140px;
+			}
+		}
+		> .vote {
+			padding: 4px 8px 4px;
+		}
+	}
+	> .choiceFooter{
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 4px;
+	}
+}
+
+.voteCount {
+	font-size: 150%;
+	font-weight: bold;
+}
+	
+.secret {
+	> .message {
+		font-style: italic;
+		opacity: 0.8;
+	}
+	> .plainText {
+		font-weight: bold;
+		font-size: 110%;
+		padding: 0.2em 0.5em;
+		letter-spacing: 0.1em;
+	}
+}
+
+.card {
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	.cardContainer {
+		display: flex;
+		flex-direction: column;
+		align-items: end;
+		.cardContent {
+			font-size: 110%;
+		}
+		.deliverId {
+			font-size: 80%;
+			opacity: 0.8;
+		}
+	}
+}
+
+
 </style>

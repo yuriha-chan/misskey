@@ -1161,6 +1161,10 @@ export interface Locale extends ILocale {
      */
     "removed": string;
     /**
+     * この操作は元に戻せません。
+     */
+    "thisOperationCannotBeUndone": string;
+    /**
      * 「{x}」を削除しますか？
      */
     "removeAreYouSure": ParameterizedString<"x">;
@@ -1168,6 +1172,10 @@ export interface Locale extends ILocale {
      * 「{x}」を削除しますか？
      */
     "deleteAreYouSure": ParameterizedString<"x">;
+    /**
+     * 「{x}」をアーカイブしますか？
+     */
+    "archiveAreYouSure": ParameterizedString<"x">;
     /**
      * リセットしますか？
      */
@@ -5932,6 +5940,10 @@ export interface Locale extends ILocale {
          */
         "sentInvitations": string;
         /**
+         * チャットグループ
+         */
+        "chatRoom": string;
+        /**
          * 参加
          */
         "join": string;
@@ -5943,6 +5955,18 @@ export interface Locale extends ILocale {
          * グループから退出
          */
         "leave": string;
+        /**
+         * {who}がグループに参加しました
+         */
+        "userHasJoined": ParameterizedString<"who">;
+        /**
+         * {who}がグループから退出しました
+         */
+        "userHasLeft": ParameterizedString<"who">;
+        /**
+         * {who}がグループから退出させられました
+         */
+        "userHasKicked": ParameterizedString<"who">;
         /**
          * メンバー
          */
@@ -6049,6 +6073,270 @@ export interface Locale extends ILocale {
              */
             "none": string;
         };
+        /**
+         * 公開グループとして作成
+         */
+        "isPublicRoom": string;
+        /**
+         * 公開グループはありません
+         */
+        "noPublicRoom": string;
+        /**
+         * 退出させる
+         */
+        "kickUser": string;
+        /**
+         * 自動で解散
+         */
+        "expires": string;
+        /**
+         * 時間経過で解散
+         */
+        "expiresIn": string;
+        /**
+         * グループを解散してアーカイブする
+         */
+        "archiveRoom": string;
+        /**
+         * このグループはアーカイブされています。
+         */
+        "thisRoomIsArchived": string;
+        /**
+         * グループの定員
+         */
+        "capacity": string;
+        /**
+         * 公開グループ
+         */
+        "publicRooms": string;
+        /**
+         * 公開グループは6時間以内に自動解散する必要があります
+         */
+        "publicRoomMustExpire": string;
+        /**
+         * 秘密を伏せる
+         */
+        "attachSecret": string;
+        /**
+         * 秘密が添付されています
+         */
+        "secretAttached": string;
+        /**
+         * 秘密を編集
+         */
+        "editSecret": string;
+        /**
+         * が秘密「{title}」を伏せました
+         */
+        "secretCommited": ParameterizedString<"title">;
+        /**
+         * の秘密が公開されました
+         */
+        "secretRevealed": string;
+        /**
+         * 秘密の内容
+         */
+        "secretContent": string;
+        /**
+         * タイトル(公開)
+         */
+        "secretTitle": string;
+        /**
+         * 秘密を公開する
+         */
+        "revealSecret": string;
+        /**
+         * カードを公開
+         */
+        "revealCard": string;
+        /**
+         * 自動で秘密を公開する
+         */
+        "autoReveal": string;
+        /**
+         * 時間経過で公開:
+         */
+        "revealsAfter": string;
+        /**
+         * 秘密「{what}」が伏せられています
+         */
+        "hasCommittedSecret": ParameterizedString<"what">;
+        /**
+         * 秘密「{what}」を公開しますか？
+         */
+        "secretRevealConfirm": ParameterizedString<"what">;
+        /**
+         * カード「{what}」を公開しますか？
+         */
+        "cardRevealConfirm": ParameterizedString<"what">;
+        /**
+         * がカードを公開しました
+         */
+        "cardRevealed": string;
+        /**
+         * カードの名前を入力 (例: スペードのエース)
+         */
+        "cardPlaceHolder": string;
+        /**
+         * 枚
+         */
+        "cardSuffix": string;
+        /**
+         * 投票済み
+         */
+        "voted": string;
+        /**
+         * 投票者
+         */
+        "voters": string;
+        /**
+         * 票
+         */
+        "gotVotes": string;
+        /**
+         * 公開まで
+         */
+        "revealsIn": string;
+        /**
+         * 開始まで
+         */
+        "startsIn": string;
+        /**
+         * 終了まで
+         */
+        "finishesIn": string;
+        /**
+         * 投票を編集
+         */
+        "editPoll": string;
+        /**
+         * 投票を開始する
+         */
+        "startPoll": string;
+        /**
+         * 投票を終了
+         */
+        "finishPoll": string;
+        /**
+         * が投票「{what}」が予定しました
+         */
+        "pollScheduled": ParameterizedString<"what">;
+        /**
+         * が投票「{what}」を開始しました
+         */
+        "pollStarted": ParameterizedString<"what">;
+        /**
+         * 投票「{what}」が終了しました
+         */
+        "pollFinished": ParameterizedString<"what">;
+        /**
+         * 匿名投票 (開票時に投票者が表示されない)
+         */
+        "anonymousPoll": string;
+        /**
+         * グループ参加者に投票
+         */
+        "voteForRoomMembers": string;
+        /**
+         * 自分以外のグループ参加者に投票
+         */
+        "voteForRoomMembersNotMe": string;
+        /**
+         * ユーザーに投票
+         */
+        "voteForUsers": string;
+        /**
+         * 投票
+         */
+        "poll": string;
+        /**
+         * 投票
+         */
+        "vote": string;
+        /**
+         * 投票先を選択
+         */
+        "selectVote": string;
+        /**
+         * 投票選択肢
+         */
+        "pollChoices": string;
+        /**
+         * 投票時間
+         */
+        "pollDuration": string;
+        /**
+         * 投票開始まで
+         */
+        "pollStartsIn": string;
+        /**
+         * 投票のタイトル
+         */
+        "pollTitle": string;
+        /**
+         * 予定時刻前に投票「{what}」を締め切ります。まだ全員が投票していないようですが、よろしいですか？
+         */
+        "pollFinishConfirm": ParameterizedString<"what">;
+        /**
+         * 予定時刻前に投票「{what}」を開始します。よろしいですか？
+         */
+        "pollStartConfirm": ParameterizedString<"what">;
+        /**
+         * カードの一覧
+         */
+        "cardsList": string;
+        /**
+         * カードのタイトル
+         */
+        "cardsTitle": string;
+        /**
+         * 配布カードを編集
+         */
+        "editCards": string;
+        /**
+         * 参加設定を編集
+         */
+        "editParticipation": string;
+        /**
+         * 退出済みグループを含む
+         */
+        "includeLeftRooms": string;
+        /**
+         * 解散されたグループを含む
+         */
+        "includeArchivedRooms": string;
+        /**
+         * 公開グループがありません
+         */
+        "noPublicRooms": string;
+        /**
+         * あなたのカード
+         */
+        "yourCard": string;
+        /**
+         * カードを配る
+         */
+        "deliverCards": string;
+        /**
+         * ユーザーごとの配布数
+         */
+        "cardCountsByUser": string;
+        /**
+         * 全員に配る枚数を設定
+         */
+        "setCardCountsAll": string;
+        /**
+         * カードが配られました
+         */
+        "cardDelivered": string;
+        /**
+         * 匿名発言
+         */
+        "anonymousSpeech": string;
+        /**
+         * 自分の発言の吹き出しの色を選択
+         */
+        "selectBubbleColor": string;
     };
     "_emojiPalette": {
         /**

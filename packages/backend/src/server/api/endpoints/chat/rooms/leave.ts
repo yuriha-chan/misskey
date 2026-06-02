@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { ChatService } from '@/core/ChatService.js';
 import { ApiError } from '@/server/api/error.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 export const meta = {
 	tags: ['chat'],
@@ -41,7 +42,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
 
-			await this.chatService.leaveRoom(me.id, ps.roomId);
+			try {
+				await this.chatService.leaveRoom(me.id, ps.roomId, false);
+			} catch (err) {
+				if (err instanceof IdentifiableError) {
+					if (err.id === 'd7ed9aeb-1b48-4769-bcef-081beb81c71f') {
+						throw new ApiError(meta.errors.noSuchRoom);
+					}
+				}
+				throw err;
+			}
 		});
 	}
 }

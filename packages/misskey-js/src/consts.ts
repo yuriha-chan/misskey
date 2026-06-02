@@ -243,6 +243,9 @@ export const queueTypes = [
 	'objectStorage',
 	'userWebhookDeliver',
 	'systemWebhookDeliver',
+	'closeExpiredChatRoom',
+	'revealChatSecret',
+	'endChatPoll',
 ] as const;
 
 // See: packages/backend/src/core/ReversiService.ts@L410

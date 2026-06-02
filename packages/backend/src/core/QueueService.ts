@@ -29,6 +29,9 @@ import type {
 	DbQueue,
 	DeliverQueue,
 	EndedPollNotificationQueue,
+	CloseExpiredChatRoomQueue,
+	RevealChatSecretQueue,
+	EndChatPollQueue,
 	PostScheduledNoteQueue,
 	InboxQueue,
 	ObjectStorageQueue,
@@ -43,6 +46,9 @@ import type * as Bull from 'bullmq';
 export const QUEUE_TYPES = [
 	'system',
 	'endedPollNotification',
+	'closeExpiredChatRoom',
+	'revealChatSecret',
+	'endChatPoll',
 	'postScheduledNote',
 	'deliver',
 	'inbox',
@@ -105,6 +111,9 @@ export class QueueService {
 
 		@Inject('queue:system') public systemQueue: SystemQueue,
 		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
+		@Inject('queue:closeExpiredChatRoom') public closeExpiredChatRoomQueue: CloseExpiredChatRoomQueue,
+		@Inject('queue:revealChatSecret') public revealChatSecretQueue: RevealChatSecretQueue,
+		@Inject('queue:endChatPoll') public endChatPollQueue: EndChatPollQueue,
 		@Inject('queue:postScheduledNote') public postScheduledNoteQueue: PostScheduledNoteQueue,
 		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
 		@Inject('queue:inbox') public inboxQueue: InboxQueue,
@@ -734,6 +743,9 @@ export class QueueService {
 		switch (type) {
 			case 'system': return this.systemQueue;
 			case 'endedPollNotification': return this.endedPollNotificationQueue;
+			case 'closeExpiredChatRoom': return this.closeExpiredChatRoomQueue;
+			case 'revealChatSecret': return this.revealChatSecretQueue;
+			case 'endChatPoll': return this.endChatPollQueue;
 			case 'postScheduledNote': return this.postScheduledNoteQueue;
 			case 'deliver': return this.deliverQueue;
 			case 'inbox': return this.inboxQueue;

@@ -42,6 +42,15 @@ export const packedChatMessageSchema = {
 			optional: true, nullable: true,
 			ref: 'ChatRoom',
 		},
+		visibleUserIds: {
+			type: 'array',
+			optional: true, nullable: false,
+			items: {
+				type: 'string',
+				optional: false, nullable: false,
+				format: 'id',
+			},
+		},
 		text: {
 			type: 'string',
 			optional: true, nullable: true,
@@ -122,6 +131,15 @@ export const packedChatMessageLiteSchema = {
 			type: 'object',
 			optional: true, nullable: true,
 			ref: 'DriveFile',
+		},
+		visibleUserIds: {
+			type: 'array',
+			optional: true, nullable: false,
+			items: {
+				type: 'string',
+				optional: false, nullable: false,
+				format: 'id',
+			},
 		},
 		reactions: {
 			type: 'array',
@@ -211,14 +229,18 @@ export const packedChatMessageLiteForRoomSchema = {
 			type: 'string',
 			optional: false, nullable: false,
 		},
-		fromUser: {
-			type: 'object',
-			optional: false, nullable: false,
-			ref: 'UserLite',
-		},
 		toRoomId: {
 			type: 'string',
 			optional: false, nullable: false,
+		},
+		visibleUserIds: {
+			type: 'array',
+			optional: true, nullable: false,
+			items: {
+				type: 'string',
+				optional: false, nullable: false,
+				format: 'id',
+			},
 		},
 		text: {
 			type: 'string',

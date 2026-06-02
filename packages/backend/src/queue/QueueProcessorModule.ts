@@ -10,6 +10,9 @@ import { QueueLoggerService } from './QueueLoggerService.js';
 import { QueueProcessorService } from './QueueProcessorService.js';
 import { DeliverProcessorService } from './processors/DeliverProcessorService.js';
 import { EndedPollNotificationProcessorService } from './processors/EndedPollNotificationProcessorService.js';
+import { CloseExpiredChatRoomProcessorService } from './processors/CloseExpiredChatRoomProcessorService.js';
+import { RevealChatSecretProcessorService } from './processors/RevealChatSecretProcessorService.js';
+import { EndChatPollProcessorService } from './processors/EndChatPollProcessorService.js';
 import { PostScheduledNoteProcessorService } from './processors/PostScheduledNoteProcessorService.js';
 import { InboxProcessorService } from './processors/InboxProcessorService.js';
 import { UserWebhookDeliverProcessorService } from './processors/UserWebhookDeliverProcessorService.js';
@@ -80,6 +83,9 @@ import { RelationshipProcessorService } from './processors/RelationshipProcessor
 		UserWebhookDeliverProcessorService,
 		SystemWebhookDeliverProcessorService,
 		EndedPollNotificationProcessorService,
+		CloseExpiredChatRoomProcessorService,
+		RevealChatSecretProcessorService,
+		EndChatPollProcessorService,
 		PostScheduledNoteProcessorService,
 		DeliverProcessorService,
 		InboxProcessorService,
