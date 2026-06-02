@@ -433,7 +433,9 @@ import type {
 	IAuthorizedAppsResponse,
 	IChangePasswordRequest,
 	IClaimAchievementRequest,
+	ICreateSubAccountRequest,
 	IDeleteAccountRequest,
+	IDeleteSubAccountRequest,
 	IExportFollowingRequest,
 	IFavoritesRequest,
 	IFavoritesResponse,
@@ -441,6 +443,7 @@ import type {
 	IGalleryLikesResponse,
 	IGalleryPostsRequest,
 	IGalleryPostsResponse,
+	IGetSubAccountTokensResponse,
 	IImportAntennasRequest,
 	IImportBlockingRequest,
 	IImportFollowingRequest,
@@ -961,7 +964,9 @@ export type Endpoints = {
 	'i/authorized-apps': { req: IAuthorizedAppsRequest; res: IAuthorizedAppsResponse };
 	'i/change-password': { req: IChangePasswordRequest; res: EmptyResponse };
 	'i/claim-achievement': { req: IClaimAchievementRequest; res: EmptyResponse };
+	'i/create-sub-account': { req: ICreateSubAccountRequest; res: EmptyResponse };
 	'i/delete-account': { req: IDeleteAccountRequest; res: EmptyResponse };
+	'i/delete-sub-account': { req: IDeleteSubAccountRequest; res: EmptyResponse };
 	'i/export-antennas': { req: EmptyRequest; res: EmptyResponse };
 	'i/export-blocking': { req: EmptyRequest; res: EmptyResponse };
 	'i/export-clips': { req: EmptyRequest; res: EmptyResponse };
@@ -973,6 +978,7 @@ export type Endpoints = {
 	'i/favorites': { req: IFavoritesRequest; res: IFavoritesResponse };
 	'i/gallery/likes': { req: IGalleryLikesRequest; res: IGalleryLikesResponse };
 	'i/gallery/posts': { req: IGalleryPostsRequest; res: IGalleryPostsResponse };
+	'i/get-sub-account-tokens': { req: EmptyRequest; res: IGetSubAccountTokensResponse };
 	'i/import-antennas': { req: IImportAntennasRequest; res: EmptyResponse };
 	'i/import-blocking': { req: IImportBlockingRequest; res: EmptyResponse };
 	'i/import-following': { req: IImportFollowingRequest; res: EmptyResponse };
