@@ -210,6 +210,9 @@ export const PREF_DEF = definePreferences({
 	nsfw: {
 		default: 'respect' as 'respect' | 'force' | 'ignore',
 	},
+	hideR18Content: {
+		default: true,
+	},
 	highlightSensitiveMedia: {
 		default: false,
 	},
@@ -361,6 +364,15 @@ export const PREF_DEF = definePreferences({
 		default: hemisphere as 'N' | 'S',
 	},
 	enableSeasonalScreenEffect: {
+		default: false,
+	},
+	reduceMargin: {
+		default: true,
+	},
+	largeNoteText: {
+		default: true,
+	},
+	hideNavFooter: {
 		default: false,
 	},
 	enableHorizontalSwipe: {

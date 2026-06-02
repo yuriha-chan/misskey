@@ -1533,6 +1533,62 @@ export interface Locale extends ILocale {
      */
     "displayOfSensitiveMedia": string;
     /**
+     * 成人向けコンテンツを完全に非表示にする
+     */
+    "hideR18Content": string;
+    /**
+     * このオプションをオンにすると、成人向けコンテンツが含まれていると判定されたノートが完全に隠されます。
+     */
+    "hideR18ContentDescription1": string;
+    /**
+     * 成人向けコンテンツとは、性的に露骨であるなどの理由により、未成年の閲覧には適していないと投稿者が位置付けた内容を指します。
+     */
+    "hideR18ContentDescription2": string;
+    /**
+     * 成人向けコンテンツの表示設定にかかわらず、すべてのセンシティブな画像(刺激的な画像)はぼかしで表示され、クリックすると内容が表示されます。
+     */
+    "hideR18ContentDescription3": string;
+    /**
+     * センシティブなメディアとは、刺激が伴うため、心理的に無防備な状況や、公共の場での閲覧には注意が必要であると投稿者が設定した画像や音声などのファイルを指します。
+     */
+    "sensitiveMediaDescription": string;
+    /**
+     * 成人向けコンテンツの設定
+     */
+    "r18ConsentTitle": string;
+    /**
+     * 未成年の閲覧に適していないコンテンツを一律に非表示にするかどうかを設定します。
+     */
+    "r18ConsentDescription1": string;
+    /**
+     * 選択した年齢は保存されず、表示するかどうかの設定のみが保存されます。この設定は後から変更可能です。
+     */
+    "r18ConsentDescription2": string;
+    /**
+     * あなたは18歳以上ですか？
+     */
+    "r18ConsentAreYouOver18": string;
+    /**
+     * 17歳以下 / 年齢は言いたくない
+     */
+    "r18ConsentUnder17OrNotToSay": string;
+    /**
+     * 18歳以上
+     */
+    "r18ConsentOver18": string;
+    /**
+     * 未成年の閲覧に適していないと投稿者が位置づけた内容は、画面に表示されないように設定します。
+     */
+    "r18ConsentUnder17Description1": string;
+    /**
+     * 成人向けではないセンシティブな画像(刺激的な画像)についてはぼかしで表示され、クリックすると内容が表示されます。
+     */
+    "r18ConsentUnder17Description2": string;
+    /**
+     * このノートは成人向けの内容を含むため、表示しません。
+     */
+    "r18ContentIncludedNotDisplayed": string;
+    /**
      * サーバーとの接続が失われたとき
      */
     "whenServerDisconnected": string;
@@ -4627,6 +4683,14 @@ export interface Locale extends ILocale {
      */
     "hiddenTagsDescription": string;
     /**
+     * 成人向けコンテンツフィルター
+     */
+    "r18ContentFilter": string;
+    /**
+     * 設定した条件に一致するノートにR18フラグを自動付与します。スペースで区切るとAND指定になり、キーワードをスラッシュで囲むと正規表現になります。
+     */
+    "r18ContentFilterDescription": string;
+    /**
      * ノート検索は利用できません。
      */
     "notesSearchNotAvailable": string;
@@ -6150,7 +6214,7 @@ export interface Locale extends ILocale {
          */
         "sentInvitations": string;
         /**
-         * チャットルーム
+         * チャットグループ
          */
         "chatRoom": string;
         /**
@@ -6166,15 +6230,15 @@ export interface Locale extends ILocale {
          */
         "leave": string;
         /**
-         * {who}がルームに参加しました
+         * {who}がグループに参加しました
          */
         "userHasJoined": ParameterizedString<"who">;
         /**
-         * {who}がルームから退出しました
+         * {who}がグループから退出しました
          */
         "userHasLeft": ParameterizedString<"who">;
         /**
-         * {who}がルームから退出させられました
+         * {who}がグループから退出させられました
          */
         "userHasKicked": ParameterizedString<"who">;
         /**
@@ -6284,11 +6348,11 @@ export interface Locale extends ILocale {
             "none": string;
         };
         /**
-         * 公開ルームとして作成
+         * 公開グループとして作成
          */
         "isPublicRoom": string;
         /**
-         * 公開ルームはありません
+         * 公開グループはありません
          */
         "noPublicRoom": string;
         /**
@@ -6304,23 +6368,23 @@ export interface Locale extends ILocale {
          */
         "expiresIn": string;
         /**
-         * ルームを解散してアーカイブする
+         * グループを解散してアーカイブする
          */
         "archiveRoom": string;
         /**
-         * このルームはアーカイブされています。
+         * このグループはアーカイブされています。
          */
         "thisRoomIsArchived": string;
         /**
-         * ルームの定員
+         * グループの定員
          */
         "capacity": string;
         /**
-         * 公開ルーム
+         * 公開グループ
          */
         "publicRooms": string;
         /**
-         * 公開ルームは6時間以内に自動解散する必要があります
+         * 公開グループは6時間以内に自動解散する必要があります
          */
         "publicRoomMustExpire": string;
         /**
@@ -6444,11 +6508,11 @@ export interface Locale extends ILocale {
          */
         "anonymousPoll": string;
         /**
-         * ルーム参加者に投票
+         * グループ参加者に投票
          */
         "voteForRoomMembers": string;
         /**
-         * 自分以外のルーム参加者に投票
+         * 自分以外のグループ参加者に投票
          */
         "voteForRoomMembersNotMe": string;
         /**
@@ -6508,15 +6572,15 @@ export interface Locale extends ILocale {
          */
         "editParticipation": string;
         /**
-         * 退出積みルームを含む
+         * 退出済みグループを含む
          */
         "includeLeftRooms": string;
         /**
-         * 解散されたルームを含む
+         * 解散されたグループを含む
          */
         "includeArchivedRooms": string;
         /**
-         * 公開ルームがありません
+         * 公開グループがありません
          */
         "noPublicRooms": string;
         /**
@@ -7040,6 +7104,10 @@ export interface Locale extends ILocale {
          * プライバシー設定
          */
         "privacySetting": string;
+        /**
+         * 成人向けコンテンツの表示設定
+         */
+        "r18ContentSetting": string;
         /**
          * これらの設定は後から変更できます。
          */
@@ -11728,6 +11796,10 @@ export interface Locale extends ILocale {
          * 最小文字数を下回っています！ 現在 {current} / 制限 {min}
          */
         "charactersBelow": ParameterizedString<"current" | "min">;
+        /**
+         * フィルター書式が無効です: "{filter}"
+         */
+        "filterSyntaxError": ParameterizedString<"filter">;
     };
     "_disabledTimeline": {
         /**
@@ -13069,6 +13141,22 @@ export interface Locale extends ILocale {
          * 例: misskey.example.com
          */
         "serverHostPlaceholder": string;
+        /**
+         * 最近のローカルタイムライン
+         */
+        "recentLocalTimeline": string;
+        /**
+         * 最近のホームタイムライン
+         */
+        "recentHomeTimeline": string;
+        /**
+         * 自分宛ての指名投稿
+         */
+        "specifiedToMe": string;
+        /**
+         * ボットの投稿を含める
+         */
+        "includeBot": string;
     };
     "_serverSetupWizard": {
         /**

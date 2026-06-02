@@ -8,11 +8,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkButton v-if="isOwner" primary rounded style="margin: 0 auto;" @click="emit('inviteUser')"><i class="ti ti-plus"></i> {{ i18n.ts._chat.inviteUser }}</MkButton>
 
 	<div v-for="membership in memberships" :key="membership.id" :class="$style.membership">
-		<div v-if="room.owner.id === membership.user.id">Owner</div>
+		<div v-if="room.owner.id === membership.user?.id">Owner</div>
 		<MkA :class="$style.membershipBody" :to="`${userPage(room.owner)}`">
 			<MkUserCardMini :user="membership.user!"/>
 		</MkA>
-		<MkButton v-if="isOwner && room.owner.id !== membership.user.id" danger @click="() => onKickClick(membership.user)"><i class="ti ti-x"></i> {{ i18n.ts._chat.kickUser }}</MkButton>
+		<MkButton v-if="isOwner && room.owner.id !== membership.user?.id" danger @click="() => onKickClick(membership.user!)"><i class="ti ti-x"></i> {{ i18n.ts._chat.kickUser }}</MkButton>
 	</div>
 
 	<template v-if="isOwner">
@@ -56,7 +56,7 @@ const isOwner = computed(() => {
 const memberships = ref<Misskey.entities.ChatRoomMembership[]>([]);
 const invitations = ref<Misskey.entities.ChatRoomInvitation[]>([]);
 
-async function onKickClick(user) {
+async function onKickClick(user: { id: string }) {
 	misskeyApi('chat/rooms/kick', {
 		roomId: props.room.id,
 		userId: user.id,

@@ -14,7 +14,7 @@ export const packedChatEventSchema = {
 				},
 				data: {
 					type: "object",
-					ref: "ChatMessageLite",
+					ref: "ChatMessageLiteForRoom",
 				},
 			},
 			required: ["type", "data"],

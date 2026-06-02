@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { SearchService } from '@/core/SearchService.js';
+import { SearchService, type SearchOpts } from '@/core/SearchService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
@@ -81,9 +81,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: ps.userId,
 				channelId: ps.channelId,
 				host: ps.host,
-				timeline: ps.timeline,
-				specified: ps.specified,
-				excludeBot: ps.excludeBot,
+				timeline: ps.timeline as SearchOpts['timeline'],
+				specified: ps.specified ?? undefined,
+				excludeBot: ps.excludeBot ?? undefined,
 			}, {
 				untilId: untilId,
 				sinceId: sinceId,

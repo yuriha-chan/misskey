@@ -124,6 +124,10 @@ type Source = {
 			enableQueryParamLogging?: boolean,
 		}
 	}
+	prefilter?: {
+		host: string;
+		port: number;
+	};
 };
 
 export type Config = {
@@ -230,6 +234,10 @@ export type Config = {
 	perUserNotificationsMaxCount: number;
 	deactivateAntennaThreshold: number;
 	pidFile: string;
+	prefilter: {
+		host: string;
+		port: number;
+	};
 };
 
 export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch';
@@ -358,6 +366,7 @@ export function loadConfig(): Config {
 		perUserNotificationsMaxCount: config.perUserNotificationsMaxCount ?? 500,
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
+		prefilter: config.prefilter ?? { host: 'search', port: 8080 },
 		logging: config.logging,
 	};
 }

@@ -8,6 +8,6 @@ export type PageHeaderItem = {
 	icon: string;
 	highlighted?: boolean;
 	handler: (ev: PointerEvent) => void;
-	showText: boolean;
+	showText?: boolean;
 	danger?: boolean;
 };

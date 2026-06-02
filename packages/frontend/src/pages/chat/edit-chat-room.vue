@@ -10,7 +10,7 @@
 				<MkTextarea v-model="roomDescription">
 					<template #label>{{ i18n.ts.description }}</template>
 				</MkTextarea>
-				<MkInput v-model.number="roomCapacity" type="number" min="2" max="30" placeholder="2-30">
+				<MkInput v-model="roomCapacity" type="number" :min="2" :max="30" placeholder="2-30">
 					<template #label>{{ i18n.ts._chat.capacity }}</template>
 				</MkInput>
 				<MkSwitch v-model="roomIsPublic">
@@ -20,7 +20,7 @@
 				<MkSwitch v-model="expires" :disabled="roomIsPublic">
 					<template #label>{{ i18n.ts._chat.expires }}</template>
 				</MkSwitch>
-				<MkInput v-if="expires" v-model.number="expiresIn" type="number" :min="0.1" :max="roomIsPublic ? 6 : 744">
+				<MkInput v-if="expires" v-model="expiresIn" type="number" :min="0.1" :max="roomIsPublic ? 6 : 744">
 					<template #label>{{ i18n.ts._chat.expiresIn }}</template>
 					<template #suffix>{{ i18n.ts._time.hour }}</template>
 				</MkInput>

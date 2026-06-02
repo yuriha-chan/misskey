@@ -324,6 +324,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkSelect>
 								</MkPreferenceContainer>
 							</SearchMarker>
+
+							<SearchMarker :keywords="['r18', 'content', 'filter', 'hide', 'adult']">
+								<MkPreferenceContainer k="hideR18Content">
+									<button class="_button" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 0" @click="openR18Dialog">
+										<SearchLabel>{{ i18n.ts.hideR18Content }}</SearchLabel>
+										<i class="ti ti-chevron-right"></i>
+									</button>
+								</MkPreferenceContainer>
+							</SearchMarker>
 						</div>
 					</div>
 				</MkFolder>
@@ -887,7 +896,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { langs } from '@@/js/config.js';
 import * as Misskey from 'misskey-js';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -1108,6 +1117,13 @@ async function setPinnedList() {
 
 function removePinnedList() {
 	prefer.commit('pinnedUserLists', []);
+}
+
+function openR18Dialog() {
+	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkR18ConsentDialog.vue')), {
+	}, {
+		closed: () => dispose(),
+	});
 }
 
 function enableAllDataSaver() {

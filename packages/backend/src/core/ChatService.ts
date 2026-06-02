@@ -8,6 +8,7 @@ import * as Redis from 'ioredis';
 import { DataSource, Brackets, IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
@@ -255,7 +256,7 @@ export class ChatService {
 	@bindThis
 	public async listSecret(roomId: MiChatRoom['id'], me?: MiUser) {
 		const secrets = await this.chatSecretsRepository.find({ where: { roomId, revealedId: IsNull() }});
-		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt, createdAt: this.idService.parse(s.id).date.toISOString() }));
+		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt?.toISOString() ?? null, createdAt: this.idService.parse(s.id).date.toISOString() }));
 	}
 
 	@bindThis
@@ -277,10 +278,13 @@ export class ChatService {
 
 	@bindThis
 	public async revealSecret(id: MiChatSecret['id'], user?: MiUser) {
-		const secret = await this.chatSecretsRepository.findOneByOrFail({ id });
+		const secret = await this.chatSecretsRepository.findOneBy({ id });
+		if (secret == null) {
+			throw new IdentifiableError('c2b21243-e687-4e71-9b87-b60031874fcc', 'no such secret');
+		}
 		if (user) {
 			if (secret.userId !== user.id) {
-				throw new Error("not permitted to disclose secret");
+				throw new IdentifiableError('f16f7e8b-044c-498b-8946-1bb52718663d', 'not permitted to disclose secret');
 			}
 		}
 		if (secret.revealedId) {
@@ -294,10 +298,13 @@ export class ChatService {
 
 	@bindThis
 	public async revealCard(deliverId: MiChatCard['deliverId'], cardId: MiChatCard['cardId'], user?: MiUser) {
-		const card = await this.chatCardsRepository.findOneByOrFail({ deliverId, cardId });
+		const card = await this.chatCardsRepository.findOneBy({ deliverId, cardId });
+		if (card == null) {
+			throw new IdentifiableError('e2cdba26-87c9-43bb-98d5-5c28b0329c9c', 'no such card');
+		}
 		if (user) {
 			if (card.userId !== user.id) {
-				throw new Error("not permitted to disclose secret");
+				throw new IdentifiableError('b56c91ef-b1ee-48e7-bfb0-bee1025cb905', 'not permitted to disclose card');
 			}
 		}
 		if (card.revealedId) {
@@ -411,7 +418,7 @@ export class ChatService {
 		}))
 
 		if (!memberships.some(member => member.userId === fromUser.id)) {
-			throw new Error('you are not a member of the room');
+			throw new IdentifiableError('d62635ea-26b0-43e5-84af-fbf6c6dcd08a', 'you are not a member of the room');
 		}
 
 		const membershipsOtherThanMe = memberships.filter(member => member.userId !== fromUser.id);
@@ -436,7 +443,7 @@ export class ChatService {
 			packedMessage = await this.chatEntityService.packMessageLiteForRoom(inserted);
 
 			if (!message.visibleUserIds) {
-			  this.globalEventService.publishChatRoomStream(toRoom.id, 'message', packedMessage);
+				this.globalEventService.publishChatRoomStream(toRoom.id, 'message', packedMessage);
 			} else {
 				for (const userId of message.visibleUserIds) {
 					this.globalEventService.publishChatRoomUserStream(toRoom.id, userId, 'message', packedMessage);
@@ -483,8 +490,8 @@ export class ChatService {
 				owner: null,
 				title: params.poll.title,
 				choices: params.poll.choices,
-				voteForUsers: params.poll.voteForUsers,
-				anonymous: params.poll.anonymous,
+				voteForUsers: params.poll.voteForUsers ?? false,
+				anonymous: params.poll.anonymous ?? false,
 				startsAt: params.poll.startsAt ?? null,
 				startedId: null,
 				duration: params.poll.duration ?? null,
@@ -495,7 +502,7 @@ export class ChatService {
 			if (poll.startsAt != null) {
 				this.schedulePoll(poll);
 			} else {
-				this.startPoll(poll.id);
+				await this.startPoll(poll.id);
 			}
 		}
 
@@ -536,7 +543,7 @@ export class ChatService {
 						cardKind,
 						revealedId: null,
 					} satisfies Partial<MiChatCard>;
-					this.chatCardsRepository.insertOne(card);
+					await this.chatCardsRepository.insertOne(card);
 					const packedCard: Packed<'ChatCard'> = await this.chatEntityService.packCard(card);
 					this.globalEventService.publishChatRoomUserStream(toRoom.id, userId, 'cardDelivered', packedCard);
 					i++;
@@ -766,6 +773,11 @@ export class ChatService {
 			this.queryService
 				.getRange(this.chatMessagesRepository.createQueryBuilder('message'), sinceId, untilId, ascending, 'id')
 				.andWhere('message.toRoomId = :roomId', { roomId })
+				.andWhere(new Brackets(qb => {
+					qb.where('message.visibleUserIds IS NULL')
+						.orWhere('message.fromUserId = :meId')
+						.orWhere(':meIdAsList <@ message.visibleUserIds');
+				}), { meId, meIdAsList: [meId] })
 				.leftJoinAndSelect('message.file', 'file')
 				.leftJoinAndSelect('message.fromUser', 'fromUser')
 				.getMany(),
@@ -986,6 +998,27 @@ export class ChatService {
 	}
 
 	@bindThis
+	public async hasPermissionToViewRoomInfo(meId: MiUser['id'], room: MiChatRoom) {
+		if (room.ownerId === meId) {
+			return true;
+		}
+
+		if (await this.isRoomMember(room, meId)) {
+			return true;
+		}
+
+		if (await this.chatRoomInvitationsRepository.findOneBy({ roomId: room.id, userId: meId })) {
+			return true;
+		}
+
+		if (await this.roleService.isModerator({ id: meId })) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@bindThis
 	public async hasPermissionToDeleteRoom(meId: MiUser['id'], room: MiChatRoom) {
 		if (room.ownerId === meId) {
 			return true;
@@ -1144,7 +1177,10 @@ export class ChatService {
 
 	@bindThis
 	public async joinToRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], params?: { bubbleColor?: string, bubbleStyle?: string }) {
-		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, isArchived: false });
+		const room = await this.chatRoomsRepository.findOneBy({ id: roomId, isArchived: false });
+		if (room == null) {
+			throw new IdentifiableError('6c9dec02-d228-43a5-978c-a53e8bba889c', 'no such room');
+		}
 		const invitation = await this.chatRoomInvitationsRepository.findOneBy({ roomId, userId });
 
 		if (!room.isPublic && !invitation && room.ownerId != userId) {
@@ -1198,7 +1234,10 @@ export class ChatService {
 
 	@bindThis
 	public async leaveRoom(userId: MiUser['id'], roomId: MiChatRoom['id'], kicked: boolean) {
-		const room = await this.chatRoomsRepository.findOneByOrFail({ id: roomId, isArchived: false });
+		const room = await this.chatRoomsRepository.findOneBy({ id: roomId, isArchived: false });
+		if (room == null) {
+			throw new IdentifiableError('d7ed9aeb-1b48-4769-bcef-081beb81c71f', 'no such room');
+		}
 		if (room.ownerId === userId) {
 			throw new Error("room owner cannot leave the room");
 		}
@@ -1222,7 +1261,10 @@ export class ChatService {
 
 	@bindThis
 	public async updateMembership(userId: MiUser['id'], roomId: MiChatRoom['id'], config: { bubbleColor?: string, bubbleStyle?: string }) {
-		const membership = await this.chatRoomMembershipsRepository.findOneByOrFail({ roomId, userId, hasLeft: false });
+		const membership = await this.chatRoomMembershipsRepository.findOneBy({ roomId, userId, hasLeft: false });
+		if (membership == null) {
+			throw new IdentifiableError('54c7c4f7-47e6-4088-9b29-69373cbab313', 'no such membership');
+		}
 		await this.chatRoomMembershipsRepository.update(membership.id, config);
 		const packedMembership = await this.chatEntityService.packRoomMembership({ ...membership!, ...config }, { id: userId }, { populateUser: true, populateRoom: false });
 		this.globalEventService.publishChatRoomStream(roomId, 'membershipUpdated', packedMembership);

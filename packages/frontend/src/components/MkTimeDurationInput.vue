@@ -64,7 +64,7 @@ const emit = defineEmits<{
 	(ev: 'update:modelValue', v: number): void;
 }>();
 
-function setValue(v) {
+function setValue(v: number) {
 	if (props.days) {
 		days.value = Math.floor(v / 86400);
 		hours.value = Math.floor((v % 86400) / 3600);

@@ -28,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-if="cards" :class="$style.previewItem">
 			<i class="ti ti-cards"></i>
 			<span>{{ cards.title }}</span>
-			<button class="_button" @click="card = null"><i class="ti ti-x"></i></button>
+			<button class="_button" @click="cards = null"><i class="ti ti-x"></i></button>
 		</div>
 
 		<div :class="$style.input">
@@ -56,6 +56,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, watch, ref, shallowRef, computed, nextTick, onBeforeUnmount, reactive } from 'vue';
 import * as Misskey from 'misskey-js';
+import type { ChatPollDraft, ChatSecretDraft, ChatCardsDraft } from './room.vue';
 //import insertTextAtCursor from 'insert-text-at-cursor';
 import { formatTimeString } from '@/utility/format-time-string.js';
 import { selectFile } from '@/utility/drive.js';
@@ -84,9 +85,9 @@ const fileEl = shallowRef<HTMLInputElement>();
 
 const text = ref<string>('');
 const file = ref<Misskey.entities.DriveFile | null>(null);
-const poll = ref<{ title: string; choices: string[]; startsIn: number; duration: number; anonymous: boolean; } | null>(null);
-const secret = ref<{ title: string; plaintext: string; revealsIn: number; } | null>(null);
-const cards = ref<{ title: string; cards: string[]; deliver: { user: string, count: number }[]} | null>(null);
+const poll = ref<ChatPollDraft | null>(null);
+const secret = ref<ChatSecretDraft | null>(null);
+const cards = ref<ChatCardsDraft | null>(null);
 const sending = ref(false);
 const textareaReadOnly = ref(false);
 let autocompleteInstance: Autocomplete | null = null;
@@ -116,7 +117,7 @@ async function openPollDialog() {
 		closed: () => dispose(),
 	});
 }
-async function openSecretDialog(): Promise {
+async function openSecretDialog(): Promise<void> {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-secret.vue').then(x => x.default), {
 		secret: secret.value,
 	}, {
@@ -245,7 +246,7 @@ function onKeydown(ev: KeyboardEvent) {
 	}
 }
 
-function chooseFile(ev: PointerEvent) {
+function chooseFile(ev: MouseEvent) {
 	selectFile({
 		anchorElement: ev.currentTarget ?? ev.target,
 		multiple: false,
@@ -265,11 +266,11 @@ function onChangeFile() {
 	}
 }
 
-function packDeliverCards(cards) {
+function packDeliverCards(cards: ChatCardsDraft) {
 	return {...cards, deliver: cards.deliver.map(d => ({ count: d.count, userId: d.user.id }))};
 }
-function packPoll(poll) {
-	return {...poll, choices: poll.voteForUsers ? poll.choices.map(u => u.id) : poll.choices };
+function packPoll(poll: ChatPollDraft) {
+	return {...poll, choices: poll.voteForUsers ? (poll.choices as Misskey.entities.UserLite[]).map(u => u.id) : poll.choices };
 }
 
 function send() {

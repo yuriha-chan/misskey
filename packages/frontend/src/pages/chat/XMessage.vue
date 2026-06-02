@@ -5,9 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div v-if="item" :class="[$style.root, { [$style.isMe]: isMe }]">
-	<MkAvatar v-if="item.type === 'message' && props.membership.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership.user" :link="!isMe" :preview="false"/>
-	<div :class="[$style.body, item.type !== 'file' && item.data.file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
-		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName']" :user="props.membership.user"/></div>
+	<MkAvatar v-if="item.type === 'message' && props.membership?.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership.user as Misskey.entities.UserLite" :link="!isMe" :preview="false"/>
+	<div :class="[$style.body, item.type === 'message' && (item.data as Misskey.entities.ChatMessageLite).file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
+		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && props.membership?.user" :user="props.membership.user as Misskey.entities.UserLite"/></div>
 		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.data.file != null" :style="bubbleStyle">
 			<Mfm
 				v-if="item.data.text"
@@ -24,43 +24,43 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</MkFukidashi>
 		<div v-else-if="item.type === 'pollScheduled'">
 			<div :class="$style.poll">
-				<div><MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollScheduled({ what: item.data.title }) }}</div>
-				<div><b>{{ i18n.ts._chat.startsIn }} {{ Math.round( (Date.parse(item.data.startsAt) - Date.parse(item.data.createdAt)) / 1000) }} {{ i18n.ts._time.second }}</b></div>
+				<div><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollScheduled({ what: (item.data as Misskey.entities.ChatPollScheduled).title ?? '' }) }}</div>
+				<div><b>{{ i18n.ts._chat.startsIn }} {{ Math.round( (Date.parse((item.data as Misskey.entities.ChatPollScheduled).startsAt ?? item.data.createdAt) - Date.parse(item.data.createdAt)) / 1000) }} {{ i18n.ts._time.second }}</b></div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'pollStarted'">
 			<div :class="$style.poll">
-				<div><MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollStarted({ what: item.data.title }) }}</div>
+				<div><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/> {{ i18n.tsx._chat.pollStarted({ what: (item.data as Misskey.entities.ChatPollStarted).title ?? '' }) }}</div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'pollFinished'">
-			<div><i class="ti ti-info-circle"/> {{ i18n.tsx._chat.pollFinished({ what: item.data.title }) }}</div>
+			<div><i class="ti ti-info-circle"/> {{ i18n.tsx._chat.pollFinished({ what: (item.data as Misskey.entities.ChatPollFinished).title ?? '' }) }}</div>
 			<div :class="$style.pollFinish">
-				<div v-for="(entry, i) in item.data.votes" :key="i" :class="$style.pollChoice">
+				<div v-for="(entry, i) in (item.data as Misskey.entities.ChatPollFinished).votes" :key="i" :class="$style.pollChoice">
 					<div :class="$style.choiceContainer">
-						<div v-if="item.data.voteForUsers" :class="$style.choice">
+						<div v-if="(item.data as Misskey.entities.ChatPollFinished).voteForUsers" :class="$style.choice">
 							<MkUserCardMini v-if="entry.user" :class="$style.card" :user="entry.user" :withChart="false"/>
 							<div v-else :class="$style.card">(deleted user)</div>
 						</div>
 						<div v-else :class="$style.choice">{{ entry.text }}</div>
 						<div :class="$style.vote"><span :class="$style.voteCount">{{ entry.voteCount }}</span> {{ i18n.ts._chat.gotVotes }}</div>
 					</div>
-					<div :class="$style.choiceFooter" v-if="!item.data.anonymous">
-						<span>{{ i18n.ts._chat.voters }}:</span><MkAvatars :userIds="entry.votedUserIds"/>
+					<div :class="$style.choiceFooter" v-if="!(item.data as Misskey.entities.ChatPollFinished).anonymous">
+						<span>{{ i18n.ts._chat.voters }}:</span><MkAvatars :userIds="entry.votedUserIds ?? []"/>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'secretCommitted'">
 			<div :class="$style.secret">
-				<span class="$style.message"><MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.tsx._chat.secretCommited({title: item.data.title}) }}</span>
+				<span class="$style.message"><MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.tsx._chat.secretCommited({title: (item.data as Misskey.entities.ChatSecret).title ?? ''}) }}</span>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'secretRevealed'" :class="$style.secret">
 			<div :class="$style.secret">
-				<MkMention :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}
+				<MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.secretRevealed }}
 			</div>
-			<div>{{ item.data.title }} ⇒ <span :class="$style.plainText">{{ item.data.plaintext }}</span></div>
+			<div>{{ (item.data as Misskey.entities.ChatSecretRevealed).title ?? '' }} ⇒ <span :class="$style.plainText">{{ (item.data as Misskey.entities.ChatSecretRevealed).plaintext }}</span></div>
 		</div>
 		<div v-else-if="item.type === 'cardDelivered'">
 			<div :class="$style.card">
@@ -70,12 +70,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div v-else-if="item.type === 'cardRevealed'">
 			<div :class="$style.card">
-				<MkMention v-if="props.membership.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.cardRevealed }}:
+				<MkMention v-if="props.membership?.user" :username="props.membership.user.username" :host="props.membership.user.host ?? localhost"/>{{ i18n.ts._chat.cardRevealed }}:
 				<i class="ti ti-cards"></i> <div :class="$style.cardContainer"><b :class="$style.cardContent">{{ item.data.cardKind }}</b><MkColorId :id="item.data.deliverId" :class="$style.deliverId"/></div>
 			</div>
 		</div>
 		<div v-else-if="item.type === 'join'">
-			{{ i18n.tsx._chat.userHasJoined({ who: `${item.data.user.name ?? ''} (@${item.data.user.username})` }) }}
+			{{ i18n.tsx._chat.userHasJoined({ who: `${item.data.user?.name ?? ''} (@${item.data.user?.username ?? ''})` }) }}
 		</div>
 		<div v-else-if="item.type === 'leave'">
 			{{ item.data.kicked ?
@@ -85,9 +85,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div :class="$style.footer">
 			<button v-if="item.type === 'message'" class="_textButton" style="color: currentColor;" @click="showMenu"><i class="ti ti-dots-circle-horizontal"></i></button>
-			<MkTime :class="$style.time" :time="item.data.createdAt"/>
-			<MkA v-if="isSearchResult && 'toRoom' in item.data && item.data.toRoom != null" :to="`/chat/room/${item.data.toRoomId}`">{{ item.data.toRoom.name }}</MkA>
-			<MkA v-if="isSearchResult && 'toUser' in item.data && item.data.toUser != null && isMe" :to="`/chat/user/${item.data.toUserId}`">@{{ item.data.toUser.username }}</MkA>
+			<MkTime :class="$style.time" :time="(item.data as { createdAt: string }).createdAt"/>
+			<MkA v-if="isSearchResult && 'toRoom' in item.data && (item.data as Misskey.entities.ChatMessage).toRoom != null" :to="`/chat/room/${(item.data as Misskey.entities.ChatMessage).toRoomId}`">{{ (item.data as Misskey.entities.ChatMessage).toRoom!.name }}</MkA>
+			<MkA v-if="isSearchResult && 'toUser' in item.data && (item.data as Misskey.entities.ChatMessage).toUser != null && isMe" :to="`/chat/user/${(item.data as Misskey.entities.ChatMessage).toUserId}`">@{{ (item.data as Misskey.entities.ChatMessage).toUser!.username }}</MkA>
 		</div>
 		<TransitionGroup
 			v-if="item.type === 'message'"
@@ -143,17 +143,17 @@ import MkColorId from '@/components/MkColorId.vue';
 const $i = ensureSignin();
 
 const props = defineProps<{
-	item: Misskey.entities.ChatEvent;
-	membership: Misskey.entities.ChatRoomMembership;
+	item: TimelineItem;
+	membership?: Misskey.entities.ChatRoomMembership;
 	isSearchResult?: boolean;
 }>();
 
-const isMe = computed(() => props.membership.user.id === $i.id);
+const isMe = computed(() => props.membership?.user!.id === $i.id);
 const urls = computed(() => (props.item.type === 'message' && props.item.data.text) ? extractUrlFromMfm(mfm.parse(props.item.data.text)) : []);
 
 const bubbleStyle = computed(() => {
 	return {
-		'--MI_USER-fukidashi' : props.membership.bubbleColor || (isMe ? 'var(--MI_THEME-accent)' : 'var(--MI_THEME-panel)'),
+		'--MI_USER-fukidashi' : props.membership?.bubbleColor || (isMe ? 'var(--MI_THEME-accent)' : 'var(--MI_THEME-panel)'),
 	};
 });
 
@@ -161,25 +161,26 @@ const revealedSecrets = ref<Record<string, string>>({});
 
 provide(DI.mfmEmojiReactCallback, (reaction: string) => {
 	if ($i.policies.chatAvailability !== 'available' || props.item.type !== 'message') return;
-
+	const data = props.item.data as Misskey.entities.ChatMessageLite;
 	sound.playMisskeySfx('reaction');
 	misskeyApi('chat/messages/react', {
-		messageId: props.item.data.id,
+		messageId: data.id,
 		reaction: reaction,
 	});
 });
 
 async function vote(choiceIndex: number) {
-	if (props.item.type !== 'poll') return;
+	if (props.item.type !== 'pollStarted') return;
+	const data = props.item.data as Misskey.entities.ChatPollStarted;
 	await misskeyApi('chat/polls/vote', {
-		pollId: props.item.data.id,
+		pollId: data.id,
 		choice: choiceIndex,
 	});
 }
 
 async function revealSecret(secretId: string) {
 	try {
-		const revealed = await misskeyApi('chat/secrets/reveal', { secretId });
+		const revealed = await misskeyApi('chat/secrets/reveal', { id: secretId }) as { text: string };
 		revealedSecrets.value[secretId] = revealed.text;
 	} catch (err) {
 		console.error(err);
@@ -193,10 +194,11 @@ function react(ev: PointerEvent) {
 	const targetEl = getHTMLElementOrNull(ev.currentTarget ?? ev.target);
 	if (!targetEl) return;
 
+	const data = props.item.data as Misskey.entities.ChatMessageLite;
 	reactionPicker.show(targetEl, null, async (reaction) => {
 		sound.playMisskeySfx('reaction');
 		misskeyApi('chat/messages/react', {
-			messageId: props.item.data.id,
+			messageId: data.id,
 			reaction: reaction,
 		});
 	});
@@ -252,7 +254,7 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 		text: i18n.ts.copyContent,
 		icon: 'ti ti-copy',
 		action: () => {
-			copyToClipboard(props.item.data.text ?? '');
+			copyToClipboard((props.item.data as Misskey.entities.ChatMessageLite).text ?? '');
 		},
 	});
 
@@ -267,20 +269,20 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 			danger: true,
 			action: () => {
 				misskeyApi('chat/messages/delete', {
-					messageId: props.item.data.id,
+					messageId: (props.item.data as Misskey.entities.ChatMessageLite).id,
 				});
 			},
 		});
 	}
 
-	if (!isMe.value && props.membership.user != null) {
+	if (!isMe.value && props.membership?.user != null) {
 		menu.push({
-			text: i18n.ts.contactAdmin,
+			text: i18n.ts.reportAbuse,
 			icon: 'ti ti-exclamation-circle',
 			action: async () => {
-				const localUrl = `${url}/chat/messages/${props.item.data.id}`;
+				const localUrl = `${url}/chat/messages/${(props.item.data as Misskey.entities.ChatMessageLite).id}`;
 				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkAbuseReportWindow.vue').then(x => x.default), {
-					user: props.membership.user,
+					user: props.membership!.user!,
 					initialComment: `${localUrl}\n-----\n`,
 				}, {
 					closed: () => dispose(),

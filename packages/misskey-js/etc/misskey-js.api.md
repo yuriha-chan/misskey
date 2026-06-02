@@ -917,6 +917,24 @@ export type Channels = {
                 user?: UserLite;
                 messageId: ChatMessageLite['id'];
             }) => void;
+            join: (payload: ChatRoomMembership) => void;
+            leave: (payload: {
+                userId: string;
+                createdAt: string;
+                kicked: boolean;
+            }) => void;
+            pollScheduled: (payload: ChatPollScheduled) => void;
+            pollStarted: (payload: ChatPollStarted) => void;
+            pollFinished: (payload: ChatPollFinished) => void;
+            secretCommitted: (payload: ChatSecret) => void;
+            secretRevealed: (payload: ChatSecretRevealed) => void;
+            cardDelivered: (payload: ChatCard) => void;
+            cardRevealed: (payload: ChatCardRevealed) => void;
+            roomArchived: (payload: {
+                id: string;
+                isArchived: boolean;
+            }) => void;
+            membershipUpdated: (payload: ChatRoomMembership) => void;
         };
         receives: {
             read: {
@@ -1077,6 +1095,15 @@ type ChatCard = components['schemas']['ChatCard'];
 type ChatCardRevealed = components['schemas']['ChatCardRevealed'];
 
 // @public (undocumented)
+type ChatCardsListRequest = operations['chat___cards___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatCardsListResponse = operations['chat___cards___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChatCardsRevealRequest = operations['chat___cards___reveal']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ChatEvent = components['schemas']['ChatEvent'];
 
 // @public (undocumented)
@@ -1149,7 +1176,22 @@ type ChatPollFinished = components['schemas']['ChatPollFinished'];
 type ChatPollScheduled = components['schemas']['ChatPollScheduled'];
 
 // @public (undocumented)
+type ChatPollsFinishRequest = operations['chat___polls___finish']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsListRequest = operations['chat___polls___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsListResponse = operations['chat___polls___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsStartRequest = operations['chat___polls___start']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ChatPollStarted = components['schemas']['ChatPollStarted'];
+
+// @public (undocumented)
+type ChatPollsVoteRequest = operations['chat___polls___vote']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type ChatRoom = components['schemas']['ChatRoom'];
@@ -1236,6 +1278,9 @@ type ChatRoomsShowRequest = operations['chat___rooms___show']['requestBody']['co
 type ChatRoomsShowResponse = operations['chat___rooms___show']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type ChatRoomsUpdateMembershipRequest = operations['chat___rooms___update-membership']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ChatRoomsUpdateRequest = operations['chat___rooms___update']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1249,6 +1294,9 @@ type ChatSecretRevealed = components['schemas']['ChatSecretRevealed'];
 
 // @public (undocumented)
 type ChatSecretsListRequest = operations['chat___secrets___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatSecretsListResponse = operations['chat___secrets___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatSecretsRevealRequest = operations['chat___secrets___reveal']['requestBody']['content']['application/json'];
@@ -1792,6 +1840,9 @@ declare namespace entities {
         ChartsUserReactionsResponse,
         ChartsUsersRequest,
         ChartsUsersResponse,
+        ChatCardsListRequest,
+        ChatCardsListResponse,
+        ChatCardsRevealRequest,
         ChatHistoryRequest,
         ChatHistoryResponse,
         ChatMessagesCreateToRoomRequest,
@@ -1809,6 +1860,11 @@ declare namespace entities {
         ChatMessagesUnreactRequest,
         ChatMessagesUserTimelineRequest,
         ChatMessagesUserTimelineResponse,
+        ChatPollsFinishRequest,
+        ChatPollsListRequest,
+        ChatPollsListResponse,
+        ChatPollsStartRequest,
+        ChatPollsVoteRequest,
         ChatRoomsArchiveRequest,
         ChatRoomsCreateRequest,
         ChatRoomsCreateResponse,
@@ -1836,7 +1892,9 @@ declare namespace entities {
         ChatRoomsShowResponse,
         ChatRoomsUpdateRequest,
         ChatRoomsUpdateResponse,
+        ChatRoomsUpdateMembershipRequest,
         ChatSecretsListRequest,
+        ChatSecretsListResponse,
         ChatSecretsRevealRequest,
         ClipsAddNoteRequest,
         ClipsCreateRequest,
@@ -3471,7 +3529,7 @@ type QueueStats = {
 type QueueStatsLog = QueueStats[];
 
 // @public (undocumented)
-export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver"];
+export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver", "closeExpiredChatRoom", "revealChatSecret", "endChatPoll"];
 
 // @public (undocumented)
 type RenoteMuteCreateRequest = operations['renote-mute___create']['requestBody']['content']['application/json'];
@@ -3989,8 +4047,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:60:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:226:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:241:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:234:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:249:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

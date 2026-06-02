@@ -9,6 +9,8 @@ import type { MiMeta } from '@/models/Meta.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { MetaService } from '@/core/MetaService.js';
+import { parseFilter } from '@/misc/parse-filter.js';
+import { ApiError } from '../../error.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -16,6 +18,14 @@ export const meta = {
 	requireCredential: true,
 	requireAdmin: true,
 	kind: 'write:admin:meta',
+
+	errors: {
+		invalidFilter: {
+			message: 'Invalid filter format',
+			code: 'INVALID_FILTER',
+			id: '1b0f4be1-3e59-4c1e-9f45-55fffee6cf67',
+		},
+	},
 } as const;
 
 export const paramDef = {
@@ -48,6 +58,11 @@ export const paramDef = {
 			},
 		},
 		prohibitedWordsForNameOfUser: {
+			type: 'array', nullable: true, items: {
+				type: 'string',
+			},
+		},
+		r18Filter: {
 			type: 'array', nullable: true, items: {
 				type: 'string',
 			},
@@ -257,14 +272,35 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.blockedHosts = ps.blockedHosts.filter(Boolean).map(x => x.toLowerCase());
 			}
 
+			const validateFilters = (words: string[]): void => {
+				for (const word of words) {
+					try {
+						parseFilter(word, {});
+					} catch {
+						throw new ApiError(meta.errors.invalidFilter, word);
+					}
+				}
+			};
+
 			if (Array.isArray(ps.sensitiveWords)) {
-				set.sensitiveWords = ps.sensitiveWords.filter(Boolean);
+				const filtered = ps.sensitiveWords.filter(Boolean);
+				validateFilters(filtered);
+				set.sensitiveWords = filtered;
 			}
 			if (Array.isArray(ps.prohibitedWords)) {
-				set.prohibitedWords = ps.prohibitedWords.filter(Boolean);
+				const filtered = ps.prohibitedWords.filter(Boolean);
+				validateFilters(filtered);
+				set.prohibitedWords = filtered;
 			}
 			if (Array.isArray(ps.prohibitedWordsForNameOfUser)) {
-				set.prohibitedWordsForNameOfUser = ps.prohibitedWordsForNameOfUser.filter(Boolean);
+				const filtered = ps.prohibitedWordsForNameOfUser.filter(Boolean);
+				validateFilters(filtered);
+				set.prohibitedWordsForNameOfUser = filtered;
+			}
+			if (Array.isArray(ps.r18Filter)) {
+				const filtered = ps.r18Filter.filter(Boolean);
+				validateFilters(filtered);
+				set.r18Filter = filtered;
 			}
 			if (Array.isArray(ps.silencedHosts)) {
 				let lastValue = '';

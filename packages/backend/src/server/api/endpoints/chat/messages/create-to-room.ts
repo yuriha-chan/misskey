@@ -10,6 +10,7 @@ import { GetterService } from '@/server/api/GetterService.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '@/server/api/error.js';
 import { ChatService } from '@/core/ChatService.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type { DriveFilesRepository, MiUser } from '@/models/_.js';
 
 export const meta = {
@@ -49,6 +50,12 @@ export const meta = {
 			message: 'Content required. You need to set text or fileId.',
 			code: 'CONTENT_REQUIRED',
 			id: '340517b7-6d04-42c0-bac1-37ee804e3594',
+		},
+
+		notMember: {
+			message: 'You are not a member of the room.',
+			code: 'NOT_MEMBER',
+			id: 'd62635ea-26b0-43e5-84af-fbf6c6dcd08a',
 		},
 	},
 } as const;
@@ -115,16 +122,21 @@ export const paramDef = {
 						nullable: false,
 						properties: {
 							userId: { type: 'string', nullable: false, format: 'misskey:id' },
-							number: { type: 'number', minimum: 0 },
+							count: { type: 'number', minimum: 0 },
 						},
 					},
 				},
 			},
 			required: ['cards', 'deliver'],
 		},
-		visibleUserIds: { type: 'array', uniqueItems: true, items: {
-			type: 'string', format: 'misskey:id',
-		} },
+		visibleUserIds: {
+			type: 'array',
+			nullable: false,
+			uniqueItems: true,
+			items: {
+				type: 'string', format: 'misskey:id',
+			}
+		},
 	},
 	required: ['toRoomId'],
 } as const;
@@ -191,13 +203,23 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.contentRequired);
 			}
 
-			return await this.chatService.createMessageToRoom(me, room, {
-				text: ps.text,
-				file: file,
-				commitSecret: processRevealable(ps.commitSecret),
-				deliverCards: processDeliver(ps.deliverCards),
-				poll: processPoll(ps.poll),
-			});
+			try {
+				return await this.chatService.createMessageToRoom(me, room, {
+					text: ps.text,
+					file: file,
+					commitSecret: processRevealable(ps.commitSecret),
+					deliverCards: processDeliver(ps.deliverCards),
+					poll: processPoll(ps.poll),
+					visibleUserIds: ps.visibleUserIds,
+				});
+			} catch (err) {
+				if (err instanceof IdentifiableError) {
+					if (err.id === 'd62635ea-26b0-43e5-84af-fbf6c6dcd08a') {
+						throw new ApiError(meta.errors.notMember);
+					}
+				}
+				throw err;
+			}
 		});
 	}
 }
