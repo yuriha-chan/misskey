@@ -2213,6 +2213,15 @@ export type paths = {
          */
         post: operations['following___invalidate'];
     };
+    '/following/list': {
+        /**
+         * following/list
+         * @description List of following users
+         *
+         *     **Credential required**: *Yes* / **Permission**: *read:following*
+         */
+        post: operations['following___list'];
+    };
     '/following/requests/accept': {
         /**
          * following/requests/accept
@@ -4625,6 +4634,7 @@ export type components = {
                 allowRenoteToExternal: boolean;
                 userId: string | null;
             } | null;
+            isR18?: boolean;
             localOnly?: boolean;
             /** @enum {string|null} */
             reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
@@ -5765,6 +5775,7 @@ export type components = {
             toUser?: components['schemas']['UserLite'] | null;
             toRoomId?: string | null;
             toRoom?: components['schemas']['ChatRoom'] | null;
+            visibleUserIds?: string[];
             text?: string | null;
             fileId?: string | null;
             file?: components['schemas']['DriveFile'] | null;
@@ -5785,6 +5796,7 @@ export type components = {
             text?: string | null;
             fileId?: string | null;
             file?: components['schemas']['DriveFile'] | null;
+            visibleUserIds?: string[];
             reactions: {
                 reaction: string;
                 user?: components['schemas']['UserLite'] | null;
@@ -5809,6 +5821,7 @@ export type components = {
             createdAt: string;
             fromUserId: string;
             toRoomId: string;
+            visibleUserIds?: string[];
             text?: string | null;
             fileId?: string | null;
             file?: components['schemas']['DriveFile'] | null;
@@ -5985,7 +5998,7 @@ export type components = {
         ChatEvent: {
             /** @constant */
             type: 'message';
-            data: components['schemas']['ChatMessageLite'];
+            data: components['schemas']['ChatMessageLiteForRoom'];
         } | {
             /** @constant */
             type: 'pollScheduled';
@@ -9814,6 +9827,7 @@ export interface operations {
                         sensitiveWords: string[];
                         prohibitedWords: string[];
                         prohibitedWordsForNameOfUser: string[];
+                        r18Filter: string[];
                         bannedEmailDomains?: string[];
                         preservedUsernames: string[];
                         hcaptchaSecretKey: string | null;
@@ -13128,6 +13142,7 @@ export interface operations {
                     sensitiveWords?: string[] | null;
                     prohibitedWords?: string[] | null;
                     prohibitedWordsForNameOfUser?: string[] | null;
+                    r18Filter?: string[] | null;
                     themeColor?: string | null;
                     mascotImageUrl?: string | null;
                     bannerUrl?: string | null;
@@ -17043,10 +17058,19 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        deliverId: string;
+                        cardId: number;
+                        cardKind: string;
+                        roomId: string;
+                        createdAt: string;
+                    }[];
                 };
             };
             /** @description Client error */
@@ -17260,7 +17284,7 @@ export interface operations {
                         deliver: {
                             /** Format: misskey:id */
                             userId?: string;
-                            number?: number;
+                            count?: number;
                         }[];
                     } | null;
                     visibleUserIds?: string[];
@@ -17568,7 +17592,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': Record<string, never>[];
+                    'application/json': components['schemas']['ChatEvent'][];
                 };
             };
             /** @description Client error */
@@ -17966,10 +17990,33 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        scheduledPolls: {
+                            id: string;
+                            title: string | null;
+                            fromUserId: string;
+                            roomId: string;
+                            createdAt: string;
+                            startsAt?: string | null;
+                        }[];
+                        startedPolls: {
+                            id: string;
+                            title: string | null;
+                            voteForUsers: boolean;
+                            userChoices?: Record<string, never>[] | null;
+                            textChoices?: string[] | null;
+                            fromUserId: string;
+                            roomId: string;
+                            createdAt: string;
+                            finishesAt?: string | null;
+                        }[];
+                    };
                 };
             };
             /** @description Client error */
@@ -19446,10 +19493,20 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        id: string;
+                        title: string;
+                        roomId: string;
+                        fromUserId: string;
+                        revealsAt?: string | null;
+                        createdAt: string;
+                    }[];
                 };
             };
             /** @description Client error */
@@ -23723,6 +23780,80 @@ export interface operations {
             };
             /** @description Too many requests */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    following___list: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default false */
+                    notification?: boolean;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
+                    /** @default 10 */
+                    limit?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Following'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
                 headers: {
                     [name: string]: unknown;
                 };

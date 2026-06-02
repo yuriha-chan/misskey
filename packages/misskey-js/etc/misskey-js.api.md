@@ -917,6 +917,24 @@ export type Channels = {
                 user?: UserLite;
                 messageId: ChatMessageLite['id'];
             }) => void;
+            join: (payload: ChatRoomMembership) => void;
+            leave: (payload: {
+                userId: string;
+                createdAt: string;
+                kicked: boolean;
+            }) => void;
+            pollScheduled: (payload: ChatPollScheduled) => void;
+            pollStarted: (payload: ChatPollStarted) => void;
+            pollFinished: (payload: ChatPollFinished) => void;
+            secretCommitted: (payload: ChatSecret) => void;
+            secretRevealed: (payload: ChatSecretRevealed) => void;
+            cardDelivered: (payload: ChatCard) => void;
+            cardRevealed: (payload: ChatCardRevealed) => void;
+            roomArchived: (payload: {
+                id: string;
+                isArchived: boolean;
+            }) => void;
+            membershipUpdated: (payload: ChatRoomMembership) => void;
         };
         receives: {
             read: {
@@ -1080,6 +1098,9 @@ type ChatCardRevealed = components['schemas']['ChatCardRevealed'];
 type ChatCardsListRequest = operations['chat___cards___list']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChatCardsListResponse = operations['chat___cards___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChatCardsRevealRequest = operations['chat___cards___reveal']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1159,6 +1180,9 @@ type ChatPollsFinishRequest = operations['chat___polls___finish']['requestBody']
 
 // @public (undocumented)
 type ChatPollsListRequest = operations['chat___polls___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatPollsListResponse = operations['chat___polls___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatPollsStartRequest = operations['chat___polls___start']['requestBody']['content']['application/json'];
@@ -1270,6 +1294,9 @@ type ChatSecretRevealed = components['schemas']['ChatSecretRevealed'];
 
 // @public (undocumented)
 type ChatSecretsListRequest = operations['chat___secrets___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChatSecretsListResponse = operations['chat___secrets___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type ChatSecretsRevealRequest = operations['chat___secrets___reveal']['requestBody']['content']['application/json'];
@@ -1814,6 +1841,7 @@ declare namespace entities {
         ChartsUsersRequest,
         ChartsUsersResponse,
         ChatCardsListRequest,
+        ChatCardsListResponse,
         ChatCardsRevealRequest,
         ChatHistoryRequest,
         ChatHistoryResponse,
@@ -1834,6 +1862,7 @@ declare namespace entities {
         ChatMessagesUserTimelineResponse,
         ChatPollsFinishRequest,
         ChatPollsListRequest,
+        ChatPollsListResponse,
         ChatPollsStartRequest,
         ChatPollsVoteRequest,
         ChatRoomsArchiveRequest,
@@ -1865,6 +1894,7 @@ declare namespace entities {
         ChatRoomsUpdateResponse,
         ChatRoomsUpdateMembershipRequest,
         ChatSecretsListRequest,
+        ChatSecretsListResponse,
         ChatSecretsRevealRequest,
         ClipsAddNoteRequest,
         ClipsCreateRequest,
@@ -1964,6 +1994,8 @@ declare namespace entities {
         FollowingDeleteResponse,
         FollowingInvalidateRequest,
         FollowingInvalidateResponse,
+        FollowingListRequest,
+        FollowingListResponse,
         FollowingRequestsAcceptRequest,
         FollowingRequestsCancelRequest,
         FollowingRequestsCancelResponse,
@@ -2494,6 +2526,12 @@ type FollowingInvalidateRequest = operations['following___invalidate']['requestB
 
 // @public (undocumented)
 type FollowingInvalidateResponse = operations['following___invalidate']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type FollowingListRequest = operations['following___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type FollowingListResponse = operations['following___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type FollowingRequestsAcceptRequest = operations['following___requests___accept']['requestBody']['content']['application/json'];
@@ -3491,7 +3529,7 @@ type QueueStats = {
 type QueueStatsLog = QueueStats[];
 
 // @public (undocumented)
-export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver"];
+export const queueTypes: readonly ["system", "endedPollNotification", "postScheduledNote", "deliver", "inbox", "db", "relationship", "objectStorage", "userWebhookDeliver", "systemWebhookDeliver", "closeExpiredChatRoom", "revealChatSecret", "endChatPoll"];
 
 // @public (undocumented)
 type RenoteMuteCreateRequest = operations['renote-mute___create']['requestBody']['content']['application/json'];
@@ -4009,8 +4047,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:60:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:226:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:241:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:234:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:249:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

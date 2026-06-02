@@ -224,6 +224,7 @@ import type {
 	ChartsUsersRequest,
 	ChartsUsersResponse,
 	ChatCardsListRequest,
+	ChatCardsListResponse,
 	ChatCardsRevealRequest,
 	ChatHistoryRequest,
 	ChatHistoryResponse,
@@ -244,6 +245,7 @@ import type {
 	ChatMessagesUserTimelineResponse,
 	ChatPollsFinishRequest,
 	ChatPollsListRequest,
+	ChatPollsListResponse,
 	ChatPollsStartRequest,
 	ChatPollsVoteRequest,
 	ChatRoomsArchiveRequest,
@@ -275,6 +277,7 @@ import type {
 	ChatRoomsUpdateResponse,
 	ChatRoomsUpdateMembershipRequest,
 	ChatSecretsListRequest,
+	ChatSecretsListResponse,
 	ChatSecretsRevealRequest,
 	ClipsAddNoteRequest,
 	ClipsCreateRequest,
@@ -374,6 +377,8 @@ import type {
 	FollowingDeleteResponse,
 	FollowingInvalidateRequest,
 	FollowingInvalidateResponse,
+	FollowingListRequest,
+	FollowingListResponse,
 	FollowingRequestsAcceptRequest,
 	FollowingRequestsCancelRequest,
 	FollowingRequestsCancelResponse,
@@ -830,7 +835,7 @@ export type Endpoints = {
 	'charts/user/pv': { req: ChartsUserPvRequest; res: ChartsUserPvResponse };
 	'charts/user/reactions': { req: ChartsUserReactionsRequest; res: ChartsUserReactionsResponse };
 	'charts/users': { req: ChartsUsersRequest; res: ChartsUsersResponse };
-	'chat/cards/list': { req: ChatCardsListRequest; res: EmptyResponse };
+	'chat/cards/list': { req: ChatCardsListRequest; res: ChatCardsListResponse };
 	'chat/cards/reveal': { req: ChatCardsRevealRequest; res: EmptyResponse };
 	'chat/history': { req: ChatHistoryRequest; res: ChatHistoryResponse };
 	'chat/messages/create-to-room': { req: ChatMessagesCreateToRoomRequest; res: ChatMessagesCreateToRoomResponse };
@@ -843,7 +848,7 @@ export type Endpoints = {
 	'chat/messages/unreact': { req: ChatMessagesUnreactRequest; res: EmptyResponse };
 	'chat/messages/user-timeline': { req: ChatMessagesUserTimelineRequest; res: ChatMessagesUserTimelineResponse };
 	'chat/polls/finish': { req: ChatPollsFinishRequest; res: EmptyResponse };
-	'chat/polls/list': { req: ChatPollsListRequest; res: EmptyResponse };
+	'chat/polls/list': { req: ChatPollsListRequest; res: ChatPollsListResponse };
 	'chat/polls/start': { req: ChatPollsStartRequest; res: EmptyResponse };
 	'chat/polls/vote': { req: ChatPollsVoteRequest; res: EmptyResponse };
 	'chat/read-all': { req: EmptyRequest; res: EmptyResponse };
@@ -865,7 +870,7 @@ export type Endpoints = {
 	'chat/rooms/show': { req: ChatRoomsShowRequest; res: ChatRoomsShowResponse };
 	'chat/rooms/update': { req: ChatRoomsUpdateRequest; res: ChatRoomsUpdateResponse };
 	'chat/rooms/update-membership': { req: ChatRoomsUpdateMembershipRequest; res: EmptyResponse };
-	'chat/secrets/list': { req: ChatSecretsListRequest; res: EmptyResponse };
+	'chat/secrets/list': { req: ChatSecretsListRequest; res: ChatSecretsListResponse };
 	'chat/secrets/reveal': { req: ChatSecretsRevealRequest; res: EmptyResponse };
 	'clips/add-note': { req: ClipsAddNoteRequest; res: EmptyResponse };
 	'clips/create': { req: ClipsCreateRequest; res: ClipsCreateResponse };
@@ -926,6 +931,7 @@ export type Endpoints = {
 	'following/create': { req: FollowingCreateRequest; res: FollowingCreateResponse };
 	'following/delete': { req: FollowingDeleteRequest; res: FollowingDeleteResponse };
 	'following/invalidate': { req: FollowingInvalidateRequest; res: FollowingInvalidateResponse };
+	'following/list': { req: FollowingListRequest; res: FollowingListResponse };
 	'following/requests/accept': { req: FollowingRequestsAcceptRequest; res: EmptyResponse };
 	'following/requests/cancel': { req: FollowingRequestsCancelRequest; res: FollowingRequestsCancelResponse };
 	'following/requests/list': { req: FollowingRequestsListRequest; res: FollowingRequestsListResponse };

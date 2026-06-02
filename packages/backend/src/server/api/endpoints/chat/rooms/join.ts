@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { ChatService } from '@/core/ChatService.js';
 import { ApiError } from '@/server/api/error.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 export const meta = {
 	tags: ['chat'],
@@ -42,7 +43,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async ({ roomId, bubbleColor, bubbleStyle }, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
-			await this.chatService.joinToRoom(me.id, roomId, { ...bubbleColor == null ? {} : { bubbleColor }, ...bubbleStyle == null ? {} : { bubbleStyle } });
+			try {
+				await this.chatService.joinToRoom(me.id, roomId, { ...bubbleColor == null ? {} : { bubbleColor }, ...bubbleStyle == null ? {} : { bubbleStyle } });
+			} catch (err) {
+				if (err instanceof IdentifiableError) {
+					if (err.id === '6c9dec02-d228-43a5-978c-a53e8bba889c') {
+						throw new ApiError(meta.errors.noSuchRoom);
+					}
+				}
+				throw err;
+			}
 		});
 	}
 }

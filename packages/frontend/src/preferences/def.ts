@@ -8,7 +8,7 @@ import { hemisphere } from '@@/js/intl-const.js';
 import { DEFAULT_EMOJIS } from '@@/js/const.js';
 import { prefersReducedMotion } from '@@/js/config.js';
 import { definePreferences } from './manager.js';
-import type { Theme } from '@/theme.js';
+import type { Theme } from '@@/js/theme.js';
 import type { SoundType } from '@/utility/sound.js';
 import type { Plugin } from '@/plugin.js';
 import type { DeviceKind } from '@/utility/device-kind.js';
@@ -210,6 +210,9 @@ export const PREF_DEF = definePreferences({
 	nsfw: {
 		default: 'respect' as 'respect' | 'force' | 'ignore',
 	},
+	hideR18Content: {
+		default: true,
+	},
 	highlightSensitiveMedia: {
 		default: false,
 	},
@@ -361,6 +364,15 @@ export const PREF_DEF = definePreferences({
 		default: hemisphere as 'N' | 'S',
 	},
 	enableSeasonalScreenEffect: {
+		default: false,
+	},
+	reduceMargin: {
+		default: true,
+	},
+	largeNoteText: {
+		default: true,
+	},
+	hideNavFooter: {
 		default: false,
 	},
 	enableHorizontalSwipe: {

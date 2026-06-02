@@ -10,20 +10,27 @@ import semver from 'semver';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
+import type Logger from '@/logger.js';
 import { MiMeta, SoftwareSuspension } from '@/models/Meta.js';
 import { MiInstance } from '@/models/Instance.js';
 
+import { LoggerService } from '@/core/LoggerService.js';
 import { parseFilter } from '@/misc/parse-filter.js';
 
 @Injectable()
 export class UtilityService {
+	private logger: Logger;
+
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
 
 		@Inject(DI.meta)
 		private meta: MiMeta,
+
+		private loggerService: LoggerService,
 	) {
+		this.logger = this.loggerService.getLogger('filter');
 	}
 
 	@bindThis
@@ -69,69 +76,59 @@ export class UtilityService {
 	}
 
 	@bindThis
-	public concatNoteContentsForKeyWordCheck(content: {
-		cw?: string | null;
-		text?: string | null;
-		pollChoices?: string[] | null;
-		others?: string[] | null;
-	}): string {
-		/**
-		 * ノートの内容を結合してキーワードチェック用の文字列を生成する
-		 * cwとtextは内容が繋がっているかもしれないので間に何も入れずにチェックする
-		 */
-		return `${content.cw ?? ''}${content.text ?? ''}\n${(content.pollChoices ?? []).join('\n')}\n${(content.others ?? []).join('\n')}`;
-	}
-
-	@bindThis
-	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string | '', files: string[] | []): boolean {
+	public isKeyWordIncluded(keyWords: string[], text: string, cw: string, pollChoices: string, files: { isSensitive: boolean }[], instance: string | null): boolean {
 		if (keyWords.length === 0) return false;
-		if (text === '' && cw === '' && files.length === 0) {
+		if (text === '' && cw === '' && pollChoices === '' && files.length === 0 && instance === null) {
 			return false;
 		}
 
 		const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
 		
 		const coerceFloat = (v: any) =>
-		  (typeof v === 'number') ? v :
-		  (typeof v === 'string') ? parseFloat(v) :
-		  v ? 1 : 0;
+			(typeof v === 'number') ? v :
+			(typeof v === 'string') ? parseFloat(v) :
+			v ? 1 : 0;
 
-		const apply = function(node: any[], testText: string): any {
+		const apply = (node: any[], testText: string): any => {
 			try {
 				switch (node[0]) {
-					case "keyword": return testText.includes && testText.includes(node[1]);
-					case "regexp":  return new RE2(node[1], node[2]).test(testText);
-					case "slowRegexp": return new RegExp(node[1], node[2]).test(testText);
-					case "and": return node.slice(1).every(n => apply(n, testText));
-					case "or": return node.slice(1).some(n => apply(n, testText));
-					case "not": return !apply(node[1], testText);
-					case "poll": return (node[2].reduce((acc: number, v: any) => acc + apply(v, testText) === true ? 1 : 0) >= coerceFloat(node[1]));
-					case "weighted": return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]);
-					case "average": return node[1].reduce((acc: number, v: any) => acc + coerceFloat(apply(v, testText)));
-					case "shorterThan": return testText.length < coerceFloat(node[1]);
-					case "longerThan": return testText.length > coerceFloat(node[1]);
-					case "hasFile": return files.length > 0;
-					case "cw": return node.slice(1).every((n: any) => apply(n, cw));
-					case "text": return node.slice(1).every((n: any) => apply(n, text));
-					case "pollChoices": return node.slice(1).every((n: any) => apply(n, pollChoices));
-					case "textAndChoices": return node.slice(1).every((n: any) => apply(n, textAndChoices));
+					case 'keyword': return testText.includes && testText.includes(node[1]);
+					case 'regexp': return new RE2(node[1], node[2]).test(testText);
+					case 'slowRegexp': return new RegExp(node[1], node[2]).test(testText);
+					case 'and': return node.slice(1).every(n => apply(n, testText));
+					case 'or': return node.slice(1).some(n => apply(n, testText));
+					case 'not': return !apply(node[1], testText);
+					case 'poll': return (node.slice(2).reduce((acc: number, v: any) => acc + (apply(v, testText) === true ? 1 : 0), 0) >= coerceFloat(node[1]));
+					case 'weighted': return coerceFloat(apply(node[2], testText)) * coerceFloat(node[1]);
+					case 'average': return node[1].reduce((acc: number, v: any) => acc + coerceFloat(apply(v, testText)));
+					case 'shorterThan': return testText.length < coerceFloat(node[1]);
+					case 'longerThan': return testText.length > coerceFloat(node[1]);
+					case 'hasFile': return files.length > 0;
+					case 'hasSensitiveFile': return files.some(f => f.isSensitive);
+					case 'instance': return node.slice(1).every((n: any) => apply(n, instance ?? ''));
+					case 'cw': return node.slice(1).every((n: any) => apply(n, cw));
+					case 'text': return node.slice(1).every((n: any) => apply(n, text));
+					case 'pollChoices': return node.slice(1).every((n: any) => apply(n, pollChoices));
+					case 'textAndChoices': return node.slice(1).every((n: any) => apply(n, textAndChoices));
 					default: return false;
 				}
 			} catch (err) {
+				this.logger.warn('filter eval error', { err, node });
 				return false;
 			}
-		}
+		};
 		const nodes = keyWords.map(filter => {
 			try {
 				return parseFilter(filter, {});
 			} catch (err) {
-				// empty filter
-				return ["or"];
+				this.logger.warn('filter parse error', { err, filter });
+				return ['or'];
 			}
 		});
 		try {
 			return nodes.some(n => apply(n, cw === '' ? textAndChoices : cw));
 		} catch (err) {
+			this.logger.error('unexpected filter eval error', { err });
 			return false;
 		}
 	}

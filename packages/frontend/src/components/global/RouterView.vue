@@ -70,7 +70,7 @@ const onContentLoadDelayed = () => {
 	contentLoadWillDelay = true;
 }
 
-const onMainContentLoaded = (delayed) => {
+const onMainContentLoaded = (delayed: boolean) => {
 	if (!contentLoadWillDelay || delayed) {
 		emits('mainContentLoaded');
 	}

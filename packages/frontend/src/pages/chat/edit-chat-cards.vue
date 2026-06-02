@@ -14,7 +14,7 @@
 					<div class="_gaps_s">
 						<div v-for="(card, idx) in cardsList" :key="idx" :class="$style.cardEntry">
 							<MkInput :class="$style.cardName" :placeholder="i18n.ts._chat.cardPlaceHolder" v-model="card.name"/>
-							<MkInput :class="$style.cardCount" v-model.number="card.count" type="number" min="1">
+							<MkInput :class="$style.cardCount" v-model="card.count" type="number" :min="1">
 								<template #suffix>{{ i18n.ts._chat.cardSuffix }}</template>
 							</MkInput>
 							<MkButton danger @click="removeCard(idx)"><i class="ti ti-x"/></MkButton>
@@ -26,7 +26,7 @@
 					<template #header>{{ i18n.ts._chat.deliverCards }}</template>
 					<div class="_gaps_s">
 						<div :class="$style.applyToAll">
-							<MkInput v-model.number="allCount" type="number" min="0">
+							<MkInput v-model="allCount" type="number" :min="0">
 								<template #label>{{ i18n.ts._chat.setCardCountsAll }}</template>
 								<template #suffix>{{ i18n.ts._chat.cardSuffix }}</template>
 							</MkInput>
@@ -36,7 +36,7 @@
 							<template #header>{{ i18n.ts._chat.cardCountsByUser }}</template>
 							<div :class="$style.deliverEntry" v-for="d in deliver" :key="d.user.id" style="display: flex; gap: 6px; align-items: center;">
 								<MkUserCardMini :class="$style.deliverTo" :user="d.user" :withChart="false"/>
-								<MkInput :class="$style.deliverCount" v-model.number="d.count" type="number" min="0">
+								<MkInput :class="$style.deliverCount" v-model="d.count" type="number" :min="0">
 									<template #suffix>{{ i18n.ts._chat.cardSuffix }}</template>
 								</MkInput>
 							</div>
@@ -54,6 +54,8 @@
 
 <script lang="ts" setup>
 import { ref, computed, watch, onMounted, useTemplateRef } from 'vue';
+import * as Misskey from 'misskey-js';
+import type { ChatCardsDraft } from './room.vue';
 import { i18n } from '@/i18n.js';
 import MkWindow from '@/components/MkWindow.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -72,7 +74,7 @@ const emit = defineEmits<{
 }>();
 
 const props = defineProps<{
-	cards?: { title: string; cards: string[]; deliver: { user: Misskey.entities.UserLite; count: number }[] } | null;
+	cards?: ChatCardsDraft | null;
 	members: Record<string, Misskey.entities.ChatRoomMembership>;
 }>();
 
@@ -83,13 +85,13 @@ function updateToMembers() {
 	const updated = new Set(Object.keys(props.members).filter(uid => !props.members[uid].hasLeft));
 	const left = known.difference(updated);
 	const joined = updated.difference(known);
-	deliver.value = [...deliver.value.filter(d => !left.has(d.user.id)), ...Array.from(joined).map(uid => ({ user: props.members[uid].user, count: 1}))];
+	deliver.value = [...deliver.value.filter(d => !left.has(d.user.id)), ...Array.from(joined).map(uid => ({ user: props.members[uid].user as Misskey.entities.UserLite, count: 1}))];
 }
 
 onMounted(() => {
 	if (props.cards != null) {
 		title.value = props.cards.title;
-		cardsList.value = [...props.cards.cards];
+		cardsList.value = props.cards.cards.map(name => ({ name, count: 1 }));
 		deliver.value = props.cards.deliver.map(d => ({ ...d }));
 	}
 	updateToMembers()

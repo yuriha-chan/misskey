@@ -400,6 +400,7 @@ export class NoteEntityService implements OnModuleInit {
 			text: text,
 			cw: note.cw,
 			visibility: note.visibility,
+			isR18: note.isR18 || undefined,
 			localOnly: note.localOnly,
 			reactionAcceptance: note.reactionAcceptance,
 			visibleUserIds: note.visibility === 'specified' ? note.visibleUserIds : undefined,

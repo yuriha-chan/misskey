@@ -216,7 +216,7 @@ type SearchParams = {
 	readonly excludeBot?: boolean;
 };
 
-const includeBot = ref<bool>(false);
+const includeBot = ref<boolean>(false);
 
 const fixHostIfLocal = (target: string | null | undefined) => {
 	if (!target || target === localHost) return '.';

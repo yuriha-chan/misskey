@@ -111,6 +111,7 @@ describe('ActivityPub', () => {
 		blockedHosts: [] as string[],
 		sensitiveWords: [] as string[],
 		prohibitedWords: [] as string[],
+		r18Filter: [] as string[],
 	} as MiMeta;
 	const meta = { ...metaInitial };
 

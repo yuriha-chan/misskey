@@ -11,7 +11,8 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { store } from '@/store.ts';
+import { store } from '@/store.js';
+import { calcHue } from './MkColorId.utils.js';
 
 const props = withDefaults(defineProps<{
 	id: string;
@@ -22,13 +23,6 @@ const props = withDefaults(defineProps<{
 	maxLuma: 85,
 	chroma: 100,
 });
-
-function calcHue(segment, p) {
-	const hash = p * Array.from(segment).reduce((s, char) => (s * p) ^ char.charCodeAt(0), 0);
-	const value = hash % 36;
-	const hue = value * 10;
-	return hue;
-}
 
 const colorSegments = computed(() => {
 	if (!props.id) return [];

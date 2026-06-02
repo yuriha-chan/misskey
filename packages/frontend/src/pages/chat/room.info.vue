@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #label>{{ i18n.ts.description }}</template>
 	</MkTextarea>
 
-	<MkInput v-model.number="capacity_" type="number" min="2" max="30" placeholder="2-30" :disabled="!isOwner">
+	<MkInput v-model="capacity_" type="number" :min="2" :max="30" placeholder="2-30" :disabled="!isOwner">
 		<template #label>{{ i18n.ts._chat.capacity }}</template>
 	</MkInput>
 
@@ -63,11 +63,8 @@ const isOwner = computed(() => {
 });
 
 const name_ = ref(props.room.name);
-const createdOn = ref(props.room.createdOn);
-const expireAfter_ = ref(props.room.expireAfter);
-const capacity_ = ref(props.room.capacity);
-const background_ = ref(props.room.background);
-const isPublic_ = ref(props.room.isPublic);
+const capacity_ = ref(props.room.capacity ?? 8);
+const isPublic_ = ref(props.room.isPublic ?? false);
 const expires_ = ref(props.room.expiration != null);
 const description_ = ref(props.room.description);
 
