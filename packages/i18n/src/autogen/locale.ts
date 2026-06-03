@@ -6582,6 +6582,22 @@ export interface Locale extends ILocale {
          * 初期設定をあとでやり直しますか？
          */
         "laterAreYouSure": string;
+        /**
+         * 絵文字パレット設定
+         */
+        "emojiPaletteSetting": string;
+        /**
+         * よく使う絵文字のパレットを選んでください。パレットは後から設定画面でカスタマイズできます。
+         */
+        "emojiPaletteSettingDescription": string;
+        /**
+         * このパレットを使う
+         */
+        "useThisPalette": string;
+        /**
+         * おすすめのパレットはありません。デフォルトのパレットが設定されています。
+         */
+        "noRecommendedPalettes": string;
     };
     "_initialTutorial": {
         /**
