@@ -309,6 +309,28 @@ export const packedMetaLiteSchema = {
 			enum: ['all', 'specified', 'none'],
 			optional: false, nullable: false,
 		},
+		recommendedEmojiPalettes: {
+			type: 'array',
+			optional: false, nullable: false,
+			items: {
+				type: 'object',
+				optional: false, nullable: false,
+				properties: {
+					name: {
+						type: 'string',
+						optional: false, nullable: false,
+					},
+					emojis: {
+						type: 'array',
+						optional: false, nullable: false,
+						items: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+					},
+				},
+			},
+		},
 	},
 } as const;
 

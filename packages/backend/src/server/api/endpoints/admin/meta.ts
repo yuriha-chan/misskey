@@ -603,6 +603,28 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			recommendedEmojiPalettes: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'object',
+					optional: false, nullable: false,
+					properties: {
+						name: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+						emojis: {
+							type: 'array',
+							optional: false, nullable: false,
+							items: {
+								type: 'string',
+								optional: false, nullable: false,
+							},
+						},
+					},
+				},
+			},
 		},
 	},
 } as const;
@@ -760,6 +782,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				remoteNotesCleaningExpiryDaysForEachNotes: instance.remoteNotesCleaningExpiryDaysForEachNotes,
 				remoteNotesCleaningMaxProcessingDurationInMinutes: instance.remoteNotesCleaningMaxProcessingDurationInMinutes,
 				showRoleBadgesOfRemoteUsers: instance.showRoleBadgesOfRemoteUsers,
+				recommendedEmojiPalettes: instance.recommendedEmojiPalettes,
 			};
 		});
 	}

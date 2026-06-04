@@ -1770,6 +1770,10 @@ _initialAccountSetting:
   startTutorial: "チュートリアルを開始"
   skipAreYouSure: "初期設定をスキップしますか？"
   laterAreYouSure: "初期設定をあとでやり直しますか？"
+  emojiPaletteSetting: "絵文字パレット初期設定"
+  emojiPaletteSettingDescription: "投稿への反応に使うスタンプ (絵文字) のパレットを選択できます。どのパレットを選んでも、後から自由に追加・削除できます。"
+  useThisPalette: "このパレットを使う"
+  noRecommendedPalettes: "おすすめのパレットはありません。デフォルトのパレットが設定されます。"
 
 _initialTutorial:
   launchTutorial: "チュートリアルを見る"
@@ -1882,6 +1886,8 @@ _serverSettings:
   restartServerSetupWizardConfirm_text: "現在の一部の設定はリセットされます。"
   entrancePageStyle: "エントランスページのスタイル"
   showTimelineForVisitor: "タイムラインを表示する"
+  emojiPaletteRecommendation: "おすすめの絵文字パレット"
+  emojiPaletteRecommendationDescription: "新規ユーザーの初期設定ウィザードで表示される、サーバーがおすすめする絵文字パレットを設定します。"
   showActivitiesForVisitor: "アクティビティを表示する"
 
   _userGeneratedContentsVisibilityForVisitor:

@@ -368,6 +368,29 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkFolder>
 				</SearchMarker>
 
+				<SearchMarker v-slot="slotProps" :keywords="['emoji', 'palette']">
+					<MkFolder :defaultOpen="slotProps.isParentOfTarget">
+						<template #icon><SearchIcon><i class="ti ti-mood-happy"></i></SearchIcon></template>
+						<template #label><SearchLabel>{{ i18n.ts._serverSettings.emojiPaletteRecommendation }}</SearchLabel></template>
+						<template v-if="emojiPaletteForm.modified.value" #footer>
+							<MkFormFooter :form="emojiPaletteForm"/>
+						</template>
+
+						<div class="_gaps_s">
+							<MkInfo>{{ i18n.ts._serverSettings.emojiPaletteRecommendationDescription }}</MkInfo>
+							<XPalette
+								v-for="(palette, index) in emojiPaletteForm.state.recommendedEmojiPalettes"
+								:key="palette.id"
+								:palette="palette"
+								@updateEmojis="emojis => updatePaletteEmojis(index, emojis)"
+								@updateName="name => updatePaletteName(index, name)"
+								@del="delPalette(index)"
+							/>
+							<MkButton primary rounded style="margin: auto;" @click="addPalette"><i class="ti ti-plus"></i></MkButton>
+						</div>
+					</MkFolder>
+				</SearchMarker>
+
 				<MkButton primary @click="openSetupWizard">
 					Open setup wizard
 				</MkButton>
@@ -394,6 +417,8 @@ import MkFolder from '@/components/MkFolder.vue';
 import { useForm } from '@/composables/use-form.js';
 import MkFormFooter from '@/components/MkFormFooter.vue';
 import MkRadios from '@/components/MkRadios.vue';
+import XPalette from '@/pages/settings/emoji-palette.palette.vue';
+import { genId } from '@/utility/id.js';
 
 const meta = await misskeyApi('admin/meta');
 
@@ -509,6 +534,39 @@ const proxyAccountForm = useForm({
 	});
 	fetchInstance(true);
 });
+
+const emojiPaletteForm = useForm({
+	recommendedEmojiPalettes: (meta.recommendedEmojiPalettes as { name: string; emojis: string[] }[]).map(p => ({
+		id: genId(),
+		name: p.name,
+		emojis: [...p.emojis],
+	})),
+}, async (state) => {
+	await os.apiWithDialog('admin/update-meta', {
+		recommendedEmojiPalettes: state.recommendedEmojiPalettes.map(({ name, emojis }) => ({ name, emojis })),
+	});
+	fetchInstance(true);
+});
+
+function updatePaletteEmojis(index: number, emojis: string[]) {
+	emojiPaletteForm.state.recommendedEmojiPalettes[index].emojis = emojis;
+}
+
+function updatePaletteName(index: number, name: string) {
+	emojiPaletteForm.state.recommendedEmojiPalettes[index].name = name;
+}
+
+function delPalette(index: number) {
+	emojiPaletteForm.state.recommendedEmojiPalettes.splice(index, 1);
+}
+
+function addPalette() {
+	emojiPaletteForm.state.recommendedEmojiPalettes.push({
+		id: genId(),
+		name: '',
+		emojis: [],
+	});
+}
 
 async function openSetupWizard() {
 	const { canceled } = await os.confirm({

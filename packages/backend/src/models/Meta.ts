@@ -728,6 +728,14 @@ export class MiMeta {
 	public showRoleBadgesOfRemoteUsers: boolean;
 
 	@Column('jsonb', {
+		default: [],
+	})
+	public recommendedEmojiPalettes: {
+		name: string;
+		emojis: string[];
+	}[];
+
+	@Column('jsonb', {
 		default: { },
 	})
 	public clientOptions: {

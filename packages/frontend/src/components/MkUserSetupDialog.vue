@@ -15,9 +15,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template v-if="page === 1" #header><i class="ti ti-user-edit"></i> {{ i18n.ts._initialAccountSetting.profileSetting }}</template>
 	<template v-else-if="page === 2" #header><i class="ti ti-lock"></i> {{ i18n.ts._initialAccountSetting.privacySetting }}</template>
 	<template v-else-if="page === 3" #header><i class="ti ti-rating-18-plus"></i> {{ i18n.ts._initialAccountSetting.r18ContentSetting }}</template>
-	<template v-else-if="page === 4" #header><i class="ti ti-user-plus"></i> {{ i18n.ts.follow }}</template>
-	<template v-else-if="page === 5" #header><i class="ti ti-bell-plus"></i> {{ i18n.ts.pushNotification }}</template>
-	<template v-else-if="page === 6" #header>{{ i18n.ts.done }}</template>
+	<template v-else-if="page === 4" #header><i class="ti ti-mood-happy"></i> {{ i18n.ts._initialAccountSetting.emojiPaletteSetting }}</template>
+	<template v-else-if="page === 5" #header><i class="ti ti-user-plus"></i> {{ i18n.ts.follow }}</template>
+	<template v-else-if="page === 6" #header><i class="ti ti-bell-plus"></i> {{ i18n.ts.pushNotification }}</template>
+	<template v-else-if="page === 7" #header>{{ i18n.ts.done }}</template>
 	<template v-else #header>{{ i18n.ts.initialAccountSetting }}</template>
 
 	<div style="overflow-x: clip;">
@@ -110,6 +111,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template v-else-if="page === 4">
 				<div style="height: 100cqh; overflow: auto;">
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
+						<XEmojiPalette/>
+					</div>
+					<div :class="$style.pageFooter">
+						<div class="_buttonsCenter">
+							<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+							<MkButton primary rounded gradate data-cy-user-setup-continue @click="page++">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+						</div>
+					</div>
+				</div>
+			</template>
+			<template v-else-if="page === 4">
+				<div style="height: 100cqh; overflow: auto;">
+					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
 						<XFollow/>
 					</div>
 					<div :class="$style.pageFooter">
@@ -173,6 +187,8 @@ import MkR18Toggle from '@/components/MkR18Toggle.vue';
 import XProfile from '@/components/MkUserSetupDialog.Profile.vue';
 import XFollow from '@/components/MkUserSetupDialog.Follow.vue';
 import XPrivacy from '@/components/MkUserSetupDialog.Privacy.vue';
+import XEmojiPalette from '@/components/MkUserSetupDialog.EmojiPalette.vue';
+import MkAnimBg from '@/components/MkAnimBg.vue';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import { prefer } from '@/preferences.js';
