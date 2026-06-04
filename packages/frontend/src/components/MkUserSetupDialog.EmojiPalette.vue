@@ -30,12 +30,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkInfo>{{ i18n.ts._initialAccountSetting.noRecommendedPalettes }}</MkInfo>
 	</template>
 
-	<MkInfo>{{ i18n.ts._initialAccountSetting.theseSettingsCanEditLater }}</MkInfo>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { i18n } from '@/i18n.js';
 import MkInfo from '@/components/MkInfo.vue';
 import MkCustomEmoji from '@/components/global/MkCustomEmoji.vue';
@@ -49,7 +48,7 @@ type RecommendedPalette = {
 };
 
 const recommendedPalettes = computed<RecommendedPalette[]>(() => {
-	return (instance as any).recommendedEmojiPalettes ?? [];
+	return instance.recommendedEmojiPalettes ?? [];
 });
 
 const selectedIndex = ref<number | null>(null);
@@ -69,6 +68,13 @@ function selectPalette(index: number) {
 		...prefer.s.emojiPalettes.slice(1),
 	]);
 }
+
+onMounted(() => {
+	if (recommendedPalettes.value.length > 0) {
+		selectPalette(0);
+	}
+});
+
 </script>
 
 <style lang="scss" module>

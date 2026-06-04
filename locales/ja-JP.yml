@@ -1669,10 +1669,10 @@ _initialAccountSetting:
   startTutorial: "チュートリアルを開始"
   skipAreYouSure: "初期設定をスキップしますか？"
   laterAreYouSure: "初期設定をあとでやり直しますか？"
-  emojiPaletteSetting: "絵文字パレット設定"
-  emojiPaletteSettingDescription: "よく使う絵文字のパレットを選んでください。パレットは後から設定画面でカスタマイズできます。"
+  emojiPaletteSetting: "絵文字パレット初期設定"
+  emojiPaletteSettingDescription: "投稿への反応に使うスタンプ (絵文字) のパレットを選択できます。どのパレットを選んでも、後から自由に追加・削除できます。"
   useThisPalette: "このパレットを使う"
-  noRecommendedPalettes: "おすすめのパレットはありません。デフォルトのパレットが設定されています。"
+  noRecommendedPalettes: "おすすめのパレットはありません。デフォルトのパレットが設定されます。"
 
 _initialTutorial:
   launchTutorial: "チュートリアルを見る"
