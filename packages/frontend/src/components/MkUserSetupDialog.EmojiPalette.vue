@@ -8,15 +8,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkInfo>{{ i18n.ts._initialAccountSetting.emojiPaletteSettingDescription }}</MkInfo>
 
 	<template v-if="recommendedPalettes.length > 0">
-		<div v-for="(palette, i) in recommendedPalettes" :key="i" :class="$style.paletteCard">
-			<div :class="$style.paletteHeader">
-				<MkSwitch :modelValue="isSelected(Number(i))" @update:modelValue="v => togglePalette(Number(i), v)">
-					{{ palette.name || `(${i18n.ts.noName})` }}
-				</MkSwitch>
-			</div>
-			<div :class="$style.emojisList">
-				<span v-for="(emoji, j) in palette.emojis" :key="j" :class="$style.emojiItem">{{ emoji }}</span>
-			</div>
+		<div class="_gaps_s">
+			<button
+				v-for="(palette, i) in recommendedPalettes"
+				:key="i"
+				class="_button"
+				:class="[$style.paletteCard, { [$style.selected]: selectedIndex === i }]"
+				@click="selectPalette(i)"
+			>
+				<div :class="$style.paletteName">{{ palette.name || `(${i18n.ts.noName})` }}</div>
+				<div :class="$style.emojisGrid">
+					<span v-for="emoji in palette.emojis" :key="emoji" :class="$style.emojiItem">
+						<MkCustomEmoji v-if="emoji[0] === ':'" style="pointer-events: none;" :name="emoji" :normal="true" :fallbackToImage="true"/>
+						<MkEmoji v-else style="pointer-events: none;" :emoji="emoji" :normal="true"/>
+					</span>
+				</div>
+			</button>
 		</div>
 	</template>
 	<template v-else>
@@ -30,11 +37,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { i18n } from '@/i18n.js';
-import MkSwitch from '@/components/MkSwitch.vue';
 import MkInfo from '@/components/MkInfo.vue';
+import MkCustomEmoji from '@/components/global/MkCustomEmoji.vue';
+import MkEmoji from '@/components/global/MkEmoji.vue';
 import { instance } from '@/instance.js';
 import { prefer } from '@/preferences.js';
-import { genId } from '@/utility/id.js';
 
 type RecommendedPalette = {
 	name: string;
@@ -45,86 +52,64 @@ const recommendedPalettes = computed<RecommendedPalette[]>(() => {
 	return (instance as any).recommendedEmojiPalettes ?? [];
 });
 
-const selectedIndices = ref<Set<number>>(new Set());
+const selectedIndex = ref<number | null>(null);
 
-function isSelected(index: number): boolean {
-	return selectedIndices.value.has(index);
-}
-
-function findExistingPalette(name: string, emojis: string[]): string | undefined {
-	return prefer.s.emojiPalettes.find(p =>
-		p.name === name &&
-		p.emojis.length === emojis.length &&
-		p.emojis.every((e, i) => e === emojis[i])
-	)?.id;
-}
-
-function togglePalette(index: number, selected: boolean) {
+function selectPalette(index: number) {
+	if (selectedIndex.value === index) return;
+	selectedIndex.value = index;
 	const palette = recommendedPalettes.value[index];
 	if (!palette) return;
-
-	if (selected) {
-		const existingId = findExistingPalette(palette.name, palette.emojis);
-		if (existingId) {
-			selectedIndices.value = new Set(selectedIndices.value).add(index);
-			return;
-		}
-		prefer.commit('emojiPalettes', [
-			...prefer.s.emojiPalettes,
-			{
-				id: genId(),
-				name: palette.name,
-				emojis: [...palette.emojis],
-			},
-		]);
-		selectedIndices.value = new Set(selectedIndices.value).add(index);
-	} else {
-		const existingId = findExistingPalette(palette.name, palette.emojis);
-		if (existingId) {
-			prefer.commit('emojiPalettes', prefer.s.emojiPalettes.filter(p => p.id !== existingId));
-			if (prefer.s.emojiPaletteForMain === existingId) {
-				prefer.commit('emojiPaletteForMain', null);
-			}
-			if (prefer.s.emojiPaletteForReaction === existingId) {
-				prefer.commit('emojiPaletteForReaction', null);
-			}
-		}
-		const next = new Set(selectedIndices.value);
-		next.delete(index);
-		selectedIndices.value = next;
-	}
+	const defaultPalette = prefer.s.emojiPalettes[0];
+	if (!defaultPalette) return;
+	prefer.commit('emojiPalettes', [
+		{
+			...defaultPalette,
+			emojis: [...palette.emojis],
+		},
+		...prefer.s.emojiPalettes.slice(1),
+	]);
 }
-
-function syncSelectionState() {
-	const next = new Set<number>();
-	recommendedPalettes.value.forEach((palette, i) => {
-		if (findExistingPalette(palette.name, palette.emojis)) {
-			next.add(i);
-		}
-	});
-	selectedIndices.value = next;
-}
-
-syncSelectionState();
 </script>
 
 <style lang="scss" module>
 .paletteCard {
-	padding: 16px;
-	border: solid 1px var(--MI_THEME-divider);
+	display: block;
+	width: 100%;
+	padding: 12px;
+	border: solid 2px var(--MI_THEME-divider);
 	border-radius: 8px;
+	text-align: left;
+
+	&:hover {
+		border-color: var(--MI_THEME-accent);
+	}
+
+	&.selected {
+		border-color: var(--MI_THEME-accent);
+		background: var(--MI_THEME-accentedBg);
+	}
 }
 
-.paletteHeader {
+.paletteName {
+	font-size: 0.9em;
 	margin-bottom: 8px;
+	font-weight: bold;
 }
 
-.emojisList {
-	font-size: 1.2em;
-	line-height: 1.8;
+.emojisGrid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
 }
 
 .emojiItem {
-	margin-right: 4px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	font-size: 20px;
+	border-radius: 4px;
+	background: var(--MI_THEME-buttonBg);
 }
 </style>
