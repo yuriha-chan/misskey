@@ -1785,6 +1785,8 @@ _serverSettings:
   restartServerSetupWizardConfirm_text: "現在の一部の設定はリセットされます。"
   entrancePageStyle: "エントランスページのスタイル"
   showTimelineForVisitor: "タイムラインを表示する"
+  emojiPaletteRecommendation: "おすすめの絵文字パレット"
+  emojiPaletteRecommendationDescription: "新規ユーザーの初期設定ウィザードで表示される、サーバーがおすすめする絵文字パレットを設定します。"
   showActivitiesForVisitor: "アクティビティを表示する"
 
   _userGeneratedContentsVisibilityForVisitor:

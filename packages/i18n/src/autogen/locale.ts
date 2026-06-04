@@ -7001,6 +7001,14 @@ export interface Locale extends ILocale {
          */
         "showTimelineForVisitor": string;
         /**
+         * おすすめの絵文字パレット
+         */
+        "emojiPaletteRecommendation": string;
+        /**
+         * 新規ユーザーの初期設定ウィザードで表示される、サーバーがおすすめする絵文字パレットを設定します。
+         */
+        "emojiPaletteRecommendationDescription": string;
+        /**
          * アクティビティを表示する
          */
         "showActivitiesForVisitor": string;
