@@ -7,10 +7,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div class="_gaps">
 	<MkInfo>{{ i18n.ts._initialAccountSetting.emojiPaletteSettingDescription }}</MkInfo>
 
-	<template v-if="recommendedPalettes.length > 0">
+	<template v-if="candidatePalettes.length > 0">
 		<div class="_gaps_s">
 			<button
-				v-for="(palette, i) in recommendedPalettes"
+				v-for="(palette, i) in candidatePalettes"
 				:key="i"
 				class="_button"
 				:class="[$style.paletteCard, { [$style.selected]: selectedIndex === i }]"
@@ -41,6 +41,7 @@ import MkCustomEmoji from '@/components/global/MkCustomEmoji.vue';
 import MkEmoji from '@/components/global/MkEmoji.vue';
 import { instance } from '@/instance.js';
 import { prefer } from '@/preferences.js';
+import { DEFAULT_EMOJIS } from '@@/js/const.js';
 
 type RecommendedPalette = {
 	name: string;
@@ -51,12 +52,23 @@ const recommendedPalettes = computed<RecommendedPalette[]>(() => {
 	return instance.recommendedEmojiPalettes ?? [];
 });
 
+const candidatePalettes = computed<RecommendedPalette[]>(() => {
+	return [
+		{ name: i18n.ts.default, emojis: [...DEFAULT_EMOJIS] },
+		...recommendedPalettes.value,
+	];
+});
+
 const selectedIndex = ref<number | null>(null);
+
+function emojisEqual(a: string[], b: string[]): boolean {
+	return a.length === b.length && a.every((e, i) => e === b[i]);
+}
 
 function selectPalette(index: number) {
 	if (selectedIndex.value === index) return;
 	selectedIndex.value = index;
-	const palette = recommendedPalettes.value[index];
+	const palette = candidatePalettes.value[index];
 	if (!palette) return;
 	const defaultPalette = prefer.s.emojiPalettes[0];
 	if (!defaultPalette) return;
@@ -70,8 +82,10 @@ function selectPalette(index: number) {
 }
 
 onMounted(() => {
-	if (recommendedPalettes.value.length > 0) {
-		selectPalette(0);
+	const currentEmojis = prefer.s.emojiPalettes[0]?.emojis;
+	const matchIndex = currentEmojis ? candidatePalettes.value.findIndex(p => emojisEqual(p.emojis, currentEmojis)) : 0;
+	if (matchIndex !== -1) {
+		selectedIndex.value = matchIndex;
 	}
 });
 
@@ -112,9 +126,9 @@ onMounted(() => {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 36px;
-	height: 36px;
-	font-size: 20px;
+	width: 30px;
+	height: 30px;
+	font-size: 18px;
 	border-radius: 4px;
 	background: var(--MI_THEME-buttonBg);
 }
