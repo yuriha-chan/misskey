@@ -6987,11 +6987,11 @@ export interface Locale extends ILocale {
          */
         "laterAreYouSure": string;
         /**
-         * 絵文字パレット設定
+         * 絵文字パレット初期設定
          */
         "emojiPaletteSetting": string;
         /**
-         * よく使う絵文字のパレットを選んでください。パレットは後から設定画面でカスタマイズできます。
+         * 投稿への反応に使うスタンプ (絵文字) のパレットを選択できます。どのパレットを選んでも、後から自由に追加・削除できます。
          */
         "emojiPaletteSettingDescription": string;
         /**
@@ -6999,7 +6999,7 @@ export interface Locale extends ILocale {
          */
         "useThisPalette": string;
         /**
-         * おすすめのパレットはありません。デフォルトのパレットが設定されています。
+         * おすすめのパレットはありません。デフォルトのパレットが設定されます。
          */
         "noRecommendedPalettes": string;
     };

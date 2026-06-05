@@ -94,7 +94,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 						<div :class="$style.pageFooter">
 							<div class="_buttonsCenter">
-								<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+								<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
 								<MkButton primary rounded gradate :disabled="r18Age == null" data-cy-user-setup-continue @click="saveR18AndContinue()">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
 							</div>
 						</div>
@@ -181,13 +181,11 @@ import XProfile from '@/components/MkUserSetupDialog.Profile.vue';
 import XFollow from '@/components/MkUserSetupDialog.Follow.vue';
 import XPrivacy from '@/components/MkUserSetupDialog.Privacy.vue';
 import XEmojiPalette from '@/components/MkUserSetupDialog.EmojiPalette.vue';
-import MkAnimBg from '@/components/MkAnimBg.vue';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
 import * as os from '@/os.js';
-import { prefer } from '@/preferences.js';
 import { DEFAULT_EMOJIS } from '@@/js/const.js';
 
 const emit = defineEmits<{
@@ -212,12 +210,8 @@ function saveR18AndContinue() {
 	} else if (r18Age.value === true) {
 		prefer.commit('hideR18Content', r18HideValue.value);
 	}
-	page.value++;
+	pageIndex.value++;
 }
-
-watch(page, () => {
-	store.set('accountSetupWizard', page.value);
-});
 
 function emojisEqual(a: string[], b: string[]): boolean {
 	return a.length === b.length && a.every((e, i) => e === b[i]);
