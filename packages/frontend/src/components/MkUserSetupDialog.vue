@@ -12,18 +12,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@close="close(true)"
 	@closed="emit('closed')"
 >
-	<template v-if="page === 1" #header><i class="ti ti-user-edit"></i> {{ i18n.ts._initialAccountSetting.profileSetting }}</template>
-	<template v-else-if="page === 2" #header><i class="ti ti-lock"></i> {{ i18n.ts._initialAccountSetting.privacySetting }}</template>
-	<template v-else-if="page === 3" #header><i class="ti ti-rating-18-plus"></i> {{ i18n.ts._initialAccountSetting.r18ContentSetting }}</template>
-	<template v-else-if="page === 4" #header><i class="ti ti-mood-happy"></i> {{ i18n.ts._initialAccountSetting.emojiPaletteSetting }}</template>
-	<template v-else-if="page === 5" #header><i class="ti ti-user-plus"></i> {{ i18n.ts.follow }}</template>
-	<template v-else-if="page === 6" #header><i class="ti ti-bell-plus"></i> {{ i18n.ts.pushNotification }}</template>
-	<template v-else-if="page === 7" #header>{{ i18n.ts.done }}</template>
-	<template v-else #header>{{ i18n.ts.initialAccountSetting }}</template>
+	<template #header><i v-if="activePage?.icon" :class="activePage.icon"></i> {{ activePage?.header }}</template>
 
 	<div style="overflow-x: clip;">
 		<div :class="$style.progressBar">
-			<div :class="$style.progressBarValue" :style="{ width: `${(page / 6) * 100}%` }"></div>
+			<div :class="$style.progressBarValue" :style="{ width: `${(pageIndex / (activePages.length - 1)) * 100}%` }"></div>
 		</div>
 		<Transition
 			mode="out-in"
@@ -32,7 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:enterFromClass="$style.transition_x_enterFrom"
 			:leaveToClass="$style.transition_x_leaveTo"
 		>
-			<template v-if="page === 0">
+			<template v-if="page === 'welcome'">
 				<div :class="$style.centerPage">
 					<MkAnimBg style="position: absolute; top: 0;" :scale="1.5"/>
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
@@ -40,13 +33,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<i class="ti ti-confetti" style="display: block; margin: auto; font-size: 3em; color: var(--MI_THEME-accent);"></i>
 							<div style="font-size: 120%;">{{ i18n.ts._initialAccountSetting.accountCreated }}</div>
 							<div>{{ i18n.ts._initialAccountSetting.letsStartAccountSetup }}</div>
-							<MkButton primary rounded gradate style="margin: 16px auto 0 auto;" data-cy-user-setup-continue @click="page++">{{ i18n.ts._initialAccountSetting.profileSetting }} <i class="ti ti-arrow-right"></i></MkButton>
+							<MkButton primary rounded gradate style="margin: 16px auto 0 auto;" data-cy-user-setup-continue @click="goNext">{{ i18n.ts._initialAccountSetting.profileSetting }} <i class="ti ti-arrow-right"></i></MkButton>
 							<MkButton style="margin: 0 auto;" transparent rounded @click="later(true)">{{ i18n.ts.later }}</MkButton>
 						</div>
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 1">
+			<template v-else-if="page === 'profile'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div :class="$style.pageRoot">
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
@@ -54,14 +47,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 						<div :class="$style.pageFooter">
 							<div class="_buttonsCenter">
-								<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
-								<MkButton primary rounded gradate data-cy-user-setup-continue @click="page++">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+								<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+								<MkButton primary rounded gradate data-cy-user-setup-continue @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
 							</div>
 						</div>
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 2">
+			<template v-else-if="page === 'privacy'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div :class="$style.pageRoot">
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
@@ -69,14 +62,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 						<div :class="$style.pageFooter">
 							<div class="_buttonsCenter">
-								<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
-								<MkButton primary rounded gradate data-cy-user-setup-continue @click="page++">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+								<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+								<MkButton primary rounded gradate data-cy-user-setup-continue @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
 							</div>
 						</div>
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 3">
+			<template v-else-if="page === 'r18Content'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div :class="$style.pageRoot">
 						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
@@ -108,33 +101,33 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 4">
+			<template v-else-if="page === 'emojiPalette'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
 						<XEmojiPalette/>
 					</div>
 					<div :class="$style.pageFooter">
 						<div class="_buttonsCenter">
-							<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
-							<MkButton primary rounded gradate data-cy-user-setup-continue @click="page++">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+							<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+							<MkButton primary rounded gradate data-cy-user-setup-continue @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
 						</div>
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 4">
+			<template v-else-if="page === 'follow'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
 						<XFollow/>
 					</div>
 					<div :class="$style.pageFooter">
 						<div class="_buttonsCenter">
-							<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
-							<MkButton primary rounded gradate style="" data-cy-user-setup-continue @click="page++">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+							<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+							<MkButton primary rounded gradate data-cy-user-setup-continue @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
 						</div>
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 5">
+			<template v-else-if="page === 'push'">
 				<div :class="$style.centerPage">
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
 						<div class="_gaps" style="text-align: center;">
@@ -143,14 +136,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<div style="padding: 0 16px;">{{ i18n.tsx._initialAccountSetting.pushNotificationDescription({ name: instance.name ?? host }) }}</div>
 							<MkPushNotificationAllowButton primary showOnlyToRegister style="margin: 0 auto;"/>
 							<div class="_buttonsCenter" style="margin-top: 16px;">
-								<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
-								<MkButton primary rounded gradate data-cy-user-setup-continue @click="page++">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+								<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+								<MkButton primary rounded gradate data-cy-user-setup-continue @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
 							</div>
 						</div>
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 6">
+			<template v-else-if="page === 'done'">
 				<div :class="$style.centerPage">
 					<MkAnimBg style="position: absolute; top: 0;" :scale="1.5"/>
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
@@ -162,7 +155,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkButton rounded primary gradate data-cy-user-setup-continue @click="launchTutorial()">{{ i18n.ts._initialAccountSetting.startTutorial }} <i class="ti ti-arrow-right"></i></MkButton>
 							</div>
 							<div class="_buttonsCenter">
-								<MkButton rounded data-cy-user-setup-back @click="page--"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+								<MkButton rounded data-cy-user-setup-back @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
 								<MkButton rounded primary data-cy-user-setup-continue @click="setupComplete()">{{ i18n.ts.close }}</MkButton>
 							</div>
 						</div>
@@ -175,7 +168,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, useTemplateRef, watch, nextTick, defineAsyncComponent, computed } from 'vue';
+import { ref, computed, useTemplateRef, watch, nextTick } from 'vue';
 import { host } from '@@/js/config.js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -194,6 +187,8 @@ import { instance } from '@/instance.js';
 import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
 import * as os from '@/os.js';
+import { prefer } from '@/preferences.js';
+import { DEFAULT_EMOJIS } from '@@/js/const.js';
 
 const emit = defineEmits<{
 	(ev: 'closed'): void;
@@ -201,7 +196,12 @@ const emit = defineEmits<{
 
 const dialog = useTemplateRef('dialog');
 
-const page = ref(store.s.accountSetupWizard);
+interface PageDef {
+	name: string;
+	icon?: string;
+	header: string;
+	condition?: () => boolean;
+}
 
 const r18Age = ref<boolean | null>(null);
 const r18HideValue = ref(false);
@@ -218,6 +218,54 @@ function saveR18AndContinue() {
 watch(page, () => {
 	store.set('accountSetupWizard', page.value);
 });
+
+function emojisEqual(a: string[], b: string[]): boolean {
+	return a.length === b.length && a.every((e, i) => e === b[i]);
+}
+
+const candidateEmojis = computed(() => {
+	const recommended = instance.recommendedEmojiPalettes ?? [];
+	return [[...DEFAULT_EMOJIS], ...recommended.map(p => p.emojis)];
+});
+
+const showEmojiPalettePage = computed(() => {
+	if (!instance.recommendedEmojiPalettes?.length) return false;
+	if (prefer.s.emojiPalettes.length > 1) return false;
+
+	const current = prefer.s.emojiPalettes[0]?.emojis;
+	if (!current) return true;
+	return candidateEmojis.value.some(e => emojisEqual(e, current));
+});
+
+const pageDefs: PageDef[] = [
+	{ name: 'welcome', header: i18n.ts.initialAccountSetting },
+	{ name: 'profile', icon: 'ti ti-user-edit', header: i18n.ts._initialAccountSetting.profileSetting },
+	{ name: 'privacy', icon: 'ti ti-lock', header: i18n.ts._initialAccountSetting.privacySetting },
+	{ name: 'r18Content', icon: 'ti ti-rating-18-plus', header: i18n.ts._initialAccountSetting.r18ContentSetting },
+	{ name: 'emojiPalette', icon: 'ti ti-mood-happy', header: i18n.ts._initialAccountSetting.emojiPaletteSetting, condition: () => showEmojiPalettePage.value },
+	{ name: 'follow', icon: 'ti ti-user-plus', header: i18n.ts.follow },
+	{ name: 'push', icon: 'ti ti-bell-plus', header: i18n.ts.pushNotification },
+	{ name: 'done', header: i18n.ts.done },
+];
+
+const activePages = computed(() => pageDefs.filter(d => !d.condition || d.condition()));
+
+const pageIndex = ref(Math.min(Math.max(store.s.accountSetupWizard, 0), activePages.value.length - 1));
+
+const page = computed(() => activePages.value[pageIndex.value]?.name);
+const activePage = computed(() => activePages.value[pageIndex.value]);
+
+watch(pageIndex, () => {
+	store.set('accountSetupWizard', pageIndex.value);
+});
+
+function goNext() {
+	if (pageIndex.value < activePages.value.length - 1) pageIndex.value++;
+}
+
+function goBack() {
+	if (pageIndex.value > 0) pageIndex.value--;
+}
 
 async function close(skip: boolean) {
 	if (skip) {
