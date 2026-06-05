@@ -28,8 +28,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkInfo>{{ i18n.ts.hideR18ContentDescription2 }}</MkInfo>
 			<MkInfo>{{ i18n.ts.hideR18ContentDescription3 }}</MkInfo>
 		</template>
-		<template v-else>
-			<MkInfo>{{ i18n.ts.r18ConsentUnder17Description }}</MkInfo>
+		<template v-else-if="iAmAdult === false">
+			<MkInfo>{{ i18n.ts.r18ConsentUnder17Description1 }}</MkInfo>
+			<MkInfo>{{ i18n.ts.r18ConsentUnder17Description2 }}</MkInfo>
 		</template>
 	</div>
 </MkModalWindow>
