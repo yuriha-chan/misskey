@@ -415,7 +415,7 @@ async function fetchMore() {
 	});
 
 	// TODO: normalize
-	timelineItems.value.push(...(newMessages.map((m: any) => ({ type: 'message' as const, data: normalizeMessage(m) }))));
+	timelineItems.value.push(...(newMessages.map((m: any) => ({ type: 'message' as const, data: normalizeMessage(m.data) }))));
 
 	canFetchMore.value = newMessages.length === LIMIT;
 	moreFetching.value = false;
