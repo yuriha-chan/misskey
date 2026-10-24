@@ -69,6 +69,11 @@ describe('Chat', () => {
 			assert.strictEqual(res.body.isPublic, false);
 			assert.strictEqual(res.body.isArchived, false);
 			assert.strictEqual(res.body.capacity, 30);
+			assert.strictEqual(res.body.expiration, 3 * 3600 * 1000);
+
+			const stored = await api('chat/rooms/show', { roomId: res.body.id }, alice);
+			assert.strictEqual(stored.status, 200);
+			assert.strictEqual(stored.body.expiration, 3 * 3600 * 1000);
 		});
 
 		test('create a public room', async () => {
