@@ -1,19 +1,24 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="600" @closed="emit('closed')">
+<MkWindow ref="uiWindow" data-testid="chat-room-editor" :initialWidth="400" :initialHeight="600" @closed="emit('closed')">
 	<template #header>New Chat Room</template>
 	<div style="display: flex; flex-direction: column; min-height: 100%;">
 		<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px; flex-grow: 1;">
 			<div class="_gaps_m">
-				<MkInput v-model="roomName" :label="i18n.ts.name" required>
+				<MkInput v-model="roomName" data-testid="chat-room-name" :label="i18n.ts.name" required>
 					<template #label>{{ i18n.ts.title }}</template>
 				</MkInput>
-				<MkTextarea v-model="roomDescription">
+				<MkTextarea v-model="roomDescription" data-testid="chat-room-description">
 					<template #label>{{ i18n.ts.description }}</template>
 				</MkTextarea>
 				<MkInput v-model="roomCapacity" type="number" :min="2" :max="30" placeholder="2-30">
 					<template #label>{{ i18n.ts._chat.capacity }}</template>
 				</MkInput>
-				<MkSwitch v-model="roomIsPublic">
+				<MkSwitch v-model="roomIsPublic" data-testid="chat-room-public">
 					<template #label>{{ i18n.ts._chat.isPublicRoom }}</template>
 				</MkSwitch>
 				<div v-if="roomIsPublic">{{ i18n.ts._chat.publicRoomMustExpire }}</div>

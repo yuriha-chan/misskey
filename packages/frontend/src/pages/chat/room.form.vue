@@ -5,6 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div
+	data-testid="chat-composer"
 	:class="$style.root"
 	@dragover.stop="onDragover"
 	@drop.stop="onDrop"

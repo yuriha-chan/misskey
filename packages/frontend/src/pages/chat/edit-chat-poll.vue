@@ -1,10 +1,15 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="560" @closed="emit('closed')">
+<MkWindow ref="uiWindow" data-testid="chat-poll-editor" :initialWidth="400" :initialHeight="560" @closed="emit('closed')">
 	<template #header>{{ i18n.ts._chat.editPoll }}</template>
 	<div style="display: flex; flex-direction: column; min-height: 100%;">
 		<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px; flex-grow: 1;">
 			<div class="_gaps_m">
-				<MkInput v-model="title">
+				<MkInput v-model="title" data-testid="chat-poll-title">
 					<template #label>{{ i18n.ts._chat.pollTitle }}</template>
 				</MkInput>
 				<MkButton @click="voteForRoomMembers">
@@ -25,7 +30,7 @@
 								<MkButton @click="selectUser(idx)">{{ i18n.ts.selectUser }}</MkButton>
 							</template>
 							<template v-else>
-								<MkInput v-model="textChoices[idx]" />
+								<MkInput v-model="textChoices[idx]" data-testid="chat-poll-choice" />
 							</template>
 							<MkButton danger @click="removeChoice(voteForUsers, idx)" icon="ti ti-x" >{{ i18n.ts.remove }}</MkButton>
 						</div>
@@ -35,9 +40,11 @@
 				<MkTimeDurationInput v-model="startsIn" :min="0" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
 					<template #label>{{ i18n.ts._chat.pollStartsIn }}</template>
 				</MkTimeDurationInput>
-				<MkTimeDurationInput v-model="duration" :min="10" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
-					<template #label>{{ i18n.ts._chat.pollDuration }}</template>
-				</MkTimeDurationInput>
+				<div data-testid="chat-poll-duration">
+					<MkTimeDurationInput v-model="duration" :min="10" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
+						<template #label>{{ i18n.ts._chat.pollDuration }}</template>
+					</MkTimeDurationInput>
+				</div>
 				<MkSwitch v-model="anonymous">
 					<template #label>{{ i18n.ts._chat.anonymousPoll }}</template>
 				</MkSwitch>

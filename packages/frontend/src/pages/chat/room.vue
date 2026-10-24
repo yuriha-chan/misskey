@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkButton primary @click="() => onCardRevealClick(card)">{{ i18n.ts._chat.revealCard }}</MkButton>
 						</div>
 					</div>
-					<div v-for="poll in polls" :key="poll.id" :class="$style.poll">
+					<div v-for="poll in polls" :key="poll.id" data-testid="chat-active-poll" :class="$style.poll">
 						<span>{{ i18n.ts._chat.poll }}: {{ poll.title }}</span>
 						<span v-if="!(poll as TrackedPoll).started && (poll as TrackedPoll).startsAt != null" :class="$style.countdownContainer">{{ i18n.ts._chat.startsIn }} <MkCountdown :to="Date.parse((poll as TrackedPoll).startsAt!)" :class="$style.countdown"/></span>
 						<MkButton v-if="!(poll as TrackedPoll).started && (poll as TrackedPoll).fromUserId === $i.id" danger rounded @click="() => onPollStartClick(poll)">{{ i18n.ts._chat.startPoll }}</MkButton>
