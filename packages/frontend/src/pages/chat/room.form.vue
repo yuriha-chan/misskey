@@ -117,6 +117,7 @@ async function openPollDialog() {
 		closed: () => dispose(),
 	});
 }
+
 async function openSecretDialog(): Promise<void> {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-secret.vue').then(x => x.default), {
 		secret: secret.value,
@@ -129,6 +130,7 @@ async function openSecretDialog(): Promise<void> {
 		closed: () => dispose(),
 	});
 }
+
 async function openCardsDialog() {
 	const { dispose } = await os.popupAsyncWithDialog(import('./edit-chat-cards.vue').then(x => x.default), {
 		cards: cards.value,
@@ -233,6 +235,7 @@ function onDrop(ev: DragEvent): void {
 }
 
 function onKeydown(ev: KeyboardEvent) {
+	if (ev.isComposing || ev.key === 'Process' || ev.keyCode === 229) return;
 	if (ev.key === 'Enter') {
 		if (prefer.s['chat.sendOnEnter']) {
 			if (!(ev.ctrlKey || ev.metaKey || ev.shiftKey)) {
@@ -267,10 +270,11 @@ function onChangeFile() {
 }
 
 function packDeliverCards(cards: ChatCardsDraft) {
-	return {...cards, deliver: cards.deliver.map(d => ({ count: d.count, userId: d.user.id }))};
+	return { ...cards, deliver: cards.deliver.map(d => ({ count: d.count, userId: d.user.id })) };
 }
+
 function packPoll(poll: ChatPollDraft) {
-	return {...poll, choices: poll.voteForUsers ? (poll.choices as Misskey.entities.UserLite[]).map(u => u.id) : poll.choices };
+	return { ...poll, choices: poll.voteForUsers ? (poll.choices as Misskey.entities.UserLite[]).map(u => u.id) : poll.choices };
 }
 
 function send() {

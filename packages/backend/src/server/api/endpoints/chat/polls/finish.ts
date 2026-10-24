@@ -33,7 +33,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
-			this.chatService.finishPoll(ps.pollId, me);
+			await this.chatService.finishPoll(ps.pollId, me);
 		});
 	}
 }
