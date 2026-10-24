@@ -18201,6 +18201,7 @@ export interface operations {
                             id: string;
                             title: string | null;
                             voteForUsers: boolean;
+                            voted: boolean;
                             userChoices?: Record<string, never>[] | null;
                             textChoices?: string[] | null;
                             fromUserId: string;

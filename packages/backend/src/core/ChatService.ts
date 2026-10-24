@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { DataSource, Brackets, IsNull, Not } from 'typeorm';
+import { DataSource, Brackets, In, IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
@@ -18,7 +18,7 @@ import { ChatEntityService, type MiChatPollWithVotes } from '@/core/entities/Cha
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { PushNotificationService } from '@/core/PushNotificationService.js';
 import { bindThis } from '@/decorators.js';
-import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, ChatSecretsRepository, ChatPollsRepository, ChatCardsRepository, MiChatMessage, MiChatRoom, MiChatPoll, MiChatPollVote, MiChatSecret, MiChatCard, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
+import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, ChatSecretsRepository, ChatPollsRepository, ChatPollVotesRepository, ChatCardsRepository, MiChatMessage, MiChatRoom, MiChatPoll, MiChatPollVote, MiChatSecret, MiChatCard, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -80,6 +80,9 @@ export class ChatService {
 
 		@Inject(DI.chatPollsRepository)
 		private chatPollsRepository: ChatPollsRepository,
+
+		@Inject(DI.chatPollVotesRepository)
+		private chatPollVotesRepository: ChatPollVotesRepository,
 
 		@Inject(DI.chatCardsRepository)
 		private chatCardsRepository: ChatCardsRepository,
@@ -266,14 +269,22 @@ export class ChatService {
 	}
 
 	@bindThis
-	public async listPoll(roomId: MiChatPoll['id'], me?: MiUser) {
+	public async listPoll(roomId: MiChatRoom['id'], me: MiUser) {
 		const [scheduledPolls, startedPolls] = await Promise.all([
 			this.chatPollsRepository.findBy({ roomId, startedId: IsNull() })
 				.then((p) => this.chatEntityService.packPollsScheduled(p)), 
 			this.chatPollsRepository.findBy({ roomId, startedId: Not(IsNull()), finishedId: IsNull() })
 				.then((p) => this.chatEntityService.packPollsStarted(p)),
 		]);
-		return { scheduledPolls, startedPolls };
+		const votes = startedPolls.length === 0 ? [] : await this.chatPollVotesRepository.find({
+			where: { pollId: In(startedPolls.map(poll => poll.id)), userId: me.id },
+			select: { pollId: true },
+		});
+		const votedPollIds = new Set(votes.map(vote => vote.pollId));
+		return {
+			scheduledPolls,
+			startedPolls: startedPolls.map(poll => ({ ...poll, voted: votedPollIds.has(poll.id) })),
+		};
 	}
 
 	@bindThis

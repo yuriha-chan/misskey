@@ -42,6 +42,7 @@ export const meta = {
 					id: { type: 'string', optional: false, nullable: false },
 					title: { type: 'string', optional: false, nullable: true },
 					voteForUsers: { type: 'boolean', optional: false, nullable: false },
+					voted: { type: 'boolean', optional: false, nullable: false },
 					userChoices: { type: 'array', optional: true, nullable: true, items: { type: 'object' } },
 					textChoices: { type: 'array', optional: true, nullable: true, items: { type: 'string' } },
 					fromUserId: { type: 'string', optional: false, nullable: false },

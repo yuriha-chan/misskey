@@ -442,6 +442,31 @@ describe('Chat', () => {
 			assert.strictEqual(res.status, 204);
 		});
 
+		test('poll lists retain the requesting users vote state', async () => {
+			const created = await api('chat/messages/create-to-room', {
+				toRoomId: room.id,
+				poll: { title: 'persistent vote state', choices: ['Spring', 'Autumn'], anonymous: true },
+			}, alice);
+			assert.strictEqual(created.status, 204);
+
+			const before = await api('chat/polls/list', { roomId: room.id }, bob);
+			assert.strictEqual(before.status, 200);
+			const poll = before.body.startedPolls.find(poll => poll.title === 'persistent vote state');
+			assert.ok(poll);
+			assert.strictEqual(poll.voted, false);
+
+			const vote = await api('chat/polls/vote', { pollId: poll.id, choice: 0 }, bob);
+			assert.strictEqual(vote.status, 204);
+
+			for (const viewer of [bob, alice, bob]) {
+				const listed = await api('chat/polls/list', { roomId: room.id }, viewer);
+				assert.strictEqual(listed.status, 200);
+				const listedPoll: misskey.entities.ChatPollsListResponse['startedPolls'][number] | undefined = listed.body.startedPolls.find(item => item.id === poll.id);
+				assert.ok(listedPoll);
+				assert.strictEqual(listedPoll.voted, viewer.id === bob.id);
+			}
+		});
+
 		test('cannot vote twice on same poll', async () => {
 			await api('chat/messages/create-to-room', {
 				toRoomId: room.id,
