@@ -215,6 +215,78 @@ test.describe('Frontend tweaks', () => {
 		});
 	}
 
+	for (const menuPosition of ['right', 'bottom'] as const) {
+		for (const viewport of [{ width: 390, height: 844 }, { width: 500, height: 390 }]) {
+			test(`clears mobile Deck bottom controls with ${menuPosition} toolbar at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+				for (let i = 0; i < 8; i++) await postTimelineNote(page, `Deck overlap note ${i}`);
+				await configureLayout(page, { animation: false, hideNavFooter: false });
+				await page.goto('/chat');
+				await page.getByRole('button', { name: /Start chat$/ }).click();
+				await page.getByRole('menuitem', { name: /Room Chat/ }).click();
+				await page.getByRole('menuitem', { name: /Create Room$/ }).click();
+				await page.getByTestId('modal-dialog-ok').locator('../..').getByRole('textbox').fill('Deck overlap room');
+				const created = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/rooms/create');
+				await page.getByTestId('modal-dialog-ok').click();
+				expect((await created).status()).toBe(200);
+				await expect(page.getByPlaceholder('Enter message here', { exact: true })).toBeVisible();
+				const roomPath = new URL(page.url()).pathname;
+				await page.evaluate((position) => {
+					const profile = JSON.parse(localStorage.getItem('preferences')!);
+					const values = {
+						'deck.menuPosition': position,
+						'deck.navWindow': false,
+						'deck.useSimpleUiForNonRootPages': false,
+						'deck.profile': 'Overlap',
+						'deck.profiles': [{
+							id: 'overlap-profile', name: 'Overlap',
+							columns: [
+								{ id: 'overlap-timeline', type: 'tl', tl: 'home', name: 'Overlap timeline', width: 330 },
+								{ id: 'overlap-main', type: 'main', name: null, width: 330 },
+							],
+							layout: [['overlap-timeline'], ['overlap-main']],
+						}],
+					};
+					for (const [key, value] of Object.entries(values)) {
+						profile.preferences[key] = profile.preferences[key].map(([scope]: [unknown]) => [scope, value, {}]);
+					}
+					profile.modifiedAt = Date.now();
+					localStorage.setItem('preferences', JSON.stringify(profile));
+				}, menuPosition);
+				await page.setViewportSize(viewport);
+				await page.goto(`${roomPath}?ui=deck`);
+				const menu = mobileMenu(page);
+				await expect(menu).toBeVisible();
+				const settings = page.getByRole('button').filter({ has: page.locator('.ti-settings-2') });
+				await expect(settings).toHaveCount(1);
+				await expectMenuCoverage(settings, menu);
+				const timeline = page.locator('section').filter({ has: page.getByText('Overlap timeline', { exact: true }) });
+				const scrollable = timeline.locator(':scope > div > div').filter({ has: page.locator('article') });
+				await expect(scrollable).toHaveCount(1);
+				await scrollPage(page, scrollable, 100_000);
+				await expect.poll(() => scrollable.evaluate(el => el.scrollTop + el.clientHeight >= el.scrollHeight - 1)).toBe(true);
+				const reply = timeline.locator('article').filter({ hasText: 'Deck overlap note 0' }).getByRole('button').filter({ has: page.locator('.ti-arrow-back-up') });
+				await expectMenuCoverage(reply, menu);
+				await reply.click();
+				await expect(page.getByTestId('post-form-text')).toBeVisible();
+				await page.keyboard.press('Escape');
+				const main = page.locator('section').filter({ has: page.getByPlaceholder('Enter message here', { exact: true }) });
+				await main.locator(':scope > div > header').scrollIntoViewIfNeeded();
+				const composer = main.getByPlaceholder('Enter message here', { exact: true });
+				const send = main.getByTitle('Send', { exact: true });
+				await expectMenuCoverage(composer, menu);
+				await expectMenuCoverage(send, menu);
+				await composer.fill('Deck message above menu');
+				const sent = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/messages/create-to-room');
+				await send.click();
+				expect((await sent).status()).toBe(200);
+				await expect(main.getByText('Deck message above menu', { exact: true })).toBeVisible();
+				await expectMenuCoverage(settings, menu);
+				await settings.click();
+				await expect(page.getByText('Deck menu position', { exact: true })).toBeVisible();
+			});
+		}
+	}
+
 	test('keeps the last timeline note controls reachable above the floating mobile menu', async ({ page }) => {
 		for (let i = 0; i < 16; i++) {
 			await postTimelineNote(page, `Overlay timeline note ${i}`);

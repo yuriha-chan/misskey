@@ -69,7 +69,7 @@ let contentLoadWillDelay = false;
 
 const onContentLoadDelayed = () => {
 	contentLoadWillDelay = true;
-}
+};
 
 const onMainContentLoaded = async (delayed: boolean) => {
 	await nextTick();

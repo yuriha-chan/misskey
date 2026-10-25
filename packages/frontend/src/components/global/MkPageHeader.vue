@@ -30,7 +30,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</template>
 		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="$style.buttons">
 			<template v-for="action in actions">
-				<button class="_button" :class="$style.buttonWithLabel" v-tooltip.noDelay="action.text" @click.stop="action.handler" @touchstart="preventDrag">
+				<button v-tooltip.noDelay="action.text" class="_button" :class="$style.buttonWithLabel" @click.stop="action.handler" @touchstart="preventDrag">
 					<div :class="[$style.button, { [$style.highlighted]: action.highlighted }]"><i :class="action.icon"></i></div>
 					<div v-if="action.showText" :class="$style.buttonLabel">{{ action.text }}</div>
 				</button>
