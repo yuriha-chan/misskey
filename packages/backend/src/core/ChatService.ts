@@ -1492,12 +1492,15 @@ export class ChatService {
 				reaction,
 			});
 		} else {
+			const user = await this.userEntityService.pack(userId);
 			this.globalEventService.publishChatUserStream(message.fromUserId, message.toUserId!, 'unreact', {
 				messageId: message.id,
+				user,
 				reaction,
 			});
 			this.globalEventService.publishChatUserStream(message.toUserId!, message.fromUserId, 'unreact', {
 				messageId: message.id,
+				user,
 				reaction,
 			});
 		}

@@ -7,11 +7,13 @@ import type { Page } from '@playwright/test';
 import { test, expect, createChatEnvironment, createRoom, joinRoom, sendMessage, followEachOther } from './chat.helpers.js';
 
 async function loadSeededHistory(page: Page, messages: string[]): Promise<void> {
+	const timeline = page.getByTestId('chat-timeline');
+	await expect(timeline).toHaveCount(1);
 	for (let index = messages.length - 2; index >= 0; index--) {
 		const olderMessage = page.getByText(messages[index]!, { exact: true });
 		const newerMessage = page.getByText(messages[index + 1]!, { exact: true });
 		if (await olderMessage.count() === 0) {
-			const loadMore = page.getByRole('button', { name: 'Load more' });
+			const loadMore = timeline.getByRole('button', { name: 'Load more' });
 			await expect(loadMore).toBeVisible();
 			await loadMore.click();
 		}

@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 
-			<div v-else ref="timelineEl" class="_gaps">
+			<div v-else ref="timelineEl" data-testid="chat-timeline" class="_gaps">
 				<div v-if="isArchived" :class="$style.isArchived">{{ i18n.ts._chat.thisRoomIsArchived }}</div>
 				<div v-if="canFetchMore">
 					<MkButton :class="$style.more" :wait="moreFetching" primary rounded @click="fetchMore">{{ i18n.ts.loadMore }}</MkButton>
@@ -404,18 +404,18 @@ async function fetchMore() {
 		return;
 	}
 
-	const newMessages = props.userId ? await misskeyApi('chat/messages/user-timeline', {
+	const newMessages = props.userId ? (await misskeyApi('chat/messages/user-timeline', {
 		userId: user.value!.id,
 		limit: LIMIT,
 		untilId: (lastMessage.data as { id?: string; deliverId?: string }).id ?? (lastMessage.data as { deliverId?: string }).deliverId,
-	}) : await misskeyApi('chat/messages/room-timeline', {
+	})).map(message => ({ type: 'message' as const, data: normalizeMessage(message) })) : await misskeyApi('chat/messages/room-timeline', {
 		roomId: room.value!.id,
 		limit: LIMIT,
 		untilId: (lastMessage.data as { id?: string; deliverId?: string }).id ?? (lastMessage.data as { deliverId?: string }).deliverId,
 	});
 
 	// TODO: normalize
-	timelineItems.value.push(...(newMessages.map((m: any) => ({ type: 'message' as const, data: normalizeMessage(m.data) }))));
+	timelineItems.value.push(...newMessages);
 
 	canFetchMore.value = newMessages.length === LIMIT;
 	moreFetching.value = false;
