@@ -136,6 +136,68 @@ test.describe('Recommended emoji palettes', () => {
 		await expect(page.locator('[alt="🦊"]')).toHaveCount(0);
 	});
 
+	test('wide emojis fit their tiles and wrap inside the palette card', async ({ page, request }) => {
+		const names: string[] = [];
+		for (const width of [160, 1600]) {
+			const image = await page.evaluate((imageWidth) => {
+				const canvas = document.createElement('canvas');
+				canvas.width = imageWidth;
+				canvas.height = 32;
+				const context = canvas.getContext('2d')!;
+				context.fillStyle = 'green';
+				context.fillRect(0, 0, imageWidth, 32);
+				return canvas.toDataURL('image/png').split(',')[1];
+			}, width);
+			const upload = await request.post(`${BASE_URL}/api/drive/files/create`, {
+				multipart: {
+					i: admin.token,
+					file: { name: `wide-${width}.png`, mimeType: 'image/png', buffer: Buffer.from(image, 'base64') },
+				},
+			});
+			expect(upload.ok()).toBeTruthy();
+			const file = await upload.json();
+			const name = `wide_${width}_${randomUUID().replaceAll('-', '')}`;
+			await api(BASE_URL, 'admin/emoji/add', { i: admin.token, fileId: file.id, name });
+			names.push(name);
+		}
+		await api(BASE_URL, 'admin/update-meta', {
+			i: admin.token,
+			recommendedEmojiPalettes: [{ name: 'Wide emojis', emojis: ['😺', ...names.map(name => `:${name}:`)] }],
+		});
+		await signIn(page, username, 'alice1234');
+		const dialog = await reachPaletteStep(page);
+		const card = dialog.getByRole('button', { name: /Wide emojis/ });
+		await expect(card).toBeVisible();
+		for (const width of [390, 1280]) {
+			await page.setViewportSize({ width, height: 844 });
+			await expect.poll(async () => card.locator('img').evaluateAll(images => {
+				return images.every(image => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0);
+			})).toBe(true);
+			const layout = await card.evaluate(element => {
+				const images = Array.from(element.querySelectorAll('img'));
+				return images.map(image => {
+					const rect = image.getBoundingClientRect();
+					const tile = image.parentElement!.getBoundingClientRect();
+					const grid = image.parentElement!.parentElement!.getBoundingClientRect();
+					return {
+						width: rect.width, height: rect.height, tileWidth: tile.width, top: tile.top,
+						contained: rect.left >= tile.left && rect.right <= tile.right && tile.left >= grid.left && tile.right <= grid.right,
+						objectFit: getComputedStyle(image).objectFit,
+					};
+				});
+			});
+			expect(layout).toHaveLength(3);
+			expect(layout.every(image => image.contained)).toBe(true);
+			expect(layout[1].tileWidth).toBeGreaterThan(layout[0].tileWidth);
+			expect(layout[1].width / layout[1].height).toBeCloseTo(5, 1);
+			expect(layout[2].objectFit).toBe('contain');
+			expect(layout[2].top).toBeGreaterThan(layout[1].top);
+		}
+		await card.click();
+		await dialog.getByTestId('user-setup-continue').click();
+		await finishSetup(page);
+	});
+
 	test('no recommendations keeps the ordinary onboarding sequence', async ({ page }) => {
 		await signIn(page, username, 'alice1234');
 		const dialog = await reachPaletteStep(page);
