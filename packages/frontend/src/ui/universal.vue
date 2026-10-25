@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XAnnouncements v-if="$i"/>
 				<XStatusBars :class="$style.statusbars"/>
 			</div>
-			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content"/>
+			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content" @mainContentLoaded="onRouterViewLoaded"/>
 			<RouterView v-else :class="$style.content" @mainContentLoaded="onRouterViewLoaded"/>
 			<Transition
 				:enterActiveClass="$style.transition_navFooter_enterActive"

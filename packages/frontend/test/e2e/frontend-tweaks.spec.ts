@@ -297,7 +297,7 @@ test.describe('Frontend tweaks', () => {
 		const move = page.getByRole('button', { name: /Move\.\.\.$/ });
 		await expectMenuCoverage(move, menu);
 		await move.click();
-		await expect(page.getByText('Select a folder', { exact: true })).toBeVisible();
+		await expect(page.getByRole('button', { name: /(?:^|\s)Select a folder$/ })).toBeVisible();
 	});
 });
 

@@ -62,6 +62,7 @@ router.useListener('change', ({ resolved }) => {
 	currentPageProps.value = resolved.props;
 	key.value = router.getCurrentFullPath();
 	currentRoutePath = resolved.route.path;
+	contentLoadWillDelay = false;
 });
 
 let contentLoadWillDelay = false;
@@ -70,7 +71,8 @@ const onContentLoadDelayed = () => {
 	contentLoadWillDelay = true;
 }
 
-const onMainContentLoaded = (delayed: boolean) => {
+const onMainContentLoaded = async (delayed: boolean) => {
+	await nextTick();
 	if (!contentLoadWillDelay || delayed) {
 		emits('mainContentLoaded');
 	}
