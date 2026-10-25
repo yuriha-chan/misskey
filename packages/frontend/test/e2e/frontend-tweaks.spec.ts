@@ -116,6 +116,75 @@ test.describe('Frontend tweaks', () => {
 		await expect(page.getByTestId('user-setup-dialog')).toBeHidden();
 	});
 
+	for (const ui of ['universal', 'deck'] as const) {
+		for (const viewport of [
+			{ name: 'mobile', width: 390, height: 844 },
+			{ name: 'tablet', width: 768, height: 1024 },
+			{ name: 'narrow PC', width: 1024, height: 768 },
+			{ name: 'wide PC', width: 1440, height: 900 },
+		]) {
+			test(`renders timeline, navigation and widgets in ${ui} on ${viewport.name}`, async ({ page }) => {
+				const text = `Responsive ${ui} ${viewport.name} timeline`;
+				await postTimelineNote(page, text);
+				await configureLayout(page, { animation: false, hideNavFooter: false });
+				await page.evaluate(() => {
+					const profile = JSON.parse(localStorage.getItem('preferences')!);
+					const clock = { id: 'responsive-clock', name: 'digitalClock', data: {} };
+					const values = {
+						widgets: [{ ...clock, place: 'right' }],
+						'deck.navbarPosition': 'left',
+						'deck.profile': 'Responsive',
+						'deck.profiles': [{
+							id: 'responsive-profile', name: 'Responsive',
+							columns: [
+								{ id: 'responsive-timeline', type: 'tl', tl: 'home', name: 'Responsive timeline', width: 330 },
+								{ id: 'responsive-widgets', type: 'widgets', name: 'Responsive widgets', width: 330, widgets: [clock] },
+							],
+							layout: [['responsive-timeline', 'responsive-widgets']],
+						}],
+					};
+					for (const [key, value] of Object.entries(values)) {
+						profile.preferences[key] = profile.preferences[key].map(([scope]: [unknown]) => [scope, value, {}]);
+					}
+					profile.modifiedAt = Date.now();
+					localStorage.setItem('preferences', JSON.stringify(profile));
+				});
+				await page.setViewportSize({ width: viewport.width, height: viewport.height });
+				await page.goto(`/?ui=${ui}`);
+				await expect(page.getByText(text, { exact: true })).toBeVisible();
+				await expect(page.getByText(text, { exact: true })).toBeInViewport();
+				const clock = page.getByTestId('mkw-digitalClock');
+				const mobile = viewport.width <= 500;
+				if (ui === 'universal' && viewport.width < 1100) {
+					await expect(clock).toHaveCount(0);
+					const widgetsButton = page.getByRole('button').filter({ has: page.locator('.ti-apps') });
+					await expect(widgetsButton).toHaveCount(1);
+					await widgetsButton.click();
+				}
+				await expect(clock).toHaveCount(1);
+				await expect(clock).toBeVisible();
+				await expect(clock).toBeInViewport();
+				if (ui === 'universal' && viewport.width < 1100) {
+					await expect(page.locator('._modalBg')).toHaveCount(1);
+					await page.locator('._modalBg').click({ position: { x: viewport.width - 5, y: 10 } });
+					await expect(clock).toHaveCount(0);
+				}
+				if (mobile) {
+					await expect(mobileMenu(page)).toBeVisible();
+					await expect(page.getByRole('link').and(page.locator('a[href="/settings"]'))).toHaveCount(0);
+					await mobileMenu(page).getByRole('button').filter({ has: page.locator('.ti-menu-2') }).click();
+				} else {
+					await expect(mobileMenu(page)).toHaveCount(0);
+					await expect(page.getByTestId('open-post-form')).toBeVisible();
+				}
+				const settings = page.getByRole('link').and(page.locator('a[href="/settings"]'));
+				await expect(settings).toHaveCount(1);
+				await expect(settings).toBeVisible();
+				await expect(settings).toBeInViewport();
+			});
+		}
+	}
+
 	for (const stacking of [false, true]) {
 		test(`defers secondary content until the main settings content is ready (${stacking ? 'stacking' : 'normal'} router)`, async ({ page }) => {
 			await configureLayout(page, { 'experimental.stackingRouterView': stacking });
