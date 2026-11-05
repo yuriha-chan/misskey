@@ -1,7 +1,7 @@
-import { describe, test, beforeAll } from 'vitest';
+import { describe, test, beforeAll, vi } from 'vitest';
 import assert, { rejects, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, deepStrictEqualWithExcludedFields, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, waitForFollowRelation, WAIT_FOR_SLOW_FEDERATION } from './utils.js';
 
 const [aAdmin, bAdmin] = await Promise.all([
 	fetchAdmin('a.test'),
@@ -26,20 +26,21 @@ describe('User Suspension', () => {
 				]);
 			});
 
-			test('Bob follows Alice, and Alice gets suspended, there is no following relation, and Bob fails to follow again', async () => {
+			test('Bob follows Alice, and remote suspension preserves the existing follow', async () => {
 				await bob.client.request('following/create', { userId: aliceInB.id });
-				await sleep();
+				await waitForFollowRelation(bob, alice, 1);
 
 				const followers = await alice.client.request('users/followers', { userId: alice.id });
 				strictEqual(followers.length, 1); // followed by Bob
 
 				await aAdmin.client.request('admin/suspend-user', { userId: alice.id });
-				await sleep();
 
-				const aliceInBRaw = await bAdmin.client.request('admin/show-user', { userId: aliceInB.id });
-				strictEqual(aliceInBRaw.isRemoteSuspended, true);
-				const renewedAliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-				strictEqual(renewedAliceInB.isSuspended, true);
+				await vi.waitFor(async () => {
+					const aliceInBRaw = await bAdmin.client.request('admin/show-user', { userId: aliceInB.id });
+					strictEqual(aliceInBRaw.isRemoteSuspended, true);
+					const renewedAliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+					strictEqual(renewedAliceInB.isSuspended, true);
+				}, WAIT_FOR_SLOW_FEDERATION);
 
 				await rejects(
 					async () => await bob.client.request('following/create', { userId: aliceInB.id }),
@@ -50,12 +51,14 @@ describe('User Suspension', () => {
 				);
 			});
 
-			test('Alice gets unsuspended, Bob succeeds in following Alice', async () => {
+			test('Alice gets unsuspended, and Bob still follows Alice', async () => {
 				await aAdmin.client.request('admin/unsuspend-user', { userId: alice.id });
-				await sleep();
 
-				const aliceInBRenewed = await bAdmin.client.request('admin/show-user', { userId: aliceInB.id });
-				strictEqual(aliceInBRenewed.isRemoteSuspended, false);
+				await vi.waitFor(async () => {
+					const aliceInBRenewed = await bAdmin.client.request('admin/show-user', { userId: aliceInB.id });
+					strictEqual(aliceInBRenewed.isRemoteSuspended, false);
+				}, WAIT_FOR_SLOW_FEDERATION);
+				await waitForFollowRelation(bob, alice, 1);
 
 				await rejects(
 					async () => await bob.client.request('following/create', { userId: aliceInB.id }),
@@ -68,7 +71,7 @@ describe('User Suspension', () => {
 
 			test('Alice can follow Bob', async () => {
 				await alice.client.request('following/create', { userId: bobInA.id });
-				await sleep();
+				await waitForFollowRelation(alice, bob, 1);
 
 				const bobFollowers = await bob.client.request('users/followers', { userId: bob.id });
 				strictEqual(bobFollowers.length, 1); // followed by Alice
@@ -81,15 +84,16 @@ describe('User Suspension', () => {
 
 			test('Alice follows Bob, and Alice gets suspended, the following relation hidden', async () => {
 				await aAdmin.client.request('admin/suspend-user', { userId: alice.id });
-				await sleep(1000);
 
-				const renewedAliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-				strictEqual(renewedAliceInB.isSuspended, true);
-				const aliceInBRaw = await bAdmin.client.request('admin/show-user', { userId: aliceInB.id });
-				strictEqual(aliceInBRaw.isRemoteSuspended, true);
+				await vi.waitFor(async () => {
+					const renewedAliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+					strictEqual(renewedAliceInB.isSuspended, true);
+					const aliceInBRaw = await bAdmin.client.request('admin/show-user', { userId: aliceInB.id });
+					strictEqual(aliceInBRaw.isRemoteSuspended, true);
 
-				const bobFollowers = await bob.client.request('users/followers', { userId: bob.id });
-				strictEqual(bobFollowers.length, 0); // Relation is hidden
+					const bobFollowers = await bob.client.request('users/followers', { userId: bob.id });
+					strictEqual(bobFollowers.length, 0); // Relation is hidden
+				}, WAIT_FOR_SLOW_FEDERATION);
 			});
 		});
 	});

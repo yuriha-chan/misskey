@@ -4,11 +4,9 @@
  */
 
 import { URL } from 'node:url';
-import { promisify } from 'node:util';
 import { Inject, Injectable } from '@nestjs/common';
 import { genRFC3230DigestHeader, signAsDraftToRequest } from '@misskey-dev/node-http-message-signatures';
 import * as htmlParser from 'node-html-parser';
-import { RsaKeyPair } from 'slacc';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiUser } from '@/models/User.js';
@@ -41,7 +39,7 @@ export async function createSignedPost(args: { level: string; key: PrivateKey; u
 	request.headers['Digest'] = digestHeader;
 
 	const result = await signAsDraftToRequest(
-		request,
+		{ ...request, url: u.href.slice(u.origin.length).split('#')[0] },
 		args.key,
 		['(request-target)', 'date', 'host', 'digest'],
 	);
@@ -67,7 +65,7 @@ export async function createSignedGet(args: { level: string; key: PrivateKey; ur
 
 	// TODO: httpMessageSignaturesImplementationLevelによって新規格で通信をするようにする
 	const result = await signAsDraftToRequest(
-		request,
+		{ ...request, url: u.href.slice(u.origin.length).split('#')[0] },
 		args.key,
 		['(request-target)', 'date', 'host', 'accept'],
 	);
