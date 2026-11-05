@@ -23,7 +23,7 @@ export class MiUserProfile {
 	@JoinColumn()
 	public user: MiUser | null;
 
-	@Column({...id(), nullable: true})
+	@Column({ ...id(), nullable: true })
 	public mainAccountId: MiUser['id'];
 
 	@ManyToOne(type => MiUser)

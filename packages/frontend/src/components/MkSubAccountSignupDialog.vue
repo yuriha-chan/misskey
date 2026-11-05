@@ -92,7 +92,7 @@ const submitting = ref<boolean>(false);
 const usernameAbortController = ref<null | AbortController>(null);
 
 const shouldDisableSubmitting = computed((): boolean => {
-	return submitting.value || usernameState.value !== 'ok'
+	return submitting.value || usernameState.value !== 'ok';
 });
 
 function onChangeUsername(): void {
@@ -146,7 +146,7 @@ async function onSubmit(): Promise<void> {
 			text: i18n.ts.somethingHappened,
 		});
 		submitting.value = false;
-	})
+	});
 }
 
 function onClose() {

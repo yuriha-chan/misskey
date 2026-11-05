@@ -64,12 +64,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			for (const subAccountProfile of subAccountProfiles) {
 				const newToken = generateNativeUserToken();
 				const subAccountId = subAccountProfile.userId;
+				const subAccount = await this.usersRepository.findOneByOrFail({ id: subAccountId });
 
 				await this.usersRepository.update(subAccountId, {
 					token: newToken,
 				});
 
-				this.globalEventService.publishInternalEvent('userTokenRegenerated', { id: subAccountId, oldToken, newToken });
+				this.globalEventService.publishInternalEvent('userTokenRegenerated', { id: subAccountId, oldToken: subAccount.token!, newToken });
 				this.globalEventService.publishMainStream(subAccountId, 'myTokenRegenerated');
 			}
 		});

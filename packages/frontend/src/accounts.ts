@@ -41,10 +41,8 @@ export async function getAccounts(): Promise<{
 
 async function addAccount(host: string, user: Misskey.entities.MeDetailed, token: AccountWithToken['token']) {
 	const key = host + '/' + user.id;
-	if (!store.s.accountTokens[key]) {
-		await store.set('accountTokens', { ...store.s.accountTokens, [key]: token });
-		await store.set('accountInfos', { ...store.s.accountInfos, [key]: user });
-	}
+	await store.set('accountTokens', { ...store.s.accountTokens, [key]: token });
+	await store.set('accountInfos', { ...store.s.accountInfos, [key]: user });
 	if (!prefer.s.accounts.some(x => x[0] === host && x[1].id === user.id)) {
 		prefer.commit('accounts', [...prefer.s.accounts, [host, { id: user.id, username: user.username }]]);
 	}
@@ -62,6 +60,7 @@ export async function removeAccount(host: string, id: AccountWithToken['id']) {
 }
 
 const isAccountDeleted = Symbol('isAccountDeleted');
+const isTokenRevoked = Symbol('isTokenRevoked');
 
 function fetchAccount(token: string, id?: string, forceShowDialog?: boolean): Promise<Misskey.entities.MeDetailed> {
 	return new Promise((done, fail) => {
@@ -102,13 +101,8 @@ function fetchAccount(token: string, id?: string, forceShowDialog?: boolean): Pr
 					} else if (res.error.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14') {
 						// AUTHENTICATION_FAILED
 						// トークンが無効化されていたりアカウントが削除されたりしている
-						if (forceShowDialog || $i && (token === $i.token || id === $i.id)) {
-							await alert({
-								type: 'error',
-								title: i18n.ts.tokenRevoked,
-								text: i18n.ts.tokenRevokedDescription,
-							});
-						}
+						fail(isTokenRevoked);
+						return;
 					} else {
 						await alert({
 							type: 'error',
@@ -154,8 +148,13 @@ export function updateCurrentAccountPartial(accountData: Partial<Misskey.entitie
 export async function refreshCurrentAccount() {
 	if (!$i) return;
 	const me = $i;
-	return fetchAccount($i.token, $i.id).then(updateCurrentAccount).catch(reason => {
-		if (reason === isAccountDeleted) {
+	return fetchAccount($i.token, $i.id).then(async user => {
+		updateCurrentAccount(user);
+		await addAccount(host, user, me.token);
+	}).catch(async reason => {
+		if (reason === isTokenRevoked) {
+			await recoverCurrentAccount();
+		} else if (reason === isAccountDeleted) {
 			removeAccount(host, me.id);
 			if (Object.keys(store.s.accountTokens).length > 0) {
 				login(Object.values(store.s.accountTokens)[0]);
@@ -164,6 +163,65 @@ export async function refreshCurrentAccount() {
 			}
 		}
 	});
+}
+
+type SavedCredential = { user: Misskey.entities.MeDetailed; token: string };
+let currentAccountRecovery: Promise<void> | null = null;
+
+function signinDialog(initialUsername?: string, message?: string): Promise<(Misskey.entities.SigninFlowResponse & { finished: true }) | null> {
+	return new Promise(resolve => {
+		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), { initialUsername, message }, {
+			done: resolve,
+			cancelled: () => resolve(null),
+			closed: () => dispose(),
+		});
+	});
+}
+
+async function reauthenticateAccount(id: string): Promise<SavedCredential | null> {
+	const cached = store.s.accountInfos[host + '/' + id] ?? ($i?.id === id ? $i : undefined);
+	const parents = cached?.accountParents;
+	const root = parents?.length ? parents[parents.length - 1] : parents ? { id, username: cached!.username } : undefined;
+	const result = await signinDialog(root?.username, parents == null || parents.length > 0 ? i18n.ts.mainAccountInfo : i18n.ts.tokenRevokedDescription);
+	if (result == null) return null;
+	const credentials = new Map<string, SavedCredential>();
+
+	async function collect(token: string) {
+		const user = await fetchAccount(token);
+		if (credentials.has(user.id)) return;
+		credentials.set(user.id, { user, token });
+		for (const child of await misskeyApi('i/get-sub-account-tokens', {}, token)) {
+			await collect(child.i);
+		}
+	}
+
+	if (root && result.id !== root.id) {
+		await alert({ type: 'error', text: i18n.ts.signinFailed });
+		return null;
+	}
+	await collect(result.i);
+	const destination = credentials.get(id);
+	if (!destination) {
+		await alert({ type: 'error', text: i18n.ts.signinFailed });
+		return null;
+	}
+	for (const credential of credentials.values()) {
+		await addAccount(host, credential.user, credential.token);
+	}
+	return destination;
+}
+
+export function recoverCurrentAccount(): Promise<void> {
+	if (!$i) return Promise.resolve();
+	if (currentAccountRecovery) return currentAccountRecovery;
+	const me = $i;
+	currentAccountRecovery = (async () => {
+		const recovered = await reauthenticateAccount(me.id);
+		if (recovered) await login(recovered.token);
+	})().finally(() => {
+		currentAccountRecovery = null;
+	});
+	return currentAccountRecovery;
 }
 
 export async function login(token: AccountWithToken['token'], redirect?: string) {
@@ -176,9 +234,11 @@ export async function login(token: AccountWithToken['token'], redirect?: string)
 	});
 
 	if ($i) {
-    const previousToken = $i.token;
-		await fetchAccount(previousToken, undefined, true).then((previous) => addAccount(host, previous, previousToken)).catch(reason => {});
-  }
+		const previousToken = $i.token;
+		await fetchAccount(previousToken, undefined, true).then((previous) => addAccount(host, previous, previousToken)).catch(reason => {
+			if (reason !== isTokenRevoked && reason !== isAccountDeleted) throw reason;
+		});
+	}
 
 	const me = await fetchAccount(token, undefined, true).catch(reason => {
 		showing.value = false;
@@ -215,9 +275,16 @@ export async function switchAccount(host: string, id: string, callback?: ((accou
 			callback(me);
 		}
 	}
+
 	const token = store.s.accountTokens[host + '/' + id];
 	if (token) {
-		await next(token);
+		try {
+			await next(token);
+		} catch (reason) {
+			if (reason !== isTokenRevoked) throw reason;
+			const recovered = await reauthenticateAccount(id);
+			if (recovered) await next(recovered.token);
+		}
 	} else {
 		const subAccounts = await addSubAccounts();
 		for (const account of subAccounts) {
@@ -337,11 +404,46 @@ export async function getAccountMenu(opts: {
 
 export function getAccountWithSigninDialog(): Promise<{ id: string, token: string } | null> {
 	return new Promise((resolve) => {
-		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
+		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {
+			beforeLogin: async (username: string) => !(await getAccounts()).some(account => account.host === host && account.username.toLowerCase() === username.toLowerCase()),
+		}, {
 			done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
+				const saved = (await getAccounts()).find(account => account.host === host && account.id === res.id);
+				if (saved?.token) {
+					try {
+						await fetchAccount(saved.token);
+						await alert({ type: 'info', text: i18n.ts.alreadyLoggedIn });
+						resolve(null);
+						return;
+					} catch (reason) {
+						if (reason !== isTokenRevoked) throw reason;
+					}
+				}
+
 				const user = await fetchAccount(res.i, res.id, true);
 				await addAccount(host, user, res.i);
+				await addSubAccounts(res.i);
+				if ($i?.id === res.id) {
+					await login(res.i);
+					return;
+				}
 				resolve({ id: res.id, token: res.i });
+			},
+			loginIntercepted: async (username: string) => {
+				const account = (await getAccounts()).find(entry => entry.host === host && entry.username.toLowerCase() === username.toLowerCase())!;
+				try {
+					if (account.token) {
+						await fetchAccount(account.token);
+						await alert({ type: 'info', text: i18n.ts.alreadyLoggedIn });
+						resolve(null);
+						return;
+					}
+				} catch (reason) {
+					if (reason !== isTokenRevoked) throw reason;
+				}
+				const recovered = await reauthenticateAccount(account.id);
+				if (recovered && $i?.id === account.id) await login(recovered.token);
+				resolve(recovered ? { id: recovered.user.id, token: recovered.token } : null);
 			},
 			cancelled: () => {
 				resolve(null);
