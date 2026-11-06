@@ -39,6 +39,8 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		query: { type: 'string' },
+		rangeStartAt: { type: 'integer', nullable: true },
+		rangeEndAt: { type: 'integer', nullable: true },
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
 		sinceDate: { type: 'integer' },
@@ -84,6 +86,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				timeline: ps.timeline as SearchOpts['timeline'],
 				specified: ps.specified ?? undefined,
 				excludeBot: ps.excludeBot ?? undefined,
+				rangeStartAt: ps.rangeStartAt,
+				rangeEndAt: ps.rangeEndAt,
 			}, {
 				untilId: untilId,
 				sinceId: sinceId,

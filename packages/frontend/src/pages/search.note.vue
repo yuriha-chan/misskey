@@ -19,13 +19,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template #header>{{ i18n.ts.options }}</template>
 
 			<div class="_gaps_m">
+				<div style="display: flex; gap: 8px;">
+					<MkInput v-model="rangeStartAt" type="datetime-local">
+						<template #label>{{ i18n.ts._search.postFrom }}</template>
+					</MkInput>
+					<MkInput v-model="rangeEndAt" type="datetime-local">
+						<template #label>{{ i18n.ts._search.postTo }}</template>
+					</MkInput>
+				</div>
+
 				<MkRadios
 					v-model="searchScope"
 					:options="searchScopeDef"
 				>
 				</MkRadios>
 				<MkSwitch v-model="includeBot">{{ i18n.ts._search.includeBot }}</MkSwitch>
-
 
 				<div v-if="instance.federation !== 'none' && searchScope === 'server'" :class="$style.subOptionRoot">
 					<MkInput
@@ -150,6 +158,8 @@ const paginator = shallowRef<Paginator<'notes/search'> | null>(null);
 
 const searchQuery = ref(toRef(props, 'query').value);
 const hostInput = ref(toRef(props, 'host').value);
+const rangeStartAt = ref<string | null>(null);
+const rangeEndAt = ref<string | null>(null);
 
 const user = shallowRef<Misskey.entities.UserDetailed | null>(null);
 
@@ -214,6 +224,8 @@ type SearchParams = {
 	readonly timeline?: string;
 	readonly specified?: boolean;
 	readonly excludeBot?: boolean;
+	readonly rangeStartAt?: number | null;
+	readonly rangeEndAt?: number | null;
 };
 
 const includeBot = ref<boolean>(false);
@@ -221,6 +233,13 @@ const includeBot = ref<boolean>(false);
 const fixHostIfLocal = (target: string | null | undefined) => {
 	if (!target || target === localHost) return '.';
 	return target;
+};
+
+const searchRange = () => {
+	return {
+		rangeStartAt: rangeStartAt.value ? new Date(rangeStartAt.value).getTime() : null,
+		rangeEndAt: rangeEndAt.value ? new Date(rangeEndAt.value).getTime() : null,
+	};
 };
 
 const searchParams = computed<SearchParams | null>(() => {
@@ -234,6 +253,7 @@ const searchParams = computed<SearchParams | null>(() => {
 			host: fixHostIfLocal(user.value.host),
 			userId: user.value.id,
 			excludeBot: !includeBot.value,
+			...searchRange(),
 		};
 	}
 	if (searchScope.value === 'HTL') {
@@ -241,6 +261,7 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			timeline: 'homeTimeline',
 			excludeBot: !includeBot.value,
+			...searchRange(),
 		};
 	}
 	if (searchScope.value === 'LTL') {
@@ -248,6 +269,7 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			timeline: 'localTimeline',
 			excludeBot: !includeBot.value,
+			...searchRange(),
 		};
 	}
 	if (searchScope.value === 'specified') {
@@ -255,6 +277,7 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			specified: true,
 			excludeBot: !includeBot.value,
+			...searchRange(),
 		};
 	}
 
@@ -270,6 +293,7 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			host: fixHostIfLocal(trimmedHost),
 			excludeBot: !includeBot.value,
+			...searchRange(),
 		};
 	}
 
@@ -278,12 +302,14 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			host: '.',
 			excludeBot: !includeBot.value,
+			...searchRange(),
 		};
 	}
 
 	return {
 		query: trimmedQuery,
 		excludeBot: !includeBot.value,
+		...searchRange(),
 	};
 });
 
