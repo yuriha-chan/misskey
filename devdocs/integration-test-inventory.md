@@ -40,3 +40,9 @@ Snapshot A is `e6744a3e83ffd16bccf31557c1a1c471c3fc3a8b`, the palette merge comp
 At the next upstream reconstruction, build from the no-test integration, then transplant the isolated test range with `git rebase --onto <integrated-no-test-tip> <recorded-no-test-base> <test-branch>`. Do not transplant the combined merge history as though it were test changes. Reconcile test conflicts against the intended behavior, run consolidated checks, fix production on the no-test version, and propagate those fixes to the test version.
 
 Search external-prefilter coverage remains unavailable until service setup is supplied. Docker federation coverage remains explicitly skipped. Neither limitation becomes a pass through this commit layout.
+
+## Additional combined coverage
+
+The restored test layer starts with `c256c77b` above removal commit `1d07ffb6`. Commit `2fcdbc47` extends only the palette browser file: it waits for registry persistence before proceeding from Privacy to R18, verifies resume on R18 after reload without a persisted age selection, checks Back to Privacy and return, then completes the no-recommendations route and verifies hiding of a flagged note after reload. Browser execution remains pending; this is not a passing-test claim.
+
+These additions do not change test ownership: the complete effective source-to-test difference still contains only the three files listed above. Documentation belongs on the no-test branch and is propagated to the test branch, outside that effective difference.
