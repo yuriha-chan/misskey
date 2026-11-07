@@ -84,6 +84,7 @@ import { login } from '@/accounts.js';
 
 const emit = defineEmits<{
 	(ev: 'login', v: Misskey.entities.SigninFlowResponse & { finished: true }): void;
+	(ev: 'loginIntercepted', username: string): void;
 }>();
 
 const props = withDefaults(defineProps<{
@@ -91,6 +92,7 @@ const props = withDefaults(defineProps<{
 	message?: string,
 	openOnRemote?: OpenOnRemoteOptions,
 	initialUsername?: string;
+	beforeLogin?: (username: string) => Promise<boolean>;
 }>(), {
 	autoSet: false,
 	message: '',
@@ -159,10 +161,20 @@ function onUseTotp(): void {
 
 async function onUsernameSubmitted(username: string) {
 	waiting.value = true;
+	if (props.beforeLogin && !await props.beforeLogin(username)) {
+		waiting.value = false;
+		emit('loginIntercepted', username);
+		return;
+	}
 
 	userInfo.value = await misskeyApi('users/show', {
 		username,
-	}).catch(() => null);
+	}, null).catch(() => null);
+	if (userInfo.value == null) {
+		await os.alert({ type: 'error', title: i18n.ts.noSuchUser, text: i18n.ts.signinFailed });
+		waiting.value = false;
+		return;
+	}
 
 	await tryLogin({
 		username,

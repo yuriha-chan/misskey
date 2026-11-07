@@ -153,6 +153,22 @@ export interface Locale extends ILocale {
      */
     "signup": string;
     /**
+     * サブアカウントを新規登録
+     */
+    "signupSubAccount": string;
+    /**
+     * メインアカウント
+     */
+    "mainAccount": string;
+    /**
+     * このアカウントには既にログインしています。
+     */
+    "alreadyLoggedIn": string;
+    /**
+     * サブアカウントにログインするためには、このメインアカウントにまずログインする必要があります。
+     */
+    "mainAccountInfo": string;
+    /**
      * アップロード中
      */
     "uploading": string;
@@ -2185,6 +2201,10 @@ export interface Locale extends ILocale {
      */
     "createAccount": string;
     /**
+     * 現在のアカウントのサブアカウントを作成
+     */
+    "createSubAccount": string;
+    /**
      * 既存のアカウント
      */
     "existingAccount": string;
@@ -3800,6 +3820,26 @@ export interface Locale extends ILocale {
      * アカウントが削除されます。よろしいですか？
      */
     "deleteAccountConfirm": string;
+    /**
+     * アカウント@{username}がサーバーから完全に削除されます。このアカウントの作成したノート、ドライブのファイルなどもサーバーからすべて削除され、元に戻せません。よろしいですか？
+     */
+    "deleteNamedAccountConfirm": ParameterizedString<"username">;
+    /**
+     * サブアカウントを閉鎖する
+     */
+    "closeSubAccount": string;
+    /**
+     * サブアカウントを読み込む
+     */
+    "syncSubAccounts": string;
+    /**
+     * 現在ログイン中のアカウント
+     */
+    "currentAccount": string;
+    /**
+     * 現在ログイン中のアカウントのサブアカウント
+     */
+    "subAccountOfCurrentAccount": string;
     /**
      * パスワードが間違っています。
      */

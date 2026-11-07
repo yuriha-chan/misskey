@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Not, IsNull } from 'typeorm';
-import type { FollowingsRepository, MiMeta, MiUser, UsersRepository } from '@/models/_.js';
+import type { FollowingsRepository, MiMeta, MiUser, UsersRepository, UserProfilesRepository } from '@/models/_.js';
 import { QueueService } from '@/core/QueueService.js';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
@@ -23,6 +23,9 @@ export class DeleteAccountService {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
+
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
@@ -55,6 +58,11 @@ export class DeleteAccountService {
 				userUsername: _user.username,
 				userHost: user.host,
 			});
+		}
+
+		const subAccountProfiles = await this.userProfilesRepository.findBy({ mainAccountId: user.id });
+		for (const subAccountProfile of subAccountProfiles) {
+			await this.deleteAccount({ id: subAccountProfile.userId, host: null }, moderator);
 		}
 
 		// 物理削除する前にDelete activityを送信する
