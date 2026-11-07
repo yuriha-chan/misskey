@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <PageWithHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :swipable="true" :displayMyAvatar="true" :canOmitTitle="true">
-	<div class="_spacer" style="--MI_SPACER-w: 800px;">
+	<div :class="reduceMargin ? [] : '_spacer'" style="--MI_SPACER-w: 800px;">
 		<MkTip v-if="isBasicTimeline(src)" :k="`tl.${src}`" style="margin-bottom: var(--MI-margin);">
 			{{ i18n.ts._timelineDescription[src] }}
 		</MkTip>
@@ -47,6 +47,16 @@ import { availableBasicTimelines, hasWithReplies, isAvailableBasicTimeline, isBa
 import { prefer } from '@/preferences.js';
 
 const tlComponent = useTemplateRef('tlComponent');
+
+const DESKTOP_THRESHOLD = 1100;
+const MOBILE_THRESHOLD = 500;
+
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
+const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+
+window.addEventListener('resize', () => {
+	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
+});
 
 type TimelinePageSrc = BasicTimelineType | `list:${string}`;
 
@@ -298,6 +308,10 @@ const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(
 	iconOnly: true,
 }))] as Tab[]);
 
+const reduceMargin = computed(() =>
+	prefer.s.reduceMargin && isMobile.value
+);
+
 definePage(() => ({
 	title: i18n.ts.timeline,
 	icon: isBasicTimeline(src.value) ? basicTimelineIconClass(src.value) : 'ti ti-home',
@@ -332,5 +346,9 @@ definePage(() => ({
 	background: var(--MI_THEME-bg);
 	border-radius: var(--MI-radius);
 	overflow: clip;
+}
+
+.tl.reduceMargin {
+	border-radius: 0;
 }
 </style>
