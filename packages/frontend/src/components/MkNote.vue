@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div
-	v-if="!hardMuted && !hideByPlugin && muted === false"
+	v-if="!hardMuted && !hideByPlugin && muted === false && !isR18Hidden"
 	ref="rootEl"
 	v-hotkey="keymap"
 	:class="[$style.root, { [$style.showActionsOnlyHover]: prefer.s.showNoteActionsOnlyHover, [$style.skipRender]: prefer.s.skipNoteRender }]"
@@ -161,7 +161,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</article>
 </div>
-<div v-else-if="!hardMuted && !hideByPlugin" :class="$style.muted" @click="muted = false">
+<div v-else-if="!hardMuted && !hideByPlugin && !isR18Hidden" :class="$style.muted" @click="muted = false">
 	<I18n v-if="muted === 'sensitiveMute'" :src="i18n.ts.userSaysSomethingSensitive" tag="small">
 		<template #name>
 			<MkA v-user-preview="appearNote.userId" :to="userPage(appearNote.user)">
@@ -201,6 +201,7 @@ import type { Ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import { useNote } from '@/composables/use-note.js';
 import { prefer } from '@/preferences.js';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { userPage } from '@/filters/user.js';
 import { getNoteSummary } from '@/utility/get-note-summary.js';
@@ -302,6 +303,7 @@ const {
 provide(DI.mfmEmojiReactCallback, reactViaMfmEmoji);
 
 // MkNote固有
+const isR18Hidden = computed(() => (!$i || prefer.s.hideR18Content) && !!appearNote.isR18);
 const showSoftWordMutedWord = computed(() => prefer.s.showSoftWordMutedWord);
 
 function handleToggleReact() {

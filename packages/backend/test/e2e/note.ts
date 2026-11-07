@@ -11,7 +11,7 @@ import * as assert from 'assert';
 import { describe, beforeAll, afterAll, test } from 'vitest';
 import { MiNote } from '@/models/Note.js';
 import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
-import { api, castAsError, initTestDb, post, role, signup, uploadFile, uploadUrl } from '../utils.js';
+import { api, castAsError, failedApiCall, initTestDb, post, role, signup, uploadFile, uploadUrl } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('Note', () => {
@@ -779,6 +779,76 @@ describe('Note', () => {
 			}, tom);
 
 			assert.strictEqual(note1.status, 400);
+		});
+
+		test('フィルタ書式が無効な場合は保存でエラーになる', async () => {
+			const res = await api('admin/update-meta', {
+				sensitiveWords: [
+					'(unclosed',
+				],
+			}, root);
+
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body as any).error.code, 'INVALID_FILTER');
+		});
+
+		test('フィルタ書式が有効な場合は保存できる', async () => {
+			const res = await api('admin/update-meta', {
+				sensitiveWords: [
+					'(and hello world)',
+				],
+			}, root);
+
+			assert.strictEqual(res.status, 204);
+		});
+
+		test('フィルタに空文字列を含めても保存できる', async () => {
+			const res = await api('admin/update-meta', {
+				sensitiveWords: [
+					'',
+				],
+			}, root);
+
+			assert.strictEqual(res.status, 204);
+		});
+
+		test('URL-preview filters require quoted literal URLs and preserve the saved list on rejection', async () => {
+			const filters = ['"https://example.org/path"', '(and example (not safe))'];
+			const saved = await api('admin/update-meta', { urlPreviewSensitiveList: [...filters, ''] }, root);
+			assert.strictEqual(saved.status, 204);
+			const before = await api('admin/meta', {}, root);
+			assert.deepStrictEqual(before.body.urlPreviewSensitiveList, filters);
+
+			await failedApiCall({
+				endpoint: 'admin/update-meta',
+				parameters: { urlPreviewSensitiveList: ['https://example.org/path'] },
+				user: root,
+			}, { status: 400, code: 'INVALID_FILTER', id: '1b0f4be1-3e59-4c1e-9f45-55fffee6cf67' });
+			const after = await api('admin/meta', {}, root);
+			assert.deepStrictEqual(after.body.urlPreviewSensitiveList, filters);
+
+			const cleared = await api('admin/update-meta', { urlPreviewSensitiveList: [] }, root);
+			assert.strictEqual(cleared.status, 204);
+			const empty = await api('admin/meta', {}, root);
+			assert.deepStrictEqual(empty.body.urlPreviewSensitiveList, []);
+		});
+
+		test('R18 DSL flags matching notes, leaves positive controls unflagged, and survives retrieval', async () => {
+			const saved = await api('admin/update-meta', {
+				r18Filter: ['(and (text adult-marker) (not (cw safe)))'],
+				prohibitedWords: [],
+			}, root);
+			assert.strictEqual(saved.status, 204);
+			const flagged = await api('notes/create', { text: 'adult-marker' }, alice);
+			assert.strictEqual(flagged.status, 200);
+			assert.strictEqual(flagged.body.createdNote.isR18, true);
+			const retrieved = await api('notes/show', { noteId: flagged.body.createdNote.id }, alice);
+			assert.strictEqual(retrieved.body.isR18, true);
+			const control = await api('notes/create', { text: 'adult-marker', cw: 'safe' }, alice);
+			assert.strictEqual(control.status, 200);
+			assert.notStrictEqual(control.body.createdNote.isR18, true);
+			const cleared = await api('admin/update-meta', { r18Filter: [] }, root);
+			assert.strictEqual(cleared.status, 204);
 		});
 
 		test('メンションの数が上限を超えるとエラーになる', async () => {
