@@ -31,7 +31,7 @@ function wizardSaved(page: Page, value: number) {
 	});
 }
 
-async function reachPaletteStep(page: Page, adult = true) {
+async function reachR18Step(page: Page) {
 	const dialog = page.getByTestId('user-setup-dialog');
 	await expect(dialog.getByTestId('user-setup-continue')).toBeVisible();
 	await dialog.getByTestId('user-setup-continue').click();
@@ -39,9 +39,16 @@ async function reachPaletteStep(page: Page, adult = true) {
 	await dialog.getByTestId('user-setup-continue').click();
 	await expect(dialog.getByTestId('user-setup-user-name')).toHaveCount(0);
 	await expect(dialog.getByRole('button', { name: /Follow requests require approval/ })).toBeVisible();
+	const saved = wizardSaved(page, 3);
 	await dialog.getByTestId('user-setup-continue').click();
 	await expect(dialog.getByTestId('radio-over18')).toHaveCount(1);
 	await expect(dialog.getByTestId('user-setup-continue')).toBeDisabled();
+	await saved;
+	return dialog;
+}
+
+async function reachPaletteStep(page: Page, adult = true) {
+	const dialog = await reachR18Step(page);
 	await dialog.locator(`label[for="${adult ? 'r18-over18' : 'r18-under17'}"]`).first().click();
 	await expect(dialog.getByTestId(adult ? 'radio-over18' : 'radio-under17')).toBeChecked();
 	await dialog.getByTestId('user-setup-continue').click();
@@ -223,6 +230,37 @@ test.describe('Recommended emoji palettes', () => {
 		await page.reload();
 		const dialog = await reachPaletteStep(page, false);
 		await expect(dialog.locator('.ti-user-plus')).toBeVisible();
+		await expect(dialog.getByText(paletteStepLabel, { exact: true })).toHaveCount(0);
+		await finishSetup(page);
+		await page.reload();
+		await expect(page.getByTestId('open-post-form')).toBeVisible();
+		await expect(dialog).toHaveCount(0);
+		await page.goto(`/notes/${flaggedNote.id}`);
+		await expect(page.getByText('このノートは成人向けの内容を含むため、表示しません。', { exact: true })).toBeVisible();
+		await expect(page.getByRole('article').filter({ has: page.locator(`footer a[href="/notes/${flaggedNote.id}"]`) })).toHaveCount(0);
+	});
+
+	test('resumes the R18 step and returns through privacy without saving an age choice', async ({ page }) => {
+		await signIn(page, username, 'alice1234');
+		const dialog = await reachR18Step(page);
+		await dialog.locator('label[for="r18-over18"]').first().click();
+		await expect(dialog.getByTestId('radio-over18')).toBeChecked();
+		await page.reload();
+		await expect(dialog.getByTestId('radio-over18')).not.toBeChecked();
+		await expect(dialog.getByTestId('radio-under17')).not.toBeChecked();
+		await expect(dialog.getByTestId('user-setup-continue')).toBeDisabled();
+		const privacySaved = wizardSaved(page, 2);
+		await dialog.getByTestId('user-setup-back').click();
+		await expect(dialog.getByRole('button', { name: /Follow requests require approval/ })).toBeVisible();
+		await privacySaved;
+		const r18Saved = wizardSaved(page, 3);
+		await dialog.getByTestId('user-setup-continue').click();
+		await expect(dialog.getByTestId('radio-under17')).toHaveCount(1);
+		await expect(dialog.getByTestId('user-setup-continue')).toBeDisabled();
+		await r18Saved;
+		await dialog.locator('label[for="r18-under17"]').first().click();
+		await expect(dialog.getByTestId('radio-under17')).toBeChecked();
+		await dialog.getByTestId('user-setup-continue').click();
 		await expect(dialog.getByText(paletteStepLabel, { exact: true })).toHaveCount(0);
 		await finishSetup(page);
 		await page.reload();
