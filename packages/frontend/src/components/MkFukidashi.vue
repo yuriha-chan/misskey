@@ -46,7 +46,7 @@ withDefaults(defineProps<{
 <style module lang="scss">
 .root {
 	--fukidashi-radius: var(--MI-radius);
-	--fukidashi-bg: var(--MI_THEME-panel);
+	--fukidashi-bg: color-mix(in srgb, var(--MI_USER-fukidashi), var(--MI_THEME-panel) 75%);
 
 	position: relative;
 	display: inline-block;

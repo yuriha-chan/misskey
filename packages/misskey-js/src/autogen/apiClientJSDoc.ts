@@ -1693,6 +1693,28 @@ declare module '../api.js' {
      * 
      * **Credential required**: *Yes* / **Permission**: *read:chat*
      */
+    request<E extends 'chat/cards/list', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/cards/reveal', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:chat*
+     */
     request<E extends 'chat/history', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
@@ -1803,7 +1825,62 @@ declare module '../api.js' {
      * 
      * **Credential required**: *Yes* / **Permission**: *write:chat*
      */
+    request<E extends 'chat/polls/finish', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:chat*
+     */
+    request<E extends 'chat/polls/list', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/polls/start', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/polls/vote', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
     request<E extends 'chat/read-all', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/rooms/archive', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,
@@ -1902,7 +1979,29 @@ declare module '../api.js' {
      * 
      * **Credential required**: *Yes* / **Permission**: *write:chat*
      */
+    request<E extends 'chat/rooms/kick', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
     request<E extends 'chat/rooms/leave', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:chat*
+     */
+    request<E extends 'chat/rooms/list-public', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,
@@ -1958,6 +2057,39 @@ declare module '../api.js' {
      * **Credential required**: *Yes* / **Permission**: *write:chat*
      */
     request<E extends 'chat/rooms/update', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/rooms/update-membership', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:chat*
+     */
+    request<E extends 'chat/secrets/list', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:chat*
+     */
+    request<E extends 'chat/secrets/reveal', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,

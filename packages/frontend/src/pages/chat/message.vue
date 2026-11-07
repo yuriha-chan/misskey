@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkLoading/>
 		</div>
 		<div v-else>
-			<XMessage :message="message" :isSearchResult="true"/>
+			<XMessage :item="{ type: 'message', data: message }" :isSearchResult="true"/>
 		</div>
 	</div>
 </PageWithHeader>

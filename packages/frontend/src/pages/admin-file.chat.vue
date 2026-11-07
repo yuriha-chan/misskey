@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<MkPagination :paginator="paginator">
 		<template #default="{ items }">
-			<XMessage v-for="item in items" :key="item.id" :message="item" :isSearchResult="true"/>
+			<XMessage v-for="item in items" :key="item.id" :item="{ type: 'message', data: item }" :isSearchResult="true"/>
 		</template>
 	</MkPagination>
 </div>
