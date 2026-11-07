@@ -31,7 +31,7 @@ function wizardSaved(page: Page, value: number) {
 	});
 }
 
-async function reachPaletteStep(page: Page) {
+async function reachPaletteStep(page: Page, adult = true) {
 	const dialog = page.getByTestId('user-setup-dialog');
 	await expect(dialog.getByTestId('user-setup-continue')).toBeVisible();
 	await dialog.getByTestId('user-setup-continue').click();
@@ -39,6 +39,11 @@ async function reachPaletteStep(page: Page) {
 	await dialog.getByTestId('user-setup-continue').click();
 	await expect(dialog.getByTestId('user-setup-user-name')).toHaveCount(0);
 	await expect(dialog.getByRole('button', { name: /Follow requests require approval/ })).toBeVisible();
+	await dialog.getByTestId('user-setup-continue').click();
+	await expect(dialog.getByTestId('radio-over18')).toHaveCount(1);
+	await expect(dialog.getByTestId('user-setup-continue')).toBeDisabled();
+	await dialog.locator(`label[for="${adult ? 'r18-over18' : 'r18-under17'}"]`).first().click();
+	await expect(dialog.getByTestId(adult ? 'radio-over18' : 'radio-under17')).toBeChecked();
 	await dialog.getByTestId('user-setup-continue').click();
 	return dialog;
 }
@@ -60,9 +65,17 @@ async function finishSetup(page: Page) {
 test.describe('Recommended emoji palettes', () => {
 	let admin: RegisteredUser;
 	let username: string;
+	let flaggedNote: { id: string; text: string };
 
 	test.beforeAll(async () => {
 		admin = await registerUser('admin', 'pass', true);
+		await api(BASE_URL, 'admin/update-meta', { i: admin.token, r18Filter: ['palette-r18-probe'] });
+		flaggedNote = (await api(BASE_URL, 'notes/create', { i: admin.token, text: 'palette-r18-probe' })).createdNote;
+		expect((await api(BASE_URL, 'notes/show', { i: admin.token, noteId: flaggedNote.id })).isR18).toBe(true);
+	});
+
+	test.afterAll(async () => {
+		if (admin) await api(BASE_URL, 'admin/update-meta', { i: admin.token, r18Filter: [], recommendedEmojiPalettes: [] });
 	});
 
 	test.beforeEach(async () => {
@@ -113,9 +126,9 @@ test.describe('Recommended emoji palettes', () => {
 		await expect(dialog.getByText(paletteStepLabel, { exact: true })).toBeVisible();
 		await dialog.getByRole('button', { name: /Forest friends/ }).click();
 		await dialog.getByRole('button', { name: /Ocean/ }).click();
-		const progressSaved = wizardSaved(page, 3);
+		const progressSaved = wizardSaved(page, 4);
 		await dialog.getByTestId('user-setup-back').click();
-		await expect(dialog.getByRole('button', { name: /Follow requests require approval/ })).toBeVisible();
+		await expect(dialog.getByTestId('radio-over18')).toBeChecked();
 		await dialog.getByTestId('user-setup-continue').click();
 		await progressSaved;
 		await page.reload();
@@ -134,6 +147,8 @@ test.describe('Recommended emoji palettes', () => {
 		await expect(page.locator('[alt="🐬"]')).toBeVisible();
 		await expect(page.locator('[alt="😺"]')).toHaveCount(0);
 		await expect(page.locator('[alt="🦊"]')).toHaveCount(0);
+		await page.goto(`/notes/${flaggedNote.id}`);
+		await expect(page.getByRole('article').filter({ has: page.locator(`footer a[href="/notes/${flaggedNote.id}"]`) }).getByText(flaggedNote.text, { exact: true })).toBeVisible();
 	});
 
 	test('wide emojis fit their tiles and wrap inside the palette card', async ({ page, request }) => {
@@ -200,12 +215,21 @@ test.describe('Recommended emoji palettes', () => {
 
 	test('no recommendations keeps the ordinary onboarding sequence', async ({ page }) => {
 		await signIn(page, username, 'alice1234');
-		const dialog = await reachPaletteStep(page);
+		await page.getByTestId('user-setup-dialog').getByRole('button', { name: 'Later', exact: true }).click();
+		const deferred = wizardSaved(page, 0);
+		await page.getByTestId('modal-dialog-ok').click();
+		await deferred;
+		await expect(page.getByTestId('user-setup-dialog')).toHaveCount(0);
+		await page.reload();
+		const dialog = await reachPaletteStep(page, false);
 		await expect(dialog.locator('.ti-user-plus')).toBeVisible();
 		await expect(dialog.getByText(paletteStepLabel, { exact: true })).toHaveCount(0);
 		await finishSetup(page);
 		await page.reload();
 		await expect(page.getByTestId('open-post-form')).toBeVisible();
 		await expect(dialog).toHaveCount(0);
+		await page.goto(`/notes/${flaggedNote.id}`);
+		await expect(page.getByText('このノートは成人向けの内容を含むため、表示しません。', { exact: true })).toBeVisible();
+		await expect(page.getByRole('article').filter({ has: page.locator(`footer a[href="/notes/${flaggedNote.id}"]`) })).toHaveCount(0);
 	});
 });
