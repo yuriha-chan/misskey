@@ -29,6 +29,8 @@ Follow this order for the reconstruction:
 
 The disposable source baseline is recorded by `feats-combined-work-no-tests`; `feats-combined-work` carries the test layer above it. Neither name authorizes moving nominal `feats-combined` or production `yuriha-master`.
 
+Snapshot A is `e6744a3e83ffd16bccf31557c1a1c471c3fc3a8b`, the palette merge completing the seven-feature source union. Its generated i18n and SDK artifacts were reproduced successfully before the snapshot. Runtime validation of the complete tree is recorded separately, not inferred from this snapshot.
+
 1. Finish all source merges and old-combined preservation accounting without further test additions. Commit the existing source/test tree as A; this is a preservation snapshot, not a final validation claim.
 2. Remove only the combined-only test changes inventoried above and commit the no-test integrated baseline.
 3. Restore A's test changes on top of that baseline, then add the remaining interaction tests in test-only commits. Keep merge notes, production code, generated artifacts and configuration outside that test-only difference.

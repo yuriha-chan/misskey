@@ -537,26 +537,6 @@ describe('SearchService', () => {
 		});
 
 		defineSearchNoteTests(() => ctx, { supportsFollowersVisibility: true, sinceIdOrder: 'asc' });
-
-		test('user-scoped search preserves R18 flags and recipient visibility', async () => {
-			const author = await createUser(ctx);
-			const recipient = await createUser(ctx);
-			const other = await createUser(ctx);
-			const publicNote = await createNote(ctx, author, { text: 'hello flagged', isR18: true });
-			const privateNote = await createNote(ctx, author, {
-				text: 'hello recipient',
-				visibility: 'specified',
-				visibleUserIds: [recipient.id],
-				isR18: true,
-			});
-
-			const allowed = await ctx.service.searchNote('hello', recipient, { userId: author.id }, { limit: 10 });
-			expect(allowed.map(note => note.id)).toEqual([privateNote.id, publicNote.id]);
-			expect(allowed.every(note => note.isR18)).toBe(true);
-
-			const denied = await ctx.service.searchNote('hello', other, { userId: author.id }, { limit: 10 });
-			expect(denied.map(note => note.id)).toEqual([publicNote.id]);
-		});
 	});
 
 	describe('meilisearch', () => {

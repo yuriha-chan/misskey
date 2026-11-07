@@ -6,7 +6,6 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { createPrivateKey, createPublicKey, sign, verify } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { describe, beforeAll, test, expect, vi } from 'vitest';
 import * as OTPAuth from 'otpauth';
@@ -17,7 +16,6 @@ import { api, castAsError, createAppToken, initTestDb, post, randomString, role,
 import type * as misskey from 'misskey-js';
 import { MiUser } from '@/models/_.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
-import { MiUserKeypair } from '@/models/UserKeypair.js';
 
 const waitForPushToTlOptions = { timeout: 3000, interval: 25 };
 
@@ -78,32 +76,6 @@ describe('Endpoints', () => {
 				await connection.destroy();
 			}
 		};
-
-		test('creates a linked sub-account with usable RSA and Ed25519 keys', async () => {
-			const parent = await signup({ username: uniqueUsername('parent'), password });
-			const child = await createSubAccount(parent);
-			const connection = await initTestDb(true);
-			try {
-				const profile = await connection.getRepository(MiUserProfile).findOneByOrFail({ userId: child.id });
-				assert.strictEqual(profile.mainAccountId, parent.id);
-				const keys = await connection.getRepository(MiUserKeypair).findOneByOrFail({ userId: child.id });
-				const message = Buffer.from('sub-account federation keys');
-				for (const [privatePem, publicPem, type, algorithm] of [
-					[keys.privateKey, keys.publicKey, 'rsa', 'sha256'],
-					[keys.ed25519PrivateKey, keys.ed25519PublicKey, 'ed25519', null],
-				] as const) {
-					assert.ok(privatePem);
-					assert.ok(publicPem);
-					const privateKey = createPrivateKey(privatePem);
-					const publicKey = createPublicKey(publicPem);
-					assert.strictEqual(privateKey.asymmetricKeyType, type);
-					assert.strictEqual(publicKey.asymmetricKeyType, type);
-					assert.strictEqual(verify(algorithm, message, publicKey, sign(algorithm, message, privateKey)), true);
-				}
-			} finally {
-				await connection.destroy();
-			}
-		});
 
 		test('親トークンの再生成で親子の旧トークンを無効化し、子トークンを再発行する', async () => {
 			const parent = await signup({ username: uniqueUsername('parent'), password });
