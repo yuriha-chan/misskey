@@ -114,3 +114,25 @@ Run changed-file package-root `eslint --quiet` and the shipping checker at the f
 - The TCP Search prefilter defaults to `search:8080`. Its source/startup/reindex/test setup is not available in this repository. General-query indexing, candidate pagination, permissions through that external path, and Search browser coverage remain deferred until setup is supplied. Scoped SQL tests do not close this gap.
 - Docker cross-instance federation tests are skipped by explicit User decision. Real key and Fastify-route tests do not establish cross-instance federation correctness.
 - The combined wizard and final preservation accounting must be validated on the completed interaction tree; standalone feature passes do not establish those interactions. Record their execution result with the final reconstruction handoff.
+
+## Consolidated reconstruction validation
+
+The source snapshot is `e6744a3e`; removal commit `1d07ffb6` establishes the no-combined-tests baseline. The test series restores coverage in `c256c77b` and extends wizard resume/Back coverage in `2fcdbc47`. Subsequent documentation commits on the no-test branch do not change executable sources.
+
+| Check | Result |
+| --- | --- |
+| Complete-tree i18n and API/SDK generation, backend build | PASS; generated union reproduced without additional changes before snapshot A |
+| Backend source, unit and federation TypeScript | PASS |
+| Frontend TypeScript with approved command-local 3 GiB heap | PASS |
+| Migration consistency with dedicated test configuration | PASS; zero pending DDL |
+| Selected backend service tests | FAIL overall: 15 files and 222 assertions passed, but two unhandled external-prefilter connection rejections caused exit 1 |
+| Scoped SQL Search tests | PASS; user, channel and R18/recipient cases, 3 assertions-bearing cases; 30 other cases filtered by selection |
+| Selected frontend tests | PASS; consent, accounts, header, scroll, countdown and room: 6 files, 41 tests across two commands |
+| Frontend build | PASS |
+| Shipping lint / SPDX | PASS; 2542 SPDX-covered files |
+| Shipping locale rule | FAIL for retained `locales/en-US.yml`; fork-owned translations are intended by the User, checker unchanged |
+| Combined HTTP and browser runs | PENDING external-prefilter setup; no final combined browser pass claimed |
+
+The failing backend command selected `ap-request`, `UserKeypairService`, `server/ActivityPubServerService`, `ApDeliverManagerService`, `UserSuspendService`, `FetchInstanceMetadataService`, `UtilityService.isKeyWordIncluded`, `NoteCreateService`, `activitypub`, `misc/is-renote`, `server/UrlPreviewService`, `UserSearchService`, `entities/UserEntityService`, `entities/ChatEntityService` and `queue/queue-job-runner` under `test/unit`.
+
+Both unhandled rejections were attributed to `activitypub.ts` while note indexing attempted to resolve host `search`: `SearchPrefilterService connection error: getaddrinfo EAI_AGAIN search`. This means missing prefilter setup affects background indexing in ordinary note flows as well as general Search queries. It is not safe to report the run as passed merely because its assertions passed. No fake service, suppressed rejection, weakened assertion or alternate harness was introduced. Service startup or a reachable test endpoint has been requested from the User. Dependent runtime checks and final no-failure confirmation remain blocked; the ancestry-only merge remains pending.
