@@ -7034,6 +7034,22 @@ export interface Locale extends ILocale {
          * 初期設定をあとでやり直しますか？
          */
         "laterAreYouSure": string;
+        /**
+         * 絵文字パレット初期設定
+         */
+        "emojiPaletteSetting": string;
+        /**
+         * 投稿への反応に使うスタンプ (絵文字) のパレットを選択できます。どのパレットを選んでも、後から自由に追加・削除できます。
+         */
+        "emojiPaletteSettingDescription": string;
+        /**
+         * このパレットを使う
+         */
+        "useThisPalette": string;
+        /**
+         * おすすめのパレットはありません。デフォルトのパレットが設定されます。
+         */
+        "noRecommendedPalettes": string;
     };
     "_initialTutorial": {
         /**
@@ -7436,6 +7452,14 @@ export interface Locale extends ILocale {
          * タイムラインを表示する
          */
         "showTimelineForVisitor": string;
+        /**
+         * おすすめの絵文字パレット
+         */
+        "emojiPaletteRecommendation": string;
+        /**
+         * 新規ユーザーの初期設定ウィザードで表示される、サーバーがおすすめする絵文字パレットを設定します。
+         */
+        "emojiPaletteRecommendationDescription": string;
         /**
          * アクティビティを表示する
          */

@@ -5708,6 +5708,10 @@ export type components = {
             maxFileSize: number;
             /** @enum {string} */
             federation: 'all' | 'specified' | 'none';
+            recommendedEmojiPalettes: {
+                name: string;
+                emojis: string[];
+            }[];
         };
         MetaDetailedOnly: {
             features?: {
@@ -9930,6 +9934,10 @@ export interface operations {
                         remoteNotesCleaningExpiryDaysForEachNotes: number;
                         remoteNotesCleaningMaxProcessingDurationInMinutes: number;
                         showRoleBadgesOfRemoteUsers: boolean;
+                        recommendedEmojiPalettes: {
+                            name: string;
+                            emojis: string[];
+                        }[];
                     };
                 };
             };
@@ -13464,6 +13472,10 @@ export interface operations {
                     remoteNotesCleaningExpiryDaysForEachNotes?: number;
                     remoteNotesCleaningMaxProcessingDurationInMinutes?: number;
                     showRoleBadgesOfRemoteUsers?: boolean;
+                    recommendedEmojiPalettes?: {
+                        name: string;
+                        emojis: string[];
+                    }[];
                 };
             };
         };
