@@ -496,6 +496,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkFeatureBanner>
 
 						<div class="_gaps_s">
+							<SearchMarker :keywords="['note', 'text', 'font', 'large']">
+								<MkPreferenceContainer k="largeNoteText">
+									<MkSwitch v-model="largeNoteText">
+										<template #label><SearchLabel>{{ i18n.ts.largeNoteText }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
+							<SearchMarker :keywords="['mobile', 'menu', 'footer', 'hide', 'scroll']">
+								<MkPreferenceContainer k="hideNavFooter">
+									<MkSwitch v-model="hideNavFooter">
+										<template #label><SearchLabel>{{ i18n.ts.hideNavFooter }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
 							<SearchMarker :keywords="['animation', 'motion', 'reduce']">
 								<MkPreferenceContainer k="animation">
 									<MkSwitch v-model="reduceAnimation">
