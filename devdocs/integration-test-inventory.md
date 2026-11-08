@@ -23,6 +23,7 @@ These comparisons were checked directly against the working tree. Restore only t
 - The original three-case palette browser suite belongs to the palette feature. Only the R18/combined-flow adaptations listed above form the combined-only delta.
 - Chatroom and responsive UI suites supplied by their feature inputs remain. Do not remove unrelated or untracked tests incidentally.
 - Search fix `4bee3bb3` owns `packages/backend/test/unit/SearchPrefilterService.ts`: empty success, nonempty IDs and unsuccessful-response rejection. Keep this regression on both combined versions; it is not a combined-only addition.
+- UI fix `f2f16855` owns `packages/frontend/test/e2e/ui-preferences.spec.ts`: persisted note sizing and optional mobile menu autohide through real settings and scrolling. Both cases passed on the combined tree. Keep this file on both versions, outside the combined-only test difference.
 
 ## Source and test commit layout
 
