@@ -10,6 +10,7 @@ import { type Config, loadConfig } from '@/config.js';
 import { GlobalModule } from '@/GlobalModule.js';
 import { CoreModule } from '@/core/CoreModule.js';
 import { SearchService } from '@/core/SearchService.js';
+import { SearchPrefilterService } from '@/core/SearchPrefilterService.js';
 import { CacheService } from '@/core/CacheService.js';
 import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
@@ -525,7 +526,20 @@ describe('SearchService', () => {
 		let ctx: TestContext;
 
 		beforeAll(async () => {
-			ctx = await buildContext();
+			const config = loadConfig();
+			ctx = await buildContext({
+				...config,
+				id: 'aid',
+				prefilter: {
+					...config.prefilter,
+					host: process.env.MISSKEY_TEST_PREFILTER_HOST ?? config.prefilter.host,
+				},
+			});
+			const prefilter = ctx.app.get(SearchPrefilterService);
+			ctx.indexer = async (note) => {
+				if (note.text == null || !['home', 'public', 'followers'].includes(note.visibility)) return;
+				await prefilter.index(note.id, note.text);
+			};
 		});
 
 		afterAll(async () => {
@@ -537,6 +551,40 @@ describe('SearchService', () => {
 		});
 
 		defineSearchNoteTests(() => ctx, { supportsFollowersVisibility: true, sinceIdOrder: 'asc' });
+
+		test('returns no notes when the real prefilter has no matching candidates', async () => {
+			const me = await createUser(ctx);
+			const result = await ctx.service.searchNote(`unmatched${ctx.idService.gen()}`, me, {}, { limit: 10 });
+			expect(result).toEqual([]);
+		});
+
+		test('excludes bots from real prefilter candidates only when requested', async () => {
+			const me = await createUser(ctx);
+			const author = await createUser(ctx);
+			const bot = await createUser(ctx, { isBot: true });
+			const text = `botfilter${ctx.idService.gen()}`;
+			const humanNote = await createNote(ctx, author, { text });
+			const botNote = await createNote(ctx, bot, { text });
+
+			const all = await ctx.service.searchNote(text, me, {}, { limit: 10 });
+			expect(all.map(note => note.id)).toEqual([botNote.id, humanNote.id]);
+			const filtered = await ctx.service.searchNote(text, me, { excludeBot: true }, { limit: 10 });
+			expect(filtered.map(note => note.id)).toEqual([humanNote.id]);
+		});
+
+		test('advances past a full disallowed candidate batch without exposing its notes', async () => {
+			const me = await createUser(ctx);
+			const author = await createUser(ctx);
+			const suspended = await createUser(ctx, { isSuspended: true });
+			const text = `retrycandidates${ctx.idService.gen()}`;
+			const visible = await createNote(ctx, author, { text });
+			for (let i = 0; i < 20; i++) {
+				await createNote(ctx, suspended, { text });
+			}
+
+			const result = await ctx.service.searchNote(text, me, {}, { limit: 1 });
+			expect(result.map(note => note.id)).toEqual([visible.id]);
+		});
 
 		test('user-scoped search preserves R18 flags and recipient visibility', async () => {
 			const author = await createUser(ctx);
