@@ -9,7 +9,7 @@ Feature reconstruction is repeated for upstream releases. Merge the complete fea
 3. Resolve conflicts and record non-obvious decisions here. Keep feature-owned tests with their features. Inventory combined-only tests in [integration-test-inventory.md](integration-test-inventory.md) and keep their changes in an isolated series above the integrated no-test baseline. Do not depend on temporary files or conversation history to find them.
 4. Merge all features, then account for effective old-combined-only behavior. Nonmerge commits alone do not capture merge-resolution changes. Generated artifacts should be reproduced from sources, not selected wholesale from a parent.
 5. Preserve the existing test-bearing tree as A, remove combined-only test changes in a commit to establish the no-test baseline, then restore A's tests above it. Add remaining interaction tests only in test-only commits. The test series is based on the integrated source tree, not directly on upstream.
-6. Regenerate shared artifacts once and validate the complete tree. Choose runtime cases by the changed contracts and cross-feature interactions. Put production fixes on the no-test version and propagate them into the test version; retain only tests in their effective difference. Rerun affected checks after fixes, not the complete validation phase without a concrete reason.
+6. Regenerate shared artifacts once and validate the complete tree. Choose runtime cases by the changed contracts and cross-feature interactions. Fix inherited feature bugs on the owning feature branch first, with feature-owned regressions, then merge that branch into no-test and propagate it into the test version. Merge-interaction fixes belong on no-test. Retain only combined tests in the effective difference. Rerun affected checks after fixes, not the complete validation phase without a concrete reason.
 7. Record actual passes, failures, approved skips, and unavailable dependencies. A completion tag does not establish coverage that was not executed.
 8. Only after preservation checks, an explicitly authorized ancestry-only `ours` merge may record the old combined ancestry without importing its tree. Publication, production reconciliation, deployment, and push are separate decisions.
 
@@ -32,7 +32,7 @@ Seed with Ed25519, then merge Chatroom, frontend tweaks, sub-account, Filter DSL
 | Search permissions | Date bounds, visitor UGC restrictions, visibility, and base moderation filters belong inside every SQL candidate retry. Candidate IDs never replace SQL authorization. R18 remains a packed note flag for the client hide preference, not a server-side adult-content permission. | `SearchService`, `QueryService`, `notes/search`, `search.note.vue` |
 | Wizard routing | Use the palette feature's named pages: welcome, profile, privacy, R18, optional palette, follow, push, done. R18 Back uses `goBack`; saving advances the named-page index. Keep one index watcher and no duplicate imports. | `MkUserSetupDialog.vue` |
 | Wizard preference saving | R18 Continue requires an age choice and saves `hideR18Content`. Underage/not-declared saves hiding; adult saves the selected value. This is a preference, not a persisted consent record. Preserve deferral and completion behavior. | `MkUserSetupDialog.vue`, `MkR18ConsentDialog.vue` |
-| Test relocation | Frontend Vitest includes `test/unit/**/*.test.ts`; feature tests left at the retired root test location are not coverage. Preserve BroadcastChannel and localStorage/i18n setup in the required initialization order. | `test/setup.unit.ts`, `test/unit/r18-consent.test.ts` |
+| Test relocation | Check the actual Vitest include globs when moving tests; the combined configuration includes both root and unit test locations. Preserve BroadcastChannel and localStorage/i18n setup in the required initialization order. | `vitest.config.unit.ts`, `test/setup.unit.ts`, `test/unit/r18-consent.test.ts` |
 
 Additional established constraints:
 
@@ -76,6 +76,8 @@ Paths below are relative to their package. This is a coverage index, not a requi
 | URL-preview DSL and cache reevaluation | backend `test/unit/server/UrlPreviewService.ts` | Real parser/handler with mocked remote proxy |
 | URL-list validation/persistence and R18 note flags | backend `test/e2e/note.ts`, names containing `URL-preview filters` or `R18 DSL` | Real HTTP save, rejected-save preservation and note readback |
 | Search user/channel SQL paths; R18 and recipient authorization | backend `test/unit/SearchService.ts`, `sqlLike` cases `filters by userId`, `filters by channelId`, `user-scoped search preserves R18 flags and recipient visibility` | Bypasses external index by existing scope semantics; not general-query or indexing coverage |
+| Real Search candidates, empty results, bot exclusion and retry pagination | backend `test/unit/SearchService.ts`, complete `sqlLike` suite | Real TCP fixture indexing and SQL authorization with AID test IDs; not production indexing-hook or browser coverage |
+| Search response protocol | backend `test/unit/SearchPrefilterService.ts` | Feature-owned TCP protocol regression: empty success, candidate IDs and malformed response rejection |
 | Consent save/cancel and note hiding | frontend `test/unit/r18-consent.test.ts`, `test/e2e/filter-dsl.spec.ts` | Unit boundary plus real list/detail/reload/visitor UI |
 | Palette and R18 wizard interaction | frontend `test/e2e/emoji-palette-preset.spec.ts` | Enabled/disabled palette, age-required Continue, Back, resume, deferral, completion, preference persistence, admin edits and wide-image geometry |
 | Account identity/state isolation | frontend `test/e2e/sub-account.spec.ts` | Separate real browser sessions and account switching |
@@ -111,7 +113,7 @@ Run changed-file package-root `eslint --quiet` and the shipping checker at the f
 
 ## Coverage limitations that must remain visible
 
-- The TCP Search prefilter defaults to `search:8080`. Its source/startup/reindex/test setup is not available in this repository. General-query indexing, candidate pagination, permissions through that external path, and Search browser coverage remain deferred until setup is supplied. Scoped SQL tests do not close this gap.
+- The TCP Search prefilter defaults to `search:8080`. The User supplied `https://github.com/yuriha-chan/misskey-search-prefilter`; native revision `17fbcf26` runs locally on port 8080 with a real UniDic dictionary. The User confirmed AID-only support as an existing limitation. SQL tests use a context-local `id: 'aid'` and optional `MISSKEY_TEST_PREFILTER_HOST` override; do not change production IDs or introduce an ID mapping. Real SQL candidate tests now pass, but production indexing-hook and Search browser coverage remain pending.
 - Docker cross-instance federation tests are skipped by explicit User decision. Real key and Fastify-route tests do not establish cross-instance federation correctness.
 - The combined wizard and final preservation accounting must be validated on the completed interaction tree; standalone feature passes do not establish those interactions. Record their execution result with the final reconstruction handoff.
 
@@ -126,13 +128,16 @@ The source snapshot is `e6744a3e`; removal commit `1d07ffb6` establishes the no-
 | Frontend TypeScript with approved command-local 3 GiB heap | PASS |
 | Migration consistency with dedicated test configuration | PASS; zero pending DDL |
 | Selected backend service tests | FAIL overall: 15 files and 222 assertions passed, but two unhandled external-prefilter connection rejections caused exit 1 |
-| Scoped SQL Search tests | PASS; user, channel and R18/recipient cases, 3 assertions-bearing cases; 30 other cases filtered by selection |
+| Real-prefilter SQL Search tests | PASS; all 20 SQL cases with AID fixtures and localhost override, including empty results, bot exclusion and retry past unauthorized candidates; 16 Meilisearch cases filtered by selection |
+| Search response protocol | PASS; 3 tests on files identical to feature fix `4bee3bb3`, using a local TCP responder, not the native server |
 | Selected frontend tests | PASS; consent, accounts, header, scroll, countdown and room: 6 files, 41 tests across two commands |
 | Frontend build | PASS |
 | Shipping lint / SPDX | PASS; 2542 SPDX-covered files |
 | Shipping locale rule | FAIL for retained `locales/en-US.yml`; fork-owned translations are intended by the User, checker unchanged |
-| Combined HTTP and browser runs | PENDING external-prefilter setup; no final combined browser pass claimed |
+| Combined HTTP and browser runs | PENDING compatible per-run prefilter host/ID setup; no final combined browser pass claimed |
 
 The failing backend command selected `ap-request`, `UserKeypairService`, `server/ActivityPubServerService`, `ApDeliverManagerService`, `UserSuspendService`, `FetchInstanceMetadataService`, `UtilityService.isKeyWordIncluded`, `NoteCreateService`, `activitypub`, `misc/is-renote`, `server/UrlPreviewService`, `UserSearchService`, `entities/UserEntityService`, `entities/ChatEntityService` and `queue/queue-job-runner` under `test/unit`.
 
-Both unhandled rejections were attributed to `activitypub.ts` while note indexing attempted to resolve host `search`: `SearchPrefilterService connection error: getaddrinfo EAI_AGAIN search`. This means missing prefilter setup affects background indexing in ordinary note flows as well as general Search queries. It is not safe to report the run as passed merely because its assertions passed. No fake service, suppressed rejection, weakened assertion or alternate harness was introduced. Service startup or a reachable test endpoint has been requested from the User. Dependent runtime checks and final no-failure confirmation remain blocked; the ancestry-only merge remains pending.
+Both unhandled rejections were attributed to `activitypub.ts` while note indexing attempted to resolve host `search`: `SearchPrefilterService connection error: getaddrinfo EAI_AGAIN search`. Background indexing affects ordinary note flows as well as general Search queries. The subsequently supplied native service and SQL-only context override do not supersede this failing broad run; its compatible runtime setup and rerun remain pending. No rejection was suppressed or assertion weakened. Final no-failure confirmation and the ancestry-only merge remain pending.
+
+The real empty-result test exposed an inherited client bug: trimming `Ok \n` removes the space required by the original success check. Feature fix `4bee3bb3` on `feat-search` accepts trimmed `Ok` while retaining rejection of unsuccessful responses. Its three protocol tests remain feature-owned on both combined versions. An earlier direct no-test fix, `21d2c207`, is retained without rewriting history; the subsequent feature merge restores the required ownership and ancestry. Completion tags are not moved implicitly.
