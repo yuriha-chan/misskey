@@ -50,7 +50,18 @@ export async function teardown() {
 
 	await serverService.dispose();
 	await app.close();
+	await closeServerListener();
 	await killTestServer();
+}
+
+/**
+ * ServerService#dispose がリスナを閉じない構成でも、同一プロセスで再利用できるよう明示的に解放する
+ */
+async function closeServerListener(): Promise<void> {
+	const fastify = serverService.fastify;
+	if (!fastify.server.listening) return;
+	fastify.server.closeAllConnections();
+	await fastify.close();
 }
 
 /**
@@ -94,6 +105,7 @@ async function startControllerEndpoints(port = config.port + 1000) {
 
 		await serverService.dispose();
 		await app.close();
+		await closeServerListener();
 
 		await killTestServer();
 
