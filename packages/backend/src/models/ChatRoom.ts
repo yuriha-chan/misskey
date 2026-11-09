@@ -6,7 +6,7 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
-import { MiChatRoomMembership } from './ChatRoomMembership.js'
+import { MiChatRoomMembership } from './ChatRoomMembership.js';
 
 @Entity('chat_room')
 export class MiChatRoom {
@@ -57,7 +57,7 @@ export class MiChatRoom {
 	public capacity: number;
 	
 	@Column('integer', {
-		default: 10800,
+		default: 3 * 3600 * 1000,
 	})
 	public expiration: number | null;
 

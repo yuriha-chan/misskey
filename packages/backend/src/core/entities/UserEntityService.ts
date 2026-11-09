@@ -694,7 +694,7 @@ export class UserEntityService implements OnModuleInit {
 			nullable?: boolean,
 		},
 	): Promise<(Packed<S> | null)[]> {
-		let _userIds: MiUser['id'][] = users.map(user => typeof user === 'string' ? (user as string) : (user.id as MiUser['id']));
+		const _userIds: MiUser['id'][] = users.map(user => typeof user === 'string' ? (user as string) : (user.id as MiUser['id']));
 
 		// -- IDのみの要素を補完して完全なエンティティ一覧を作る
 		const _users: Map<MiUser['id'], MiUser> = new Map(users.filter((user): user is MiUser => typeof user !== 'string').map((u: MiUser) => [u.id, u]));

@@ -30,6 +30,34 @@ describe('Chat', () => {
 		await queue.close();
 	});
 
+	describe('Direct messages', () => {
+		test('creates a message and persists it in both participants timelines', async () => {
+			for (const [follower, followed] of [[alice, bob], [bob, alice]]) {
+				const follow = await api('following/create', { userId: followed.id }, follower);
+				assert.strictEqual(follow.status, 200);
+			}
+
+			const res = await api('chat/messages/create-to-user', {
+				toUserId: bob.id,
+				text: 'Hello Bob',
+			}, alice);
+
+			assert.strictEqual(res.status, 200, JSON.stringify(res.body));
+			assert.strictEqual(res.body.text, 'Hello Bob');
+			assert.strictEqual(res.body.fromUserId, alice.id);
+			assert.strictEqual(res.body.toUserId, bob.id);
+			assert.deepStrictEqual(res.body.reactions, []);
+
+			for (const [viewer, other] of [[alice, bob], [bob, alice]]) {
+				const timeline = await api('chat/messages/user-timeline', { userId: other.id }, viewer);
+				assert.strictEqual(timeline.status, 200);
+				const message = timeline.body.find(message => message.id === res.body.id);
+				assert.ok(message);
+				assert.strictEqual(message.text, 'Hello Bob');
+			}
+		});
+	});
+
 	describe('Room creation', () => {
 		test('create a room with name only', async () => {
 			const res = await api('chat/rooms/create', {
@@ -41,6 +69,11 @@ describe('Chat', () => {
 			assert.strictEqual(res.body.isPublic, false);
 			assert.strictEqual(res.body.isArchived, false);
 			assert.strictEqual(res.body.capacity, 30);
+			assert.strictEqual(res.body.expiration, 3 * 3600 * 1000);
+
+			const stored = await api('chat/rooms/show', { roomId: res.body.id }, alice);
+			assert.strictEqual(stored.status, 200);
+			assert.strictEqual(stored.body.expiration, 3 * 3600 * 1000);
 		});
 
 		test('create a public room', async () => {
@@ -412,6 +445,31 @@ describe('Chat', () => {
 			}, bob);
 
 			assert.strictEqual(res.status, 204);
+		});
+
+		test('poll lists retain the requesting users vote state', async () => {
+			const created = await api('chat/messages/create-to-room', {
+				toRoomId: room.id,
+				poll: { title: 'persistent vote state', choices: ['Spring', 'Autumn'], anonymous: true },
+			}, alice);
+			assert.strictEqual(created.status, 204);
+
+			const before = await api('chat/polls/list', { roomId: room.id }, bob);
+			assert.strictEqual(before.status, 200);
+			const poll = before.body.startedPolls.find(poll => poll.title === 'persistent vote state');
+			assert.ok(poll);
+			assert.strictEqual(poll.voted, false);
+
+			const vote = await api('chat/polls/vote', { pollId: poll.id, choice: 0 }, bob);
+			assert.strictEqual(vote.status, 204);
+
+			for (const viewer of [bob, alice, bob]) {
+				const listed = await api('chat/polls/list', { roomId: room.id }, viewer);
+				assert.strictEqual(listed.status, 200);
+				const listedPoll: misskey.entities.ChatPollsListResponse['startedPolls'][number] | undefined = listed.body.startedPolls.find(item => item.id === poll.id);
+				assert.ok(listedPoll);
+				assert.strictEqual(listedPoll.voted, viewer.id === bob.id);
+			}
 		});
 
 		test('cannot vote twice on same poll', async () => {
@@ -823,7 +881,6 @@ describe('Chat', () => {
 			assert.strictEqual(res.status, 400);
 			assert.strictEqual(castAsError(res.body as any).error.code, 'NOT_MEMBER');
 		});
-
 	});
 
 	describe('4 voter poll results', () => {
@@ -1306,6 +1363,78 @@ describe('Chat', () => {
 			const revealedEvent = timeline.body.find((e: any) => e.type === 'secretRevealed');
 			assert.ok(revealedEvent);
 			assert.strictEqual((revealedEvent as any).data.plaintext, 'will reveal after rejoin');
+		});
+	});
+
+	describe('Chat message reactions', () => {
+		const createRoomAndMessage = async () => {
+			const roomRes = await api('chat/rooms/create', {
+				name: 'reaction authorization room',
+				isPublic: true,
+			}, alice);
+			assert.strictEqual(roomRes.status, 200);
+
+			const messageRes = await api('chat/messages/create-to-room', {
+				toRoomId: roomRes.body.id,
+				text: 'react to me',
+			}, alice);
+			assert.strictEqual(messageRes.status, 200);
+			assert.ok(messageRes.body);
+
+			return { roomId: roomRes.body.id, messageId: messageRes.body.id };
+		};
+
+		const getMessageReactions = async (roomId: string, messageId: string) => {
+			const timeline = await api('chat/messages/room-timeline', { roomId, limit: 10 }, alice);
+			assert.strictEqual(timeline.status, 200);
+			const event = timeline.body.find(event => event.type === 'message' && event.data.id === messageId);
+			assert.ok(event);
+			if (event.type !== 'message') assert.fail('Expected message event');
+			return event.data.reactions.map(reaction => ({ userId: reaction.user.id, reaction: reaction.reaction }));
+		};
+
+		test('active member can react and unreact', async () => {
+			const { roomId, messageId } = await createRoomAndMessage();
+			assert.strictEqual((await api('chat/rooms/join', { roomId }, bob)).status, 204);
+
+			const reactRes = await api('chat/messages/react', { messageId, reaction: '👍' }, bob);
+			assert.strictEqual(reactRes.status, 204);
+			assert.deepStrictEqual(await getMessageReactions(roomId, messageId), [{ userId: bob.id, reaction: '👍' }]);
+
+			const unreactRes = await api('chat/messages/unreact', { messageId, reaction: '👍' }, bob);
+			assert.strictEqual(unreactRes.status, 204);
+			assert.deepStrictEqual(await getMessageReactions(roomId, messageId), []);
+		});
+
+		test('outsider cannot react or unreact', async () => {
+			const { roomId, messageId } = await createRoomAndMessage();
+			assert.strictEqual((await api('chat/rooms/join', { roomId }, bob)).status, 204);
+			assert.strictEqual((await api('chat/messages/react', { messageId, reaction: '👍' }, bob)).status, 204);
+
+			const reactRes = await api('chat/messages/react', { messageId, reaction: '🤔' }, carol);
+			assert.strictEqual(reactRes.status, 400);
+			assert.strictEqual(castAsError(reactRes.body as any).error.code, 'NO_SUCH_MESSAGE');
+
+			const unreactRes = await api('chat/messages/unreact', { messageId, reaction: '👍' }, carol);
+			assert.strictEqual(unreactRes.status, 400);
+			assert.strictEqual(castAsError(unreactRes.body as any).error.code, 'NO_SUCH_MESSAGE');
+			assert.deepStrictEqual(await getMessageReactions(roomId, messageId), [{ userId: bob.id, reaction: '👍' }]);
+		});
+
+		test('soft-left member cannot react or unreact', async () => {
+			const { roomId, messageId } = await createRoomAndMessage();
+			assert.strictEqual((await api('chat/rooms/join', { roomId }, dave)).status, 204);
+			assert.strictEqual((await api('chat/messages/react', { messageId, reaction: '👍' }, dave)).status, 204);
+			assert.strictEqual((await api('chat/rooms/leave', { roomId }, dave)).status, 204);
+
+			const reactRes = await api('chat/messages/react', { messageId, reaction: '🤔' }, dave);
+			assert.strictEqual(reactRes.status, 400);
+			assert.strictEqual(castAsError(reactRes.body as any).error.code, 'NO_SUCH_MESSAGE');
+
+			const unreactRes = await api('chat/messages/unreact', { messageId, reaction: '👍' }, dave);
+			assert.strictEqual(unreactRes.status, 400);
+			assert.strictEqual(castAsError(unreactRes.body as any).error.code, 'NO_SUCH_MESSAGE');
+			assert.deepStrictEqual(await getMessageReactions(roomId, messageId), [{ userId: dave.id, reaction: '👍' }]);
 		});
 	});
 

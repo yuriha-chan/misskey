@@ -14,16 +14,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div v-for="(item, idx) in bubbleColors" :key="idx" :class="$style.itemOuter" role="listitem">
 						<input
 							:id="`option_${idx}`"
+							v-model="selectedColor"
 							class="sr-only"
 							:class="$style.itemRadio"
-							v-model="selectedColor"
 							type="radio"
 							name="customItem"
 							:value="item"
 							aria-labelledby="`label_${idx}`"
 						/>
 						<label :for="`option_${idx}`" :class="$style.itemRoot">
-							<div class="$style.sampleItem" :style="{ '--MI_USER-fukidashi': item }" :id="`label_${idx}`">
+							<div :id="`label_${idx}`" class="$style.sampleItem" :style="{ '--MI_USER-fukidashi': item }">
 								<MkFukidashi>{{ i18n.ts.sample }}</MkFukidashi>
 							</div>
 						</label>
@@ -74,7 +74,7 @@ const bubbleColors = [
 	"#856b41",
 	"#575759",
 	"#cfcfd1",
-]
+];
  
 async function done() {
 	const created = await os.apiWithDialog('chat/rooms/update-membership', {

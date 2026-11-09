@@ -48,14 +48,14 @@ export class MiChatRoomMembership {
 	})
 	public hasLeft: boolean;
 
-	@Column('varchar',  {
+	@Column('varchar', {
 		default: null,
 		length: 64,
 		nullable: true
 	})
 	public bubbleColor: string | null;
 
-	@Column('varchar',  {
+	@Column('varchar', {
 		default: null,
 		length: 64,
 		nullable: true

@@ -19,8 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div :class="$style.paletteName">{{ palette.name || `(${i18n.ts.noName})` }}</div>
 				<div :class="$style.emojisGrid">
 					<span v-for="emoji in palette.emojis" :key="emoji" :class="$style.emojiItem">
-						<MkCustomEmoji v-if="emoji[0] === ':'" style="pointer-events: none;" :name="emoji" :normal="true" :fallbackToImage="true"/>
-						<MkEmoji v-else style="pointer-events: none;" :emoji="emoji" :normal="true"/>
+						<MkCustomEmoji v-if="emoji[0] === ':'" :class="$style.emoji" style="pointer-events: none;" :name="emoji" :normal="true" :fallbackToImage="true"/>
+						<MkEmoji v-else :class="$style.emoji" style="pointer-events: none;" :emoji="emoji" :normal="true"/>
 					</span>
 				</div>
 			</button>
@@ -126,10 +126,20 @@ onMounted(() => {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 30px;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	min-width: 30px;
+	max-width: 100%;
 	height: 30px;
+	padding: 0 4px;
 	font-size: 18px;
 	border-radius: 4px;
 	background: var(--MI_THEME-buttonBg);
+}
+
+.emoji {
+	min-width: 0;
+	max-width: 100%;
+	object-fit: contain;
 }
 </style>

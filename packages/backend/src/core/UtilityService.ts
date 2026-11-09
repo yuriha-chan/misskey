@@ -83,7 +83,7 @@ export class UtilityService {
 		}
 
 		const textAndChoices = pollChoices === '' ? text : text + '\n' + pollChoices;
-		
+
 		const coerceFloat = (v: any) =>
 			(typeof v === 'number') ? v :
 			(typeof v === 'string') ? parseFloat(v) :

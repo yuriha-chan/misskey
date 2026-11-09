@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<Suspense :timeout="0">
+<Suspense suspensible :timeout="0">
 	<component :is="currentPageComponent" :key="key" v-bind="Object.fromEntries(currentPageProps)"/>
 
 	<template #fallback>

@@ -21,6 +21,15 @@ export const meta = {
 		duration: ms('12hour'),
 		max: 10,
 	},
+
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			id: { type: 'string', optional: false, nullable: false, format: 'id' },
+			i: { type: 'string', optional: false, nullable: false },
+		},
+	},
 } as const;
 
 export const paramDef = {

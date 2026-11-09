@@ -12,7 +12,20 @@ const $i = reactive({
 	policies: { chatAvailability: 'available' },
 });
 
-const apiMock = vi.fn(async (endpoint: string, _params: any) => {
+type MockApiParams = Record<string, unknown>;
+type RoomFixture = {
+	id: string;
+	name: string;
+	description: string;
+	owner?: { id: string; username?: string; name?: string; host?: string | null };
+	ownerId?: string;
+	capacity?: number;
+	memberships?: Array<{ userId: string }>;
+};
+type JoiningRoomFixture = { id: string; userId: string; room: RoomFixture };
+type MockApiResponse = RoomFixture[] | JoiningRoomFixture[] | null;
+
+const apiMock = vi.fn(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 	return [];
 });
 
@@ -208,7 +221,7 @@ beforeEach(() => {
 	OwnedRoomsVue = null;
 	PublicRoomsVue = null;
 	apiMock.mockClear();
-	apiMock.mockImplementation(async (_endpoint, _params) => []);
+	apiMock.mockImplementation(async (_endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => []);
 });
 
 describe('home.joiningRooms', () => {
@@ -218,7 +231,7 @@ describe('home.joiningRooms', () => {
 	});
 
 	test('renders room list from API', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/joining') {
 				return [
 					{
@@ -255,7 +268,7 @@ describe('home.joiningRooms', () => {
 	});
 
 	test('toggles includeLeft and refetches', async () => {
-		apiMock.mockImplementation(async (endpoint: string, params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/joining') {
 				if (params?.includeLeft) {
 					return [{ id: 'mem-1', userId: 'me-1', room: { id: 'room-c', name: 'Charlie', description: '', owner: { id: 'own' }, ownerId: 'own' } }];
@@ -287,7 +300,7 @@ describe('home.ownedRooms', () => {
 	});
 
 	test('renders owned room list', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/owned') {
 				return [
 					{
@@ -308,7 +321,7 @@ describe('home.ownedRooms', () => {
 	});
 
 	test('renders multiple owned rooms', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/owned') {
 				return [
 					{ id: 'r1', name: 'First', description: '', owner: { id: 'me-1' }, ownerId: 'me-1' },
@@ -324,7 +337,7 @@ describe('home.ownedRooms', () => {
 	});
 
 	test('toggles includeArchived and refetches', async () => {
-		apiMock.mockImplementation(async (endpoint: string, params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/owned') {
 				if (params?.includeArchived) {
 					return [{ id: 'r1', name: 'Archived Room', description: '', owner: { id: 'me-1' }, ownerId: 'me-1' }];
@@ -356,7 +369,7 @@ describe('home.publicRooms', () => {
 	});
 
 	test('renders public room list with capacity info', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/list-public') {
 				return [{
 					id: 'pub-1',
@@ -380,7 +393,7 @@ describe('home.publicRooms', () => {
 	});
 
 	test('renders multiple public rooms', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/list-public') {
 				return [
 					{ id: 'p1', name: 'Pub A', description: '', capacity: 10, memberships: [] },

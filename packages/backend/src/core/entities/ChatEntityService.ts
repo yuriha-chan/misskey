@@ -67,7 +67,7 @@ export class ChatEntityService {
 		for (const record of message.reactions) {
 			const [userId, reaction] = record.split('/');
 			reactions.push({
-				user: packedUsers?.get(userId) ?? await this.userEntityService.pack(userId).catch(() => null),
+				user: packedUsers?.get(userId) ?? (await this.userEntityService.pack(userId).catch(() => null)),
 				reaction,
 			});
 		}
@@ -77,13 +77,13 @@ export class ChatEntityService {
 			createdAt: this.idService.parse(message.id).date.toISOString(),
 			text: message.text,
 			fromUserId: message.fromUserId,
-			fromUser: packedUsers?.get(message.fromUserId) ?? await this.userEntityService.pack(message.fromUser ?? message.fromUserId, me),
+			fromUser: packedUsers?.get(message.fromUserId) ?? (await this.userEntityService.pack(message.fromUser ?? message.fromUserId, me)),
 			toUserId: message.toUserId,
-			toUser: message.toUserId ? (packedUsers?.get(message.toUserId) ?? await this.userEntityService.pack(message.toUser ?? message.toUserId, me)) : undefined,
+			toUser: message.toUserId ? (packedUsers?.get(message.toUserId) ?? (await this.userEntityService.pack(message.toUser ?? message.toUserId, me))) : undefined,
 			toRoomId: message.toRoomId,
-			toRoom: message.toRoomId ? (packedRooms?.get(message.toRoomId) ?? await this.packRoom(message.toRoom ?? message.toRoomId, me)) : undefined,
+			toRoom: message.toRoomId ? (packedRooms?.get(message.toRoomId) ?? (await this.packRoom(message.toRoom ?? message.toRoomId, me))) : undefined,
 			fileId: message.fileId,
-			file: message.fileId ? (packedFiles?.get(message.fileId) ?? await this.driveFileEntityService.pack(message.file ?? message.fileId)) : null,
+			file: message.fileId ? (packedFiles?.get(message.fileId) ?? (await this.driveFileEntityService.pack(message.file ?? message.fileId))) : null,
 			reactions: reactions.filter((r): r is { user: Packed<'UserLite'>; reaction: string; } => r.user != null),
 			visibleUserIds: message.visibleUserIds ?? undefined,
 		};
@@ -159,7 +159,7 @@ export class ChatEntityService {
 			fromUserId: message.fromUserId,
 			toUserId: message.toUserId!,
 			fileId: message.fileId,
-			file: message.fileId ? (packedFiles?.get(message.fileId) ?? await this.driveFileEntityService.pack(message.file ?? message.fileId)) : null,
+			file: message.fileId ? (packedFiles?.get(message.fileId) ?? (await this.driveFileEntityService.pack(message.file ?? message.fileId))) : null,
 			reactions,
 		};
 	}
@@ -199,7 +199,7 @@ export class ChatEntityService {
 		for (const record of message.reactions) {
 			const [userId, reaction] = record.split('/');
 			reactions.push({
-				user: packedUsers?.get(userId) ?? await this.userEntityService.pack(userId).catch(() => null),
+				user: packedUsers?.get(userId) ?? (await this.userEntityService.pack(userId).catch(() => null)),
 				reaction,
 			});
 		}
@@ -265,7 +265,7 @@ export class ChatEntityService {
 			name: room.name,
 			description: room.description,
 			ownerId: room.ownerId,
-			owner: options?._hint_?.packedOwners.get(room.ownerId) ?? await this.userEntityService.pack(room.owner ?? room.ownerId, me),
+			owner: options?._hint_?.packedOwners.get(room.ownerId) ?? (await this.userEntityService.pack(room.owner ?? room.ownerId, me)),
 			isMuted: membership != null ? membership.isMuted : false,
 			invitationExists: invitation != null,
 			isArchived: room.isArchived,
@@ -288,12 +288,12 @@ export class ChatEntityService {
 		const _rooms = rooms.filter((room): room is MiChatRoom => typeof room !== 'string');
 		if (_rooms.length !== rooms.length) {
 			_rooms.push(
-				...await this.chatRoomsRepository.find({
+				...(await this.chatRoomsRepository.find({
 					where: {
 						id: In(rooms.filter((room): room is string => typeof room === 'string')),
 					},
-					relations: ['owner'],
-				}),
+					relations: { owner: true },
+				})),
 			);
 		}
 
@@ -336,9 +336,9 @@ export class ChatEntityService {
 			id: invitation.id,
 			createdAt: this.idService.parse(invitation.id).date.toISOString(),
 			roomId: invitation.roomId,
-			room: options?._hint_?.packedRooms.get(invitation.roomId) ?? await this.packRoom(invitation.room ?? invitation.roomId, me),
+			room: options?._hint_?.packedRooms.get(invitation.roomId) ?? (await this.packRoom(invitation.room ?? invitation.roomId, me)),
 			userId: invitation.userId,
-			user: options?._hint_?.packedUsers.get(invitation.userId) ?? await this.userEntityService.pack(invitation.user ?? invitation.userId, me),
+			user: options?._hint_?.packedUsers.get(invitation.userId) ?? (await this.userEntityService.pack(invitation.user ?? invitation.userId, me)),
 		};
 	}
 
@@ -371,7 +371,7 @@ export class ChatEntityService {
 			id: membership.id,
 			createdAt: this.idService.parse(membership.id).date.toISOString(),
 			userId: membership.userId,
-			user: options?.populateUser ? (options._hint_?.packedUsers.get(membership.userId) ?? await this.userEntityService.pack(membership.user ?? membership.userId, me)) : undefined,
+			user: options?.populateUser ? (options._hint_?.packedUsers.get(membership.userId) ?? (await this.userEntityService.pack(membership.user ?? membership.userId, me))) : undefined,
 			roomId: membership.roomId,
 			room: options?.populateRoom ? (options._hint_?.packedRooms.get(membership.roomId) ?? await this.packRoom(membership.room ?? membership.roomId, me)) : undefined,
 			bubbleColor: membership.bubbleColor,

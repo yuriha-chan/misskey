@@ -25,7 +25,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #label>{{ i18n.ts._chat.isPublicRoom }}</template>
 	</MkSwitch>
 
-
 	<MkButton v-if="isOwner" primary @click="save">{{ i18n.ts.save }}</MkButton>
 
 	<hr>

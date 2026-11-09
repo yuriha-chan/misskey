@@ -9,7 +9,7 @@ import { DI } from '@/di-symbols.js';
 import { type Config, FulltextSearchProvider } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 import { MiNote } from '@/models/Note.js';
-import type { NotesRepository } from '@/models/_.js';
+import type { MiMeta, NotesRepository } from '@/models/_.js';
 import { MiUser } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
@@ -43,6 +43,8 @@ export type SearchOpts = {
 	timeline?: "homeTimeline" | "localTimeline" | null;
 	specified?: boolean;
 	excludeBot?: boolean;
+	rangeStartAt?: number | null;
+	rangeEndAt?: number | null;
 };
 
 export type SearchPagination = {
@@ -53,7 +55,7 @@ export type SearchPagination = {
 
 function compileValue(value: V): string {
 	if (typeof value === 'string') {
-		return `'${value}'`; // TODO: escape
+		return `'${value.replaceAll('\\', '\\\\').replaceAll('\'', '\\\'')}'`;
 	} else if (typeof value === 'number') {
 		return value.toString();
 	} else if (typeof value === 'boolean') {
@@ -101,6 +103,9 @@ export class SearchService {
 		private loggerService: LoggerService,
 		private fanoutTimelineService: FanoutTimelineService,
 		private searchPrefilterService: SearchPrefilterService,
+
+		@Inject(DI.meta)
+		private meta: MiMeta,
 	) {
 		if (meilisearch) {
 			this.meilisearchNoteIndex = meilisearch.index(`${config.meilisearch!.index}---notes`);
@@ -193,24 +198,24 @@ export class SearchService {
 			} else if (opts.channelId) {
 				query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
 			} else if (opts.timeline && me) {
-				const timeline: FanoutTimelineName = (opts.timeline == "localTimeline") ? "localTimeline" : `homeTimeline:${me.id}`;
+				const timeline: FanoutTimelineName = (opts.timeline === 'localTimeline') ? 'localTimeline' : `homeTimeline:${me.id}`;
 				const idCompare: (a: string, b: string) => number = ascending ? (a, b) => a < b ? -1 : 1 : (a, b) => a > b ? -1 : 1;
 				const redisResult = await this.fanoutTimelineService.get(timeline, pagination.sinceId, pagination.untilId);
 				if (redisResult.length === 0) {
 					return [];
 				}
 				const redisResultIds = Array.from(new Set(redisResult.flat(1))).sort(idCompare);
-				let noteIds = redisResultIds.slice(0, pagination.limit*100);
-				query.andWhere('note.id IN (:...noteIds)', { noteIds: noteIds })
+				const noteIds = redisResultIds.slice(0, pagination.limit * 100);
+				query.andWhere('note.id IN (:...noteIds)', { noteIds: noteIds });
 				lastId = noteIds[noteIds.length - 1];
 			} else if (opts.specified && me) {
 				query.andWhere('note.visibleUserIds @> ARRAY[:userId]::varchar[]', { userId: me.id });
 			} else {
-				const prefilterResult = await this.searchPrefilterService.filter(q, pagination.sinceId, pagination.untilId, pagination.limit*20);
+				const prefilterResult = await this.searchPrefilterService.filter(q, pagination.sinceId, pagination.untilId, pagination.limit * 20);
 				if (prefilterResult.length === 0) {
 					return [];
 				}
-				query.andWhere('note.id IN (:...noteIds)', { noteIds: prefilterResult })
+				query.andWhere('note.id IN (:...noteIds)', { noteIds: prefilterResult });
 				lastId = prefilterResult[prefilterResult.length - 1];
 			}
 
@@ -239,7 +244,18 @@ export class SearchService {
 				query.andWhere('user.isBot = FALSE');
 			}
 
+			if (opts.rangeStartAt != null) {
+				const date = this.idService.gen(opts.rangeStartAt - 1);
+				query.andWhere('note.id > :rangeStartAt', { rangeStartAt: date });
+			}
+
+			if (opts.rangeEndAt != null) {
+				const date = this.idService.gen(opts.rangeEndAt + 1);
+				query.andWhere('note.id < :rangeEndAt', { rangeEndAt: date });
+			}
+
 			this.queryService.generateVisibilityQuery(query, me);
+			if (me == null) this.queryService.generateUgcVisibilityQueryForVisitor(query);
 			this.queryService.generateBaseNoteFilteringQuery(query, me);
 
 			result = await query.limit(pagination.limit).getMany();
@@ -276,10 +292,20 @@ export class SearchService {
 			k: 'createdAt',
 			v: this.idService.parse(pagination.untilId).date.getTime(),
 		});
+		if (opts.rangeEndAt) filter.qs.push({
+			op: '<=',
+			k: 'createdAt',
+			v: opts.rangeEndAt,
+		});
 		if (pagination.sinceId) filter.qs.push({
 			op: '>',
 			k: 'createdAt',
 			v: this.idService.parse(pagination.sinceId).date.getTime(),
+		});
+		if (opts.rangeStartAt) filter.qs.push({
+			op: '>=',
+			k: 'createdAt',
+			v: opts.rangeStartAt,
 		});
 		if (opts.userId) filter.qs.push({ op: '=', k: 'userId', v: opts.userId });
 		if (opts.channelId) filter.qs.push({ op: '=', k: 'channelId', v: opts.channelId });
@@ -289,6 +315,10 @@ export class SearchService {
 			} else {
 				filter.qs.push({ op: '=', k: 'userHost', v: opts.host });
 			}
+		}
+		if (me == null) {
+			if (this.meta.ugcVisibilityForVisitor === 'none') return [];
+			if (this.meta.ugcVisibilityForVisitor === 'local') filter.qs.push({ op: 'is null', k: 'userHost' });
 		}
 
 		const res = await this.meilisearchNoteIndex.search(q, {

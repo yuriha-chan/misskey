@@ -113,6 +113,10 @@ export const paramDef = {
 		sensitiveMediaDetectionSensitivity: { type: 'string', enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'] },
 		setSensitiveFlagAutomatically: { type: 'boolean' },
 		enableSensitiveMediaDetectionForVideos: { type: 'boolean' },
+		sensitiveMediaDetectionApiUrl: { type: 'string', nullable: true },
+		sensitiveMediaDetectionApiKey: { type: 'string', nullable: true },
+		sensitiveMediaDetectionTimeout: { type: 'integer', minimum: 1 },
+		sensitiveMediaDetectionMaxImagesPerRequest: { type: 'integer', minimum: 1 },
 		maintainerName: { type: 'string', nullable: true },
 		maintainerEmail: { type: 'string', nullable: true },
 		langs: {
@@ -207,6 +211,12 @@ export const paramDef = {
 		urlPreviewRequireContentLength: { type: 'boolean' },
 		urlPreviewUserAgent: { type: 'string', nullable: true },
 		urlPreviewSummaryProxyUrl: { type: 'string', nullable: true },
+		urlPreviewSensitiveList: {
+			type: 'array', nullable: true,
+			items: {
+				type: 'string',
+			}
+		},
 		federation: {
 			type: 'string',
 			enum: ['all', 'none', 'specified'],
@@ -501,6 +511,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.enableSensitiveMediaDetectionForVideos = ps.enableSensitiveMediaDetectionForVideos;
 			}
 
+			if (ps.sensitiveMediaDetectionApiUrl !== undefined) {
+				set.sensitiveMediaDetectionApiUrl = ps.sensitiveMediaDetectionApiUrl === '' ? null : ps.sensitiveMediaDetectionApiUrl;
+			}
+
+			if (ps.sensitiveMediaDetectionApiKey !== undefined) {
+				set.sensitiveMediaDetectionApiKey = ps.sensitiveMediaDetectionApiKey === '' ? null : ps.sensitiveMediaDetectionApiKey;
+			}
+
+			if (ps.sensitiveMediaDetectionTimeout !== undefined) {
+				set.sensitiveMediaDetectionTimeout = ps.sensitiveMediaDetectionTimeout;
+			}
+
+			if (ps.sensitiveMediaDetectionMaxImagesPerRequest !== undefined) {
+				set.sensitiveMediaDetectionMaxImagesPerRequest = ps.sensitiveMediaDetectionMaxImagesPerRequest;
+			}
+
 			if (ps.maintainerName !== undefined) {
 				set.maintainerName = ps.maintainerName;
 			}
@@ -777,6 +803,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.summalyProxy !== undefined || ps.urlPreviewSummaryProxyUrl !== undefined) {
 				const value = ((ps.urlPreviewSummaryProxyUrl ?? ps.summalyProxy) ?? '').trim();
 				set.urlPreviewSummaryProxyUrl = value === '' ? null : value;
+			}
+
+			if (Array.isArray(ps.urlPreviewSensitiveList)) {
+				const filtered = ps.urlPreviewSensitiveList.filter(Boolean);
+				validateFilters(filtered);
+				set.urlPreviewSensitiveList = filtered;
 			}
 
 			if (ps.federation !== undefined) {

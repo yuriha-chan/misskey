@@ -45,7 +45,6 @@ export class CloseExpiredChatRoomProcessorService {
 
 			await this.chatService.archiveRoom(roomId);
 			this.logger.info(`Successfully closed expired chat room: ${roomId}`);
-
 		} catch (error) {
 			this.logger.error(`Failed to process job for expired chat room: ${roomId}`);
 			throw error;

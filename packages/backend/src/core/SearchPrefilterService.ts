@@ -141,7 +141,7 @@ export class SearchPrefilterService {
 
 			socket.on('end', () => {
 				const trimmed = responseData.trim();
-				if (trimmed.startsWith('Ok ')) {
+				if (trimmed === 'Ok' || trimmed.startsWith('Ok ')) {
 					const ids = trimmed.slice(3).split(/\s+/).filter(id => id.length > 0);
 					resolve(ids);
 				} else {

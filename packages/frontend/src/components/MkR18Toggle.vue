@@ -5,13 +5,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.toggle">
-	<input id="r18-under17" data-testid="radio-under17" v-model="model" type="radio" :value="false" :class="$style.radio"/>
-	<input id="r18-over18" data-testid="radio-over18" v-model="model" type="radio" :value="true" :class="$style.radio"/>
+	<input id="r18-under17" v-model="model" data-testid="radio-under17" type="radio" :value="false" :class="$style.radio"/>
+	<input id="r18-over18" v-model="model" data-testid="radio-over18" type="radio" :value="true" :class="$style.radio"/>
 	<label for="r18-under17" :class="$style.labelUnder">{{ i18n.ts.r18ConsentUnder17OrNotToSay }}</label>
 	<div ref="sliderEl" :class="$style.slider">
-		<label for="r18-under17" :class="$style.hit"/>
-		<span :class="$style.hit"/>
-		<label for="r18-over18" :class="$style.hit"/>
+		<label for="r18-under17" :class="$style.hit"></label>
+		<span :class="$style.hit"></span>
+		<label for="r18-over18" :class="$style.hit"></label>
 		<div
 			:class="[$style.knob, { [$style.dragging]: dragging }]"
 			:style="knobDragStyle"

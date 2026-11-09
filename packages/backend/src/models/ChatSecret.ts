@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { PrimaryColumn, Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
@@ -10,7 +15,7 @@ export class MiChatSecret {
 	public id: MiChatMessage['id'];
 
 	@Column(id())
-	public roomId: MiChatRoom['id']
+	public roomId: MiChatRoom['id'];
 
 	@ManyToOne(() => MiChatRoom)
 	@JoinColumn({ name: 'roomId' })
@@ -34,7 +39,7 @@ export class MiChatSecret {
 	})
 	public revealsAt: Date | null;
 
-	@Column({...id(), 
+	@Column({ ...id(), 
 		nullable: true,
 	})
 	public revealedId: MiChatMessage['id'] | null;

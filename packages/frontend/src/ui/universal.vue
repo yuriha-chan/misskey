@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<XAnnouncements v-if="$i"/>
 				<XStatusBars :class="$style.statusbars"/>
 			</div>
-			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content"/>
+			<StackingRouterView v-if="prefer.s['experimental.stackingRouterView']" :class="$style.content" @mainContentLoaded="onRouterViewLoaded"/>
 			<RouterView v-else :class="$style.content" @mainContentLoaded="onRouterViewLoaded"/>
 			<Transition
 				:enterActiveClass="$style.transition_navFooter_enterActive"
@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:enterFromClass="$style.transition_navFooter_enterFrom"
 				:leaveToClass="$style.transition_navFooter_leaveTo"
 			>
-				<XMobileFooterMenu v-if="isMobile && navFooterShowing && navFooterShowingByPage " v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing" ref="navFooter"/>
+				<XMobileFooterMenu v-if="isMobile && navFooterShowing && navFooterShowingByPage " ref="navFooter" v-model:drawerMenuShowing="drawerMenuShowing" v-model:widgetsShowing="widgetsShowing"/>
 			</Transition>
 		</div>
 
@@ -121,7 +121,7 @@ if (window.innerWidth > 1024) {
 	}
 }
 
-let scrollHistory: {time: Date, position: number} [] = [];
+let scrollHistory: { time: Date, position: number } [] = [];
 
 if (prefer.s.hideNavFooter) {
 	provide('onContentScroll', (e: Event) => {
@@ -166,19 +166,18 @@ onMounted(() => {
 	});
 });
 
-
 const navFooterHeight = ref(0);
 const navFooter = shallowRef<HTMLElement>();
 
 watch(navFooter, () => {
 	if (navFooter.value) {
 		navFooterHeight.value = navFooter.value?.offsetHeight ?? 0;
-		document.body.style.setProperty('--MI-stickyBottom', `${navFooterHeight.value}px`);
-		document.body.style.setProperty('--MI-minBottomSpacing', 'var(--MI-minBottomSpacingMobile)');
+		window.document.body.style.setProperty('--MI-stickyBottom', `${navFooterHeight.value}px`);
+		window.document.body.style.setProperty('--MI-minBottomSpacing', 'var(--MI-minBottomSpacingMobile)');
 	} else {
 		navFooterHeight.value = 0;
-		document.body.style.setProperty('--MI-stickyBottom', '0px');
-		document.body.style.setProperty('--MI-minBottomSpacing', '0px');
+		window.document.body.style.setProperty('--MI-stickyBottom', '0px');
+		window.document.body.style.setProperty('--MI-minBottomSpacing', '0px');
 	}
 }, {
 	immediate: true,

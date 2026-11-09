@@ -4,17 +4,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div>
+<div ref="scrollContainer" class="_pageScrollable" :class="$style.root">
 	<MkDrive @cd="x => folder = x"/>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkDrive from '@/components/MkDrive.vue';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
+import { useScrollPositionKeeper } from '@/composables/use-scroll-position-keeper.js';
+
+const scrollContainer = useTemplateRef('scrollContainer');
+useScrollPositionKeeper(scrollContainer);
 
 const folder = ref<Misskey.entities.DriveFolder | null>(null);
 
@@ -28,3 +32,11 @@ definePage(() => ({
 	hideHeader: true,
 }));
 </script>
+
+<style lang="scss" module>
+.root {
+	--MI-stickyBottom: var(--MI-minBottomSpacing, 0px);
+	padding-bottom: var(--MI-minBottomSpacing, 0px);
+	box-sizing: border-box;
+}
+</style>

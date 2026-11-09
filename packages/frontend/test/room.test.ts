@@ -13,6 +13,45 @@ const $i = reactive({
 	token: 'fake-token',
 });
 
+type MockApiParams = Record<string, unknown>;
+type UserFixture = { id: string; username?: string; name?: string; host?: string | null };
+type RoomFixture = {
+	id: string;
+	name: string;
+	description: string;
+	ownerId?: string;
+	owner?: UserFixture;
+	isPublic?: boolean;
+	isJoined?: boolean;
+	isArchived?: boolean;
+	capacity?: number;
+	isMuted?: boolean;
+	memberships?: Array<{ userId: string }>;
+};
+type TimelineFixture = { id: string; type: string; data: Record<string, unknown> };
+type PollFixture = {
+	id?: string;
+	title?: string;
+	startsAt?: string;
+	finishesAt?: string;
+	fromUserId?: string;
+	anonymous?: boolean;
+	voteForUsers?: boolean;
+	choices?: string[];
+	textChoices?: string[];
+	userChoices?: unknown[];
+};
+type PollListsFixture = { scheduledPolls: PollFixture[]; startedPolls: PollFixture[] };
+type SecretFixture = { id: string; title: string; fromUserId: string; revealsAt: string; createdAt: string };
+type CardFixture = { deliverId: string; cardId: string; cardKind: string };
+type RoomMemberFixture = { id: string; userId: string; user: UserFixture };
+type MockApiResponse = RoomFixture | UserFixture | TimelineFixture[] | RoomMemberFixture[] | SecretFixture[] | CardFixture[] | PollListsFixture | null;
+
+function getRoomId(params: MockApiParams): string {
+	if (typeof params.roomId !== 'string') throw new Error('Expected roomId in chat room request');
+	return params.roomId;
+}
+
 const FAKE_CONNECTION_HANDLERS: Record<string, Array<(...args: any[]) => void>> = {};
 
 function createFakeConnection() {
@@ -47,10 +86,10 @@ vi.mock('@/stream.js', () => ({
 	},
 }));
 
-const apiMock = vi.fn(async (endpoint: string, params: any) => {
+const apiMock = vi.fn(async (endpoint: string, params: MockApiParams): Promise<MockApiResponse> => {
 	if (endpoint === 'chat/rooms/show') {
 		return {
-			id: params.roomId,
+			id: getRoomId(params),
 			name: 'Test Room',
 			description: 'Room description',
 			ownerId: 'me-1',
@@ -376,7 +415,7 @@ describe('room.vue', () => {
 	});
 
 	test('shows noMessagesYet when timeline is empty', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -408,7 +447,7 @@ describe('room.vue', () => {
 	});
 
 	test('shows archived banner when room is archived', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-archived',
@@ -461,7 +500,7 @@ describe('room.vue', () => {
 	});
 
 	test('adds new message on websocket message event', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -505,7 +544,7 @@ describe('room.vue', () => {
 	});
 
 	test('adds join event on websocket join', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -545,7 +584,7 @@ describe('room.vue', () => {
 	});
 
 	test('websocket leave event with kick flag shows kicked', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -590,7 +629,7 @@ describe('room.vue', () => {
 	});
 
 	test('renders secret from API with reveal button and countdown', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -651,7 +690,7 @@ describe('room.vue', () => {
 	});
 
 	test('renders scheduled poll from API with starts-in countdown and start button', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -713,7 +752,7 @@ describe('room.vue', () => {
 	});
 
 	test('renders started poll from API with finish-in countdown and vote button', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -779,7 +818,7 @@ describe('room.vue', () => {
 	});
 
 	test('shows Vote but not Finish Poll for non-owner poll', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -844,7 +883,7 @@ describe('room.vue', () => {
 	});
 
 	test('renders cards from API with reveal button', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -898,7 +937,7 @@ describe('room.vue', () => {
 	});
 
 	test('websocket secretCommitted adds secret to sticky top', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -957,7 +996,7 @@ describe('room.vue', () => {
 	});
 
 	test('websocket pollScheduled adds poll to sticky top', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',
@@ -1016,7 +1055,7 @@ describe('room.vue', () => {
 	});
 
 	test('websocket cardDelivered adds card to sticky top', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			if (endpoint === 'chat/rooms/show') {
 				return {
 					id: 'room-1',

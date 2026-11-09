@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 	<div :class="$style.container">
 		<div
@@ -44,7 +49,6 @@ const colorSegments = computed(() => {
 	gap: 0;
 	width: fit-content;
 }
-
 
 .colorBlock {
 	width: fit-content;

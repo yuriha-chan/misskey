@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 
-			<div v-else ref="timelineEl" class="_gaps">
+			<div v-else ref="timelineEl" data-testid="chat-timeline" class="_gaps">
 				<div v-if="isArchived" :class="$style.isArchived">{{ i18n.ts._chat.thisRoomIsArchived }}</div>
 				<div v-if="canFetchMore">
 					<MkButton :class="$style.more" :wait="moreFetching" primary rounded @click="fetchMore">{{ i18n.ts.loadMore }}</MkButton>
@@ -38,19 +38,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkButton v-if="secret.fromUserId === $i.id" primary rounded @click="() => onRevealClick(secret)">{{ i18n.ts._chat.revealSecret }}</MkButton>
 					</div>
 					<div v-if="cards.length > 0" :class="$style.cards">
-						<i class="ti ti-cards"/>
+						<i class="ti ti-cards"></i>
 						<div v-for="card in cards" :key="`${card.deliverId}-${card.cardId}`" :class="$style.card">
 							<div :class="$style.cardContent">{{ card.cardKind }}</div>
 							<MkButton primary @click="() => onCardRevealClick(card)">{{ i18n.ts._chat.revealCard }}</MkButton>
 						</div>
 					</div>
-					<div v-for="poll in polls" :key="poll.id" :class="$style.poll">
+					<div v-for="poll in polls" :key="poll.id" data-testid="chat-active-poll" :class="$style.poll">
 						<span>{{ i18n.ts._chat.poll }}: {{ poll.title }}</span>
 						<span v-if="!(poll as TrackedPoll).started && (poll as TrackedPoll).startsAt != null" :class="$style.countdownContainer">{{ i18n.ts._chat.startsIn }} <MkCountdown :to="Date.parse((poll as TrackedPoll).startsAt!)" :class="$style.countdown"/></span>
 						<MkButton v-if="!(poll as TrackedPoll).started && (poll as TrackedPoll).fromUserId === $i.id" danger rounded @click="() => onPollStartClick(poll)">{{ i18n.ts._chat.startPoll }}</MkButton>
 						<span v-if="(poll as TrackedPoll).started && (poll as TrackedPoll).finishesAt !=null" :class="$style.countdownContainer">{{ i18n.ts._chat.finishesIn }} <MkCountdown :to="Date.parse((poll as TrackedPoll).finishesAt!)" :class="$style.countdown"/></span>
 						<MkButton v-if="(poll as TrackedPoll).started && (poll as TrackedPoll).fromUserId === $i.id" danger rounded @click="() => onPollFinishClick(poll as Misskey.entities.ChatPollStarted)">{{ i18n.ts._chat.finishPoll }}</MkButton>
-						<MkButton v-if="(poll as TrackedPoll).started" primary rounded @click="() => onVoteClick(poll as Misskey.entities.ChatPollStarted)" :disabled="(poll as TrackedPoll).voted">{{ (poll as TrackedPoll).voted ? i18n.ts._chat.voted : i18n.ts._chat.vote }}</MkButton>
+						<MkButton v-if="(poll as TrackedPoll).started" primary rounded :disabled="(poll as TrackedPoll).voted" @click="() => onVoteClick(poll as Misskey.entities.ChatPollStarted)">{{ (poll as TrackedPoll).voted ? i18n.ts._chat.voted : i18n.ts._chat.vote }}</MkButton>
 					</div>
 				</div>
 
@@ -103,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</button>
 					</div>
 				</Transition>
-				<XForm v-if="initialized" :is-archived="isArchived" :user="user" :room="room" :members="membersMap" :class="$style.form"/>
+				<XForm v-if="initialized" :isArchived="isArchived" :user="user" :room="room" :members="membersMap" :class="$style.form"/>
 			</div>
 		</div>
 	</template>
@@ -329,7 +329,7 @@ async function initialize() {
 		if (r.isPublic && !r.isJoined && !r.isArchived) {
 			await os.apiWithDialog('chat/rooms/join', { roomId: r.id });
 			initializing.value = false;
-			setTimeout(initialize, 1000);
+			window.setTimeout(initialize, 1000);
 			return;
 		}
 
@@ -404,18 +404,18 @@ async function fetchMore() {
 		return;
 	}
 
-	const newMessages = props.userId ? await misskeyApi('chat/messages/user-timeline', {
+	const newMessages = props.userId ? (await misskeyApi('chat/messages/user-timeline', {
 		userId: user.value!.id,
 		limit: LIMIT,
 		untilId: (lastMessage.data as { id?: string; deliverId?: string }).id ?? (lastMessage.data as { deliverId?: string }).deliverId,
-	}) : await misskeyApi('chat/messages/room-timeline', {
+	})).map(message => ({ type: 'message' as const, data: normalizeMessage(message) })) : await misskeyApi('chat/messages/room-timeline', {
 		roomId: room.value!.id,
 		limit: LIMIT,
 		untilId: (lastMessage.data as { id?: string; deliverId?: string }).id ?? (lastMessage.data as { deliverId?: string }).deliverId,
 	});
 
 	// TODO: normalize
-	timelineItems.value.push(...(newMessages.map((m: any) => ({ type: 'message' as const, data: normalizeMessage(m) }))));
+	timelineItems.value.push(...newMessages);
 
 	canFetchMore.value = newMessages.length === LIMIT;
 	moreFetching.value = false;
@@ -443,50 +443,60 @@ function onJoin(membership: Misskey.entities.ChatRoomMembership) {
 	timelineItems.value.unshift({ type: 'join', data: membership });
 	membersMap.value[membership.userId] = membership;
 }
+
 function onLeave(data: { userId: string; createdAt: string; kicked: boolean }) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'leave', data: { ...data, user: membersMap.value[data.userId].user as Misskey.entities.UserLite } });
 	membersMap.value[data.userId] = { ...membersMap.value[data.userId], hasLeft: true };
 }
+
 function onPollSchedule(poll: Misskey.entities.ChatPollScheduled) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'pollScheduled', data: poll });
 	polls.value.push(poll);
 }
+
 function onPollStart(poll: Misskey.entities.ChatPollStarted) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'pollStarted', data: poll });
 	polls.value = polls.value.filter(p => p.id !== poll.id);
-	polls.value.push({...poll, started: true} as TrackedPoll);
+	polls.value.push({ ...poll, started: true } as TrackedPoll);
 }
+
 function onPollFinish(poll: Misskey.entities.ChatPollFinished) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'pollFinished', data: poll });
 	polls.value = polls.value.filter(p => p.id !== poll.id);
 }
+
 function onSecretCommit(secret: Misskey.entities.ChatSecret) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'secretCommitted', data: secret });
 	secrets.value.push(secret);
 }
+
 function onSecretReveal(secret: Misskey.entities.ChatSecretRevealed) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'secretRevealed', data: secret });
 	secrets.value = secrets.value.filter(s => s.id !== secret.id);
 }
+
 function onCardDeliver(card: Misskey.entities.ChatCard) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'cardDelivered', data: card });
 	cards.value.push(card);
 }
+
 function onCardReveal(card: Misskey.entities.ChatCardRevealed) {
 	sound.playMisskeySfx('chatMessage');
 	timelineItems.value.unshift({ type: 'cardRevealed', data: card });
-	cards.value = cards.value.filter((c) => c.deliverId != card.deliverId || c.cardId != card.cardId); 
+	cards.value = cards.value.filter((c) => c.deliverId !== card.deliverId || c.cardId !== card.cardId);
 }
+
 function onRoomArchived() {
 	isArchived.value = true;
 }
+
 function onMembershipUpdate(membership: Misskey.entities.ChatRoomMembership) {
 	console.log(membersMap.value[membership.userId]);
 	membersMap.value[membership.userId].bubbleColor = membership.bubbleColor;
@@ -538,7 +548,7 @@ function onRevealClick(secret: Misskey.entities.ChatSecret) {
 			if (canceled) return;
 			misskeyApi('chat/secrets/reveal', {
 				id: secret.id,
-			})
+			});
 		});
 }
 
@@ -551,7 +561,7 @@ function onCardRevealClick(card: Misskey.entities.ChatCard) {
 			misskeyApi('chat/cards/reveal', {
 				deliverId: card.deliverId,
 				cardId: card.cardId,
-			})
+			});
 		});
 }
 
@@ -582,7 +592,7 @@ function onPollStartClick(poll: Misskey.entities.ChatPollScheduled) {
 			if (canceled) return;
 			misskeyApi('chat/polls/start', {
 				pollId: poll.id,
-			})
+			});
 		});
 }
 
@@ -594,7 +604,7 @@ function onPollFinishClick(poll: Misskey.entities.ChatPollStarted) {
 			if (canceled) return;
 			misskeyApi('chat/polls/finish', {
 				pollId: poll.id,
-			})
+			});
 		});
 }
 

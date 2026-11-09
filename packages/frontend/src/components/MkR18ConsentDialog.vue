@@ -6,6 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <MkModalWindow
 	ref="dialog"
+	data-testid="r18-consent-dialog"
 	:width="400"
 	:height="450"
 	:withOkButton="true"
@@ -20,8 +21,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.question">{{ i18n.ts.r18ConsentAreYouOver18 }}</div>
 		<MkR18Toggle v-model="iAmAdult"/>
 		<template v-if="iAmAdult === true">
-			<div :class="$style.divider"/>
-			<MkSwitch v-model="hideR18Value">
+			<div :class="$style.divider"></div>
+			<MkSwitch v-model="hideR18Value" data-testid="r18-hide-content">
 				{{ i18n.ts.hideR18Content }}
 			</MkSwitch>
 			<div>{{ i18n.ts.hideR18ContentDescription1 }}</div>

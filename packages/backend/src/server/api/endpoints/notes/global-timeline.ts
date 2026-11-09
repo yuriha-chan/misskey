@@ -82,8 +82,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.leftJoinAndSelect('reply.user', 'replyUser')
 				.leftJoinAndSelect('renote.user', 'renoteUser');
 
-			const metaInfo = await metaService.fetch();
-			this.queryService.generateBaseNoteFilteringQuery(query, me, {gtl: true, serverGtlMutedHosts: metaInfo.gtlMutedHosts});
+			const metaInfo = await this.metaService.fetch();
+			this.queryService.generateBaseNoteFilteringQuery(query, me, { gtl: true, serverGtlMutedHosts: metaInfo.gtlMutedHosts });
+			if (me == null) this.queryService.generateUgcVisibilityQueryForVisitor(query);
 			if (me) this.queryService.generateMutedUserRenotesQueryForNotes(query, me);
 
 			if (ps.withFiles) {

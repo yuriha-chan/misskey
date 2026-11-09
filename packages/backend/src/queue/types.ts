@@ -162,13 +162,13 @@ export type ThinUser = {
 
 export type CloseExpiredChatRoomJobData = {
 	id: MiChatRoom['id'];
-}
+};
 
 export type RevealChatSecretJobData = {
 	id: MiChatSecret['id'];
-}
+};
 
 export type EndChatPollJobData = {
 	pollId: MiChatPoll['id'];
 	action: 'start' | 'finish';
-}
+};

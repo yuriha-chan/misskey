@@ -4,10 +4,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div class="_gaps">
+<div data-testid="chat-room-members" class="_gaps">
 	<MkButton v-if="isOwner" primary rounded style="margin: 0 auto;" @click="emit('inviteUser')"><i class="ti ti-plus"></i> {{ i18n.ts._chat.inviteUser }}</MkButton>
 
-	<div v-for="membership in memberships" :key="membership.id" :class="$style.membership">
+	<div v-for="membership in memberships" :key="membership.id" data-testid="chat-room-member" :class="$style.membership">
 		<div v-if="room.owner.id === membership.user?.id">Owner</div>
 		<MkA :class="$style.membershipBody" :to="`${userPage(room.owner)}`">
 			<MkUserCardMini :user="membership.user!"/>
@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<div>{{ i18n.ts._chat.sentInvitations }}</div>
 
-		<div v-for="invitation in invitations" :key="invitation.id" :class="$style.invitation">
+		<div v-for="invitation in invitations" :key="invitation.id" data-testid="chat-room-sent-invitation" :class="$style.invitation">
 			<MkA :class="$style.invitationBody" :to="`${userPage(invitation.user)}`">
 				<MkUserCardMini :user="invitation.user"/>
 			</MkA>
@@ -60,7 +60,7 @@ async function onKickClick(user: { id: string }) {
 	misskeyApi('chat/rooms/kick', {
 		roomId: props.room.id,
 		userId: user.id,
-	})
+	});
 }
 
 onMounted(async () => {

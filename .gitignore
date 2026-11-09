@@ -23,9 +23,8 @@ packages/sw/.yarn/cache
 # pnpm
 .pnpm-store
 
-# Cypress
-cypress/screenshots
-cypress/videos
+# Playwright
+packages/frontend/test/e2e/artifacts
 
 # Coverage
 coverage
@@ -37,9 +36,9 @@ coverage
 !/.config/docker_example.yml
 !/.config/docker_example.env
 !/.config/nginx_example.conf
-!/.config/cypress-devcontainer.yml
+!/.config/playwright-devcontainer.yml
 docker-compose.yml
-./compose.yml
+/compose.yml
 .devcontainer/compose.yml
 !/.devcontainer/compose.yml
 
@@ -87,3 +86,6 @@ vite.config.local-dev.ts.timestamp-*
 # vim temporary files
 *.swp
 *.swo
+
+# Affinity
+*.af~lock~

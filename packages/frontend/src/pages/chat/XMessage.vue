@@ -4,8 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div v-if="item" :class="[$style.root, { [$style.isMe]: isMe }]">
-	<MkAvatar v-if="item.type === 'message' && props.membership?.user"  :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership.user as Misskey.entities.UserLite" :link="!isMe" :preview="false"/>
+<div v-if="item" data-testid="chat-timeline-item" :class="[$style.root, { [$style.isMe]: isMe }]">
+	<MkAvatar v-if="item.type === 'message' && props.membership?.user" :class="[$style.avatar, prefer.s.useStickyIcons ? $style.useSticky : null]" :user="props.membership.user as Misskey.entities.UserLite" :link="!isMe" :preview="false"/>
 	<div :class="[$style.body, item.type === 'message' && (item.data as Misskey.entities.ChatMessageLite).file != null ? $style.fullWidth : null]" @contextmenu.stop="onContextmenu">
 		<div :class="$style.header"><MkUserName v-if="!isMe && prefer.s['chat.showSenderName'] && props.membership?.user" :user="props.membership.user as Misskey.entities.UserLite"/></div>
 		<MkFukidashi v-if="item.type === 'message'" :class="$style.fukidashi" :tail="isMe ? 'right' : 'left'" :fullWidth="item.data.file != null" :style="bubbleStyle">
@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:enableEmojiMenu="true"
 				:enableEmojiMenuReaction="true"
 			/>
-			<MkMediaList v-if="item.data.file" :mediaList="[item.data.file]" :class="$style.file"/>
+			<MkMediaList v-if="item.data.file" :class="$style.file" :mediaList="[item.data.file]" :user="props.membership?.user ?? item.data.fromUser"/>
 			<MkUrlPreview v-for="url in urls" :key="url" :url="url" style="margin: 8px 0;"/>
 		</MkFukidashi>
 		<div v-else-if="item.type === 'pollScheduled'">
@@ -34,18 +34,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div v-else-if="item.type === 'pollFinished'">
-			<div><i class="ti ti-info-circle"/> {{ i18n.tsx._chat.pollFinished({ what: (item.data as Misskey.entities.ChatPollFinished).title ?? '' }) }}</div>
+			<div><i class="ti ti-info-circle"></i> {{ i18n.tsx._chat.pollFinished({ what: (item.data as Misskey.entities.ChatPollFinished).title ?? '' }) }}</div>
 			<div :class="$style.pollFinish">
-				<div v-for="(entry, i) in (item.data as Misskey.entities.ChatPollFinished).votes" :key="i" :class="$style.pollChoice">
+				<div v-for="(entry, i) in (item.data as Misskey.entities.ChatPollFinished).votes" :key="i" data-testid="chat-poll-result-choice" :class="$style.pollChoice">
 					<div :class="$style.choiceContainer">
 						<div v-if="(item.data as Misskey.entities.ChatPollFinished).voteForUsers" :class="$style.choice">
 							<MkUserCardMini v-if="entry.user" :class="$style.card" :user="entry.user" :withChart="false"/>
 							<div v-else :class="$style.card">(deleted user)</div>
 						</div>
 						<div v-else :class="$style.choice">{{ entry.text }}</div>
-						<div :class="$style.vote"><span :class="$style.voteCount">{{ entry.voteCount }}</span> {{ i18n.ts._chat.gotVotes }}</div>
+						<div :class="$style.vote"><span data-testid="chat-poll-vote-count" :class="$style.voteCount">{{ entry.voteCount }}</span> {{ i18n.ts._chat.gotVotes }}</div>
 					</div>
-					<div :class="$style.choiceFooter" v-if="!(item.data as Misskey.entities.ChatPollFinished).anonymous">
+					<div v-if="!(item.data as Misskey.entities.ChatPollFinished).anonymous" :class="$style.choiceFooter">
 						<span>{{ i18n.ts._chat.voters }}:</span><MkAvatars :userIds="entry.votedUserIds ?? []"/>
 					</div>
 				</div>
@@ -84,7 +84,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 
 		<div :class="$style.footer">
-			<button v-if="item.type === 'message'" class="_textButton" style="color: currentColor;" @click="showMenu"><i class="ti ti-dots-circle-horizontal"></i></button>
+			<button v-if="item.type === 'message'" data-testid="chat-message-menu" class="_textButton" style="color: currentColor;" @click="showMenu"><i class="ti ti-dots-circle-horizontal"></i></button>
 			<MkTime :class="$style.time" :time="(item.data as { createdAt: string }).createdAt"/>
 			<MkA v-if="isSearchResult && 'toRoom' in item.data && (item.data as Misskey.entities.ChatMessage).toRoom != null" :to="`/chat/room/${(item.data as Misskey.entities.ChatMessage).toRoomId}`">{{ (item.data as Misskey.entities.ChatMessage).toRoom!.name }}</MkA>
 			<MkA v-if="isSearchResult && 'toUser' in item.data && (item.data as Misskey.entities.ChatMessage).toUser != null && isMe" :to="`/chat/user/${(item.data as Misskey.entities.ChatMessage).toUserId}`">@{{ (item.data as Misskey.entities.ChatMessage).toUser!.username }}</MkA>
@@ -98,7 +98,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:moveClass="prefer.s.animation ? $style.transition_reaction_move : ''"
 			tag="div" :class="$style.reactions"
 		>
-			<div v-for="record in (item.data as NormalizedChatMessage).reactions" :key="record.reaction + record.user.id" :class="[$style.reaction, record.user.id === $i.id ? $style.reactionMy : null]" @click="onReactionClick(record)">
+			<div v-for="record in (item.data as NormalizedChatMessage).reactions" :key="record.reaction + record.user.id" data-testid="chat-reaction" :class="[$style.reaction, record.user.id === $i.id ? $style.reactionMy : null]" @click="onReactionClick(record)">
 				<MkAvatar :user="record.user" :link="false" :class="$style.reactionAvatar"/>
 				<MkReactionIcon
 					:withTooltip="true"
@@ -153,7 +153,7 @@ const urls = computed(() => (props.item.type === 'message' && props.item.data.te
 
 const bubbleStyle = computed(() => {
 	return {
-		'--MI_USER-fukidashi' : props.membership?.bubbleColor || (isMe ? 'var(--MI_THEME-accent)' : 'var(--MI_THEME-panel)'),
+		'--MI_USER-fukidashi': props.membership?.bubbleColor || (isMe.value ? 'var(--MI_THEME-accent)' : 'var(--MI_THEME-panel)'),
 	};
 });
 
@@ -445,7 +445,6 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 	}
 }
 
-
 .pollChoice {
 	padding: 4px;
 	border: solid 1px var(--MI_THEME-divider);
@@ -514,6 +513,5 @@ function showMenu(ev: PointerEvent, contextmenu = false) {
 		}
 	}
 }
-
 
 </style>

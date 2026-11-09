@@ -183,7 +183,7 @@ export interface ChatEventTypes {
 		userId: MiUser['id'];
 		createdAt: string;
 	};
-	close: {};
+	close: Record<string, never>;
 	roomArchived: { archiverId?: MiUser['id'] };
 	pollScheduled: Packed<'ChatPollScheduled'>;
 	pollStarted: Packed<'ChatPollStarted'>;
@@ -286,7 +286,7 @@ export interface InternalEventTypes {
 	userKeypairUpdated: { userId: MiUser['id']; };
 }
 
-type EventTypesToEventPayload<T> = EventUnionFromDictionary<UndefinedAsNullAll<SerializedAll<T>>>;
+export type EventTypesToEventPayload<T> = EventUnionFromDictionary<UndefinedAsNullAll<SerializedAll<T>>>;
 
 // name/messages(spec) pairs dictionary
 export type GlobalEvents = {

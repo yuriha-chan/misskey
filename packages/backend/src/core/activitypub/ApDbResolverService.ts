@@ -191,7 +191,7 @@ export class ApDbResolverService implements OnApplicationShutdown {
 		}
 
 		// may throw StatusError
-		let user: MiRemoteUser; 
+		let user: MiRemoteUser;
 		try {
 			user = await this.apPersonService.resolvePerson(uri, undefined, true) as MiRemoteUser;
 			this.logger.debug(`getAuthUserFromApId: User resolved uri=${uri} userId=${user.id} keyId=${keyId}`);

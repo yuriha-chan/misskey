@@ -304,7 +304,7 @@ describe('ChatEntityService', () => {
 
 			const pollWithVotes = await chatPollsRepository.findOne({
 				where: { id: poll.id },
-				relations: ['votes'],
+				relations: { votes: true },
 			}) as MiChatPollWithVotes;
 
 			const result = await service.packPollFinished(pollWithVotes) as any;
@@ -330,7 +330,7 @@ describe('ChatEntityService', () => {
 
 			const pollWithVotes = await chatPollsRepository.findOne({
 				where: { id: poll.id },
-				relations: ['votes'],
+				relations: { votes: true },
 			}) as MiChatPollWithVotes;
 
 			const result = await service.packPollFinished(pollWithVotes) as any;
@@ -353,7 +353,7 @@ describe('ChatEntityService', () => {
 
 			const pollWithVotes = await chatPollsRepository.findOne({
 				where: { id: poll.id },
-				relations: ['votes'],
+				relations: { votes: true },
 			}) as MiChatPollWithVotes;
 
 			const result = await service.packPollFinished(pollWithVotes) as any;
@@ -373,7 +373,7 @@ describe('ChatEntityService', () => {
 
 			const pollWithVotes = await chatPollsRepository.findOne({
 				where: { id: poll.id },
-				relations: ['votes'],
+				relations: { votes: true },
 			}) as MiChatPollWithVotes;
 
 			const result = await service.packPollFinished(pollWithVotes) as any;

@@ -165,7 +165,7 @@ function processRevealable(item: any) {
 
 function processDeliver(item: any) {
 	if (item == null) return null;
-	const newItem = {...item};
+	const newItem = { ...item };
 	newItem.deliver = Object.fromEntries(item.deliver.map((d: any) => [d.userId, d.count]));
 	return newItem;
 }

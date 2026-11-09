@@ -1,10 +1,15 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-<MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="560" @closed="emit('closed')">
+<MkWindow ref="uiWindow" data-testid="chat-poll-editor" :initialWidth="400" :initialHeight="560" @closed="emit('closed')">
 	<template #header>{{ i18n.ts._chat.editPoll }}</template>
 	<div style="display: flex; flex-direction: column; min-height: 100%;">
 		<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px; flex-grow: 1;">
 			<div class="_gaps_m">
-				<MkInput v-model="title">
+				<MkInput v-model="title" data-testid="chat-poll-title">
 					<template #label>{{ i18n.ts._chat.pollTitle }}</template>
 				</MkInput>
 				<MkButton @click="voteForRoomMembers">
@@ -21,23 +26,25 @@
 					<div class="_gaps_s">
 						<div v-for="(choice, idx) in voteForUsers ? userChoices : textChoices" :key="idx" style="display: flex; gap: 6px; align-items: center;">
 							<template v-if="voteForUsers">
-								<MkUserCardMini :user="choice as Misskey.entities.UserLite" v-if="choice" :withChart="false"/>
+								<MkUserCardMini v-if="choice" :user="choice as Misskey.entities.UserLite" :withChart="false"/>
 								<MkButton @click="selectUser(idx)">{{ i18n.ts.selectUser }}</MkButton>
 							</template>
 							<template v-else>
-								<MkInput v-model="textChoices[idx]" />
+								<MkInput v-model="textChoices[idx]" data-testid="chat-poll-choice" />
 							</template>
-							<MkButton danger @click="removeChoice(voteForUsers, idx)" icon="ti ti-x" >{{ i18n.ts.remove }}</MkButton>
+							<MkButton danger icon="ti ti-x" @click="removeChoice(voteForUsers, idx)" >{{ i18n.ts.remove }}</MkButton>
 						</div>
-						<MkButton @click="addChoice(voteForUsers)" icon="ti ti-plus">{{ i18n.ts.add }}</MkButton>
+						<MkButton icon="ti ti-plus" @click="addChoice(voteForUsers)">{{ i18n.ts.add }}</MkButton>
 					</div>
 				</div>
 				<MkTimeDurationInput v-model="startsIn" :min="0" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
 					<template #label>{{ i18n.ts._chat.pollStartsIn }}</template>
 				</MkTimeDurationInput>
-				<MkTimeDurationInput v-model="duration" :min="10" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
-					<template #label>{{ i18n.ts._chat.pollDuration }}</template>
-				</MkTimeDurationInput>
+				<div data-testid="chat-poll-duration">
+					<MkTimeDurationInput v-model="duration" :min="10" :max="86400" :smallStep="10" :largeStep="60" :disabled="false">
+						<template #label>{{ i18n.ts._chat.pollDuration }}</template>
+					</MkTimeDurationInput>
+				</div>
 				<MkSwitch v-model="anonymous">
 					<template #label>{{ i18n.ts._chat.anonymousPoll }}</template>
 				</MkSwitch>
@@ -137,6 +144,7 @@ function addChoice(user: boolean) {
 		textChoices.value.push('');
 	}
 }
+
 function removeChoice(user: boolean, idx: number) {
 	if (user) {
 		userChoices.value.splice(idx, 1);
@@ -144,6 +152,7 @@ function removeChoice(user: boolean, idx: number) {
 		textChoices.value.splice(idx, 1);
 	}
 }
+
 async function done() {
 	emit('done', {
 		created: {

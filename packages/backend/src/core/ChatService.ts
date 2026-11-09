@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { DataSource, Brackets, IsNull, Not } from 'typeorm';
+import { DataSource, Brackets, In, IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
@@ -18,7 +18,7 @@ import { ChatEntityService, type MiChatPollWithVotes } from '@/core/entities/Cha
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { PushNotificationService } from '@/core/PushNotificationService.js';
 import { bindThis } from '@/decorators.js';
-import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, ChatSecretsRepository, ChatPollsRepository, ChatCardsRepository, MiChatMessage, MiChatRoom, MiChatPoll, MiChatPollVote, MiChatSecret, MiChatCard, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
+import type { ChatApprovalsRepository, ChatMessagesRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChatRoomsRepository, ChatSecretsRepository, ChatPollsRepository, ChatPollVotesRepository, ChatCardsRepository, MiChatMessage, MiChatRoom, MiChatPoll, MiChatPollVote, MiChatSecret, MiChatCard, MiChatRoomMembership, MiDriveFile, MiUser, MutingsRepository, UsersRepository } from '@/models/_.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -31,6 +31,8 @@ import { emojiRegex } from '@/misc/emoji-regex.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { shuffle } from '@/misc/shuffle.js';
+
+export class ChatMessageAccessError extends Error {}
 
 const MAX_REACTIONS_PER_MESSAGE = 100;
 const isCustomEmojiRegexp = /^:([\w+-]+)(?:@\.)?:$/;
@@ -78,6 +80,9 @@ export class ChatService {
 
 		@Inject(DI.chatPollsRepository)
 		private chatPollsRepository: ChatPollsRepository,
+
+		@Inject(DI.chatPollVotesRepository)
+		private chatPollVotesRepository: ChatPollVotesRepository,
 
 		@Inject(DI.chatCardsRepository)
 		private chatCardsRepository: ChatCardsRepository,
@@ -240,7 +245,11 @@ export class ChatService {
 		// 3秒経っても既読にならなかったらイベント発行
 		if (this.userEntityService.isLocalUser(toUser)) {
 			setTimeout(async () => {
-				const marker = await this.redisClient.get(`newUserChatMessageExists:${toUser.id}:${fromUser.id}`);
+				const marker = await this.redisClient.get(`newUserChatMessageExists:${toUser.id}:${fromUser.id}`).catch((error: unknown) => {
+					// Redis may close before this delayed notification runs during shutdown.
+					if (error instanceof Error && error.message === 'Connection is closed.') return null;
+					throw error;
+				});
 
 				if (marker == null) return; // 既読
 
@@ -255,19 +264,27 @@ export class ChatService {
 
 	@bindThis
 	public async listSecret(roomId: MiChatRoom['id'], me?: MiUser) {
-		const secrets = await this.chatSecretsRepository.find({ where: { roomId, revealedId: IsNull() }});
+		const secrets = await this.chatSecretsRepository.find({ where: { roomId, revealedId: IsNull() } });
 		return secrets.map(s => ({ id: s.id, title: s.title, roomId: s.roomId, fromUserId: s.userId, revealsAt: s.revealsAt?.toISOString() ?? null, createdAt: this.idService.parse(s.id).date.toISOString() }));
 	}
 
 	@bindThis
-	public async listPoll(roomId: MiChatPoll['id'], me?: MiUser) {
+	public async listPoll(roomId: MiChatRoom['id'], me: MiUser) {
 		const [scheduledPolls, startedPolls] = await Promise.all([
 			this.chatPollsRepository.findBy({ roomId, startedId: IsNull() })
 				.then((p) => this.chatEntityService.packPollsScheduled(p)), 
 			this.chatPollsRepository.findBy({ roomId, startedId: Not(IsNull()), finishedId: IsNull() })
 				.then((p) => this.chatEntityService.packPollsStarted(p)),
 		]);
-		return { scheduledPolls, startedPolls };
+		const votes = startedPolls.length === 0 ? [] : await this.chatPollVotesRepository.find({
+			where: { pollId: In(startedPolls.map(poll => poll.id)), userId: me.id },
+			select: { pollId: true },
+		});
+		const votedPollIds = new Set(votes.map(vote => vote.pollId));
+		return {
+			scheduledPolls,
+			startedPolls: startedPolls.map(poll => ({ ...poll, voted: votedPollIds.has(poll.id) })),
+		};
 	}
 
 	@bindThis
@@ -367,7 +384,7 @@ export class ChatService {
 
 	@bindThis
 	public async finishPoll(pollId: MiChatPoll['id'], user?: { id: MiUser["id"] }) {
-		const poll = await this.chatPollsRepository.findOneOrFail({ where: { id: pollId }, relations: ['votes']}) as MiChatPollWithVotes;
+		const poll = await this.chatPollsRepository.findOneOrFail({ where: { id: pollId }, relations: { votes: true } }) as MiChatPollWithVotes;
 		if (user) {
 			if (poll.ownerId !== user.id) {
 				throw new Error("not permitted to close poll");
@@ -415,7 +432,7 @@ export class ChatService {
 		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: toRoom.id, hasLeft: false })).map(m => ({
 			userId: m.userId,
 			isMuted: m.isMuted,
-		}))
+		}));
 
 		if (!memberships.some(member => member.userId === fromUser.id)) {
 			throw new IdentifiableError('d62635ea-26b0-43e5-84af-fbf6c6dcd08a', 'you are not a member of the room');
@@ -524,7 +541,7 @@ export class ChatService {
 				throw new Error('not enough cards');
 			}
 
-			const cardsPerUser: { [key: MiUser['id']]: string[] }  = {};
+			const cardsPerUser: { [key: MiUser['id']]: string[] } = {};
 			const shuffledCards = shuffle(deck);
 			destinations.forEach(dest => {
             const count = deliver[dest];
@@ -562,7 +579,7 @@ export class ChatService {
 
 		// 3秒経っても既読にならなかったらイベント発行
 		setTimeout(async () => {
-			if (inserted == null) { return }
+			if (inserted == null) { return; }
 			const redisPipeline = this.redisClient.pipeline();
 			for (const membership of membershipsOtherThanMe) {
 				redisPipeline.get(`newRoomChatMessageExists:${membership.userId}:${toRoom.id}`);
@@ -687,8 +704,6 @@ export class ChatService {
 
 		return messages;
 	}
-
-
 	private mergeSorted<T>(
 		arrays: T[][],
 		ascending: boolean,
@@ -831,7 +846,7 @@ export class ChatService {
 			packedCardsRevealed.map(x => ({ type: 'cardRevealed', data: x })),
 		];
 	
-		return this.mergeSorted(events, ascending, x => Date.parse(x.data.createdAt))
+		return this.mergeSorted(events, ascending, x => Date.parse(x.data.createdAt));
 	}
 
 	@bindThis
@@ -877,7 +892,7 @@ export class ChatService {
 
 	@bindThis
 	public async roomHistory(meId: MiUser['id'], limit: number): Promise<MiChatMessage[]> {
-		const roomIds = await this.chatRoomMembershipsRepository.findBy({ userId: meId, hasLeft: false }).then(xs => xs.map(x => x.roomId))
+		const roomIds = await this.chatRoomMembershipsRepository.findBy({ userId: meId, hasLeft: false }).then(xs => xs.map(x => x.roomId));
 
 		if (roomIds.length === 0) {
 			return [];
@@ -999,6 +1014,10 @@ export class ChatService {
 
 	@bindThis
 	public async hasPermissionToViewRoomInfo(meId: MiUser['id'], room: MiChatRoom) {
+		if (room.isPublic) {
+			return true;
+		}
+
 		if (room.ownerId === meId) {
 			return true;
 		}
@@ -1044,7 +1063,7 @@ export class ChatService {
 	public async deleteRoom(room: MiChatRoom, deleter?: MiUser) {
 		const memberships = (await this.chatRoomMembershipsRepository.findBy({ roomId: room.id })).map(m => ({
 			userId: m.userId,
-		}))
+		}));
 
 		// 未読フラグ削除
 		const redisPipeline = this.redisClient.pipeline();
@@ -1092,7 +1111,10 @@ export class ChatService {
 
 	@bindThis
 	public async findRoomById(roomId: MiChatRoom['id'], includeArchived: boolean = true) {
-		return this.chatRoomsRepository.findOne({ where: { id: roomId, isArchived: includeArchived ? undefined : false  }, relations: ['owner'] });
+		return this.chatRoomsRepository.findOne({
+			where: { id: roomId, isArchived: includeArchived ? undefined : false },
+			relations: { owner: true },
+		});
 	}
 
 	@bindThis
@@ -1183,7 +1205,7 @@ export class ChatService {
 		}
 		const invitation = await this.chatRoomInvitationsRepository.findOneBy({ roomId, userId });
 
-		if (!room.isPublic && !invitation && room.ownerId != userId) {
+		if (!room.isPublic && !invitation && room.ownerId !== userId) {
 			throw new Error('cannot join to private room without invitation');
 		}
 		const blocked = await this.userBlockingService.checkBlocked(room.ownerId, userId);
@@ -1378,33 +1400,35 @@ export class ChatService {
 			}
 		}
 
-		const message = await this.chatMessagesRepository.findOneByOrFail({ id: messageId });
+		const message = await this.chatMessagesRepository.findOneBy({ id: messageId });
+		if (message == null) throw new ChatMessageAccessError('no such message');
 
 		if (message.fromUserId === userId) {
-			throw new Error('cannot react to own message');
+			throw new ChatMessageAccessError('cannot react to own message');
 		}
 
 		if (message.toRoomId === null && message.toUserId !== userId) {
-			throw new Error('cannot react to others message');
+			throw new ChatMessageAccessError('cannot react to others message');
+		}
+
+		const room = message.toRoomId ? await this.chatRoomsRepository.findOneByOrFail({ id: message.toRoomId }) : null;
+
+		if (room) {
+			if (!(await this.isRoomMember(room, userId))) {
+				throw new ChatMessageAccessError('cannot react to others message');
+			}
 		}
 
 		if (message.reactions.length >= MAX_REACTIONS_PER_MESSAGE) {
 			throw new Error('too many reactions');
 		}
 
-		const room = message.toRoomId ? await this.chatRoomsRepository.findOneByOrFail({ id: message.toRoomId }) : null;
-
-		if (room) {
-			if (!await this.isRoomMember(room, userId)) {
-				throw new Error('cannot react to others message');
-			}
-		}
-
 		await this.chatMessagesRepository.createQueryBuilder().update()
 			.set({
-				reactions: () => `array_append("reactions", '${userId}/${reaction}')`,
+				reactions: () => `array_append("reactions", :pair)`,
 			})
 			.where('id = :id', { id: message.id })
+			.setParameter('pair', `${userId}/${reaction}`)
 			.execute();
 
 		if (room) {
@@ -1438,17 +1462,25 @@ export class ChatService {
 			reaction = `:${name}:`;
 		}
 
-		// NOTE: 自分のリアクションを(あれば)削除するだけなので諸々の権限チェックは必要なし
-
-		const message = await this.chatMessagesRepository.findOneByOrFail({ id: messageId });
+		const message = await this.chatMessagesRepository.findOneBy({ id: messageId });
+		if (message == null) throw new ChatMessageAccessError('no such message');
 
 		const room = message.toRoomId ? await this.chatRoomsRepository.findOneByOrFail({ id: message.toRoomId }) : null;
 
+		if (room) {
+			if (!(await this.isRoomMember(room, userId))) {
+				throw new ChatMessageAccessError('cannot unreact to others message');
+			}
+		} else if (message.fromUserId !== userId && message.toUserId !== userId) {
+			throw new ChatMessageAccessError('cannot unreact to others message');
+		}
+
 		await this.chatMessagesRepository.createQueryBuilder().update()
 			.set({
-				reactions: () => `array_remove("reactions", '${userId}/${reaction}')`,
+				reactions: () => `array_remove("reactions", :pair)`,
 			})
 			.where('id = :id', { id: message.id })
+			.setParameter('pair', `${userId}/${reaction}`)
 			.execute();
 
 		// TODO: 実際に削除が行われたときのみイベントを発行する
@@ -1460,12 +1492,15 @@ export class ChatService {
 				reaction,
 			});
 		} else {
+			const user = await this.userEntityService.pack(userId);
 			this.globalEventService.publishChatUserStream(message.fromUserId, message.toUserId!, 'unreact', {
 				messageId: message.id,
+				user,
 				reaction,
 			});
 			this.globalEventService.publishChatUserStream(message.toUserId!, message.fromUserId, 'unreact', {
 				messageId: message.id,
+				user,
 				reaction,
 			});
 		}

@@ -69,6 +69,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					v-for="(f, i) in foldersPaginator.items.value"
 					:key="f.id"
 					v-anim="i"
+					:data-scroll-anchor="f.id"
 					:folder="f"
 					:selectMode="select === 'folder'"
 					:isSelected="selectedFolders.some(x => x.id === f.id)"
@@ -80,13 +81,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 					@dragend="isDragSource = false"
 				/>
 			</div>
-			<MkButton v-if="foldersPaginator.canFetchOlder.value" primary rounded @click="foldersPaginator.fetchOlder()">{{ i18n.ts.loadMore }}</MkButton>
+			<MkButton v-if="foldersPaginator.canFetchOlder.value" :class="$style.loadMore" primary rounded @click="foldersPaginator.fetchOlder()">{{ i18n.ts.loadMore }}</MkButton>
 
 			<div v-if="!props.type" :class="$style.filterButtons">
-				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.image }]" @click="filter = { ...filter, image: !filter.image }"><i class="ti ti-photo"/>{{i18n.ts.image}}</button>
-				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.video }]" @click="filter = { ...filter, video: !filter.video }"><i class="ti ti-video"/>{{i18n.ts.video}}</button>
-				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.audio }]" @click="filter = { ...filter, audio: !filter.audio }"><i class="ti ti-music"/>{{i18n.ts.sounds}}</button>
-				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.other }]" @click="filter = { ...filter, other: !filter.other }"><i class="ti ti-file"/>{{i18n.ts.other}}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.image }]" @click="filter = { ...filter, image: !filter.image }"><i class="ti ti-photo"></i>{{ i18n.ts.image }}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.video }]" @click="filter = { ...filter, video: !filter.video }"><i class="ti ti-video"></i>{{ i18n.ts.video }}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.audio }]" @click="filter = { ...filter, audio: !filter.audio }"><i class="ti ti-music"></i>{{ i18n.ts.sounds }}</button>
+				<button class="_button" :class="[$style.filterButton, { [$style.active]: filter.other }]" @click="filter = { ...filter, other: !filter.other }"><i class="ti ti-file"></i>{{ i18n.ts.other }}</button>
 			</div>
 			<template v-if="shouldBeGroupedByDate">
 				<MkStickyContainer v-for="(item, i) in filesTimeline" :key="`${item.date.getFullYear()}/${item.date.getMonth() + 1}`">
@@ -107,6 +108,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					>
 						<XFile
 							v-for="file in item.items" :key="file.id"
+							:data-scroll-anchor="file.id"
 							:file="file"
 							:folder="folder"
 							:isSelected="selectedFiles.some(x => x.id === file.id)"
@@ -129,6 +131,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			>
 				<XFile
 					v-for="file in filesPaginator.items.value" :key="file.id"
+					:data-scroll-anchor="file.id"
 					:file="file"
 					:folder="folder"
 					:isSelected="selectedFiles.some(x => x.id === file.id)"
@@ -257,9 +260,9 @@ const filesPaginator = markRaw(new Paginator('drive/files', {
 		}
 
 		const MEDIA_TYPES = {
-			image: "image/*",
-			video: "video/*",
-			audio: "audio/*",
+			image: 'image/*',
+			video: 'video/*',
+			audio: 'audio/*',
 		};
 
 		let types: string[] | null = null;
@@ -314,7 +317,7 @@ watch(sortModeSelect, () => {
 
 watch(filter, () => initialize({ folders: false, files: true }));
 
-async function initialize(opts = { folders: true, files: true}) {
+async function initialize(opts = { folders: true, files: true }) {
 	fetching.value = true;
 	opts.folders && await foldersPaginator.reload();
 	filesPaginator.initialDirection = sortModeSelect.value === '-createdAt' ? 'newer' : 'older';

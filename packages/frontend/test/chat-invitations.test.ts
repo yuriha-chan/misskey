@@ -12,14 +12,33 @@ const $i = reactive({
 	policies: { chatAvailability: 'available' },
 });
 
-const apiCalls: Array<[string, any]> = [];
-const apiMock = vi.fn(async (endpoint: string, params: any) => {
+type MockApiParams = Record<string, unknown>;
+type InvitationFixture = {
+	id: string;
+	createdAt: string;
+	room: {
+		id: string;
+		name: string;
+		description: string;
+		owner: { id: string; username?: string; name?: string; host?: string | null };
+		ownerId: string;
+	};
+};
+type MockApiResponse = InvitationFixture[] | { id: string } | Record<string, never> | null;
+
+function getRoomId(params: MockApiParams): string {
+	if (typeof params.roomId !== 'string') throw new Error('Expected roomId in chat room request');
+	return params.roomId;
+}
+
+const apiCalls: Array<[string, MockApiParams]> = [];
+const apiMock = vi.fn(async (endpoint: string, params: MockApiParams): Promise<MockApiResponse> => {
 	apiCalls.push([endpoint, params]);
 	if (endpoint === 'chat/rooms/invitations/inbox') {
 		return [];
 	}
 	if (endpoint === 'chat/rooms/join') {
-		return { id: params.roomId };
+		return { id: getRoomId(params) };
 	}
 	if (endpoint === 'chat/rooms/invitations/ignore') {
 		return {};
@@ -167,7 +186,7 @@ describe('home.invitations', () => {
 	});
 
 	test('renders invitation list', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			apiCalls.push([endpoint, _params]);
 			if (endpoint === 'chat/rooms/invitations/inbox') {
 				return [{
@@ -192,7 +211,7 @@ describe('home.invitations', () => {
 	});
 
 	test('invitation shows room owner', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			apiCalls.push([endpoint, _params]);
 			if (endpoint === 'chat/rooms/invitations/inbox') {
 				return [{
@@ -216,7 +235,7 @@ describe('home.invitations', () => {
 	});
 
 	test('join button calls join API and navigates', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			apiCalls.push([endpoint, _params]);
 			if (endpoint === 'chat/rooms/invitations/inbox') {
 				return [{
@@ -255,7 +274,7 @@ describe('home.invitations', () => {
 	});
 
 	test('ignore button removes invitation from list', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			apiCalls.push([endpoint, _params]);
 			if (endpoint === 'chat/rooms/invitations/inbox') {
 				return [{
@@ -294,7 +313,7 @@ describe('home.invitations', () => {
 	});
 
 	test('shows noDescription when description is empty', async () => {
-		apiMock.mockImplementation(async (endpoint: string, _params: any) => {
+		apiMock.mockImplementation(async (endpoint: string, _params: MockApiParams): Promise<MockApiResponse> => {
 			apiCalls.push([endpoint, _params]);
 			if (endpoint === 'chat/rooms/invitations/inbox') {
 				return [{

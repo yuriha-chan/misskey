@@ -1,24 +1,29 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 	<div :class="$style.label"><slot name="label"></slot></div>
 	<div :class="$style.container">
-		<MkButton :class="$style.button" @click="decrement(props.largeStep)"><i class="ti ti-chevrons-left" /></MkButton>
-		<MkButton :class="$style.button" @click="decrement(props.smallStep)"><i class="ti ti-chevron-left" /></MkButton>
+		<MkButton :class="$style.button" @click="decrement(props.largeStep)"><i class="ti ti-chevrons-left" ></i></MkButton>
+		<MkButton :class="$style.button" @click="decrement(props.smallStep)"><i class="ti ti-chevron-left" ></i></MkButton>
 
-		<MkInput v-if="props.days" :class="$style.input" v-model.number="days" :disabled="props.disabled" type="number" :min="0" @change="onChange">
+		<MkInput v-if="props.days" v-model.number="days" :class="$style.input" :disabled="props.disabled" type="number" :min="0" @change="onChange">
 			<template #suffix>{{ i18n.ts._time.day }}</template>
 		</MkInput>
-		<MkInput v-if="props.hours" :class="$style.input" v-model.number="hours" :disabled="props.disabled" type="number" :min="0" @change="onChange">
+		<MkInput v-if="props.hours" v-model.number="hours" :class="$style.input" :disabled="props.disabled" type="number" :min="0" @change="onChange">
 			<template #suffix>{{ i18n.ts._time.hour }}</template>
 		</MkInput>
-		<MkInput v-if="props.minutes" :class="$style.input" v-model.number="minutes" :disabled="props.disabled" type="number" :min="0" @change="onChange">
+		<MkInput v-if="props.minutes" v-model.number="minutes" :class="$style.input" :disabled="props.disabled" type="number" :min="0" @change="onChange">
 			<template #suffix>{{ i18n.ts._time.minute }}</template>
 		</MkInput>
-		<MkInput v-if="props.seconds" :class="$style.input" v-model.number="seconds" :disabled="props.disabled" type="number" :min="0" @change="onChange">
+		<MkInput v-if="props.seconds" v-model.number="seconds" :class="$style.input" :disabled="props.disabled" type="number" :min="0" @change="onChange">
 			<template #suffix>{{ i18n.ts._time.second }}</template>
 		</MkInput>
 
-		<MkButton :class="$style.button" @click="increment(props.smallStep)"><i class="ti ti-chevron-right" /></MkButton>
-		<MkButton :class="$style.button" @click="increment(props.largeStep)"><i class="ti ti-chevrons-right" /></MkButton>
+		<MkButton :class="$style.button" @click="increment(props.smallStep)"><i class="ti ti-chevron-right" ></i></MkButton>
+		<MkButton :class="$style.button" @click="increment(props.largeStep)"><i class="ti ti-chevrons-right" ></i></MkButton>
 	</div>
 </template>
 
@@ -88,7 +93,7 @@ const minutes = ref(0);
 const seconds = ref(0);
 let manualInput = false;
 
-setValue(props.modelValue)
+setValue(props.modelValue);
 
 watch(() => props.modelValue, v => {
 	if (!manualInput) {
@@ -126,7 +131,7 @@ function decrement(step: number) {
 
 function increment(step: number) {
 	let total = parse();
-	total = (Math.floor(total/step) + 1) * step ;
+	total = (Math.floor(total / step) + 1) * step;
 	total = clamp(total);
 	emit('update:modelValue', total);
 }

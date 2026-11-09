@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { PrimaryColumn, Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
@@ -28,7 +33,7 @@ export class MiChatCard {
 	@Column("varchar")
 	public cardKind: string;
 
-	@Column({...id(), 
+	@Column({ ...id(), 
 		nullable: true,
 	})
 	public revealedId: string | null;

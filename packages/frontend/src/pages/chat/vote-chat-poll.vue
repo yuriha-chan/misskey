@@ -1,5 +1,10 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-	<MkWindow ref="uiWindow" :initialWidth="440" :initialHeight="560" @closed="emit('closed')">
+	<MkWindow ref="uiWindow" data-testid="chat-poll-vote-dialog" :initialWidth="440" :initialHeight="560" @closed="emit('closed')">
 		<template #header>{{ title }}</template>
 
 		<div style="display:flex; flex-direction:column; min-height:100%;">
@@ -11,18 +16,18 @@
 						<div v-for="(item, idx) in items" :key="idx" :class="$style.itemOuter" role="listitem">
 							<input
 								:id="`option_${idx}`"
+								v-model="selectedId"
 								class="sr-only"
 								:class="$style.itemRadio"
-								v-model="selectedId"
 								type="radio"
 								name="customItem"
 								:value="idx"
 								aria-labelledby="`label_${idx}`"
 							/>
-							<label :for="`option_${idx}`" :class="$style.itemRoot">
+							<label :for="`option_${idx}`" data-testid="chat-poll-option" :class="$style.itemRoot">
 								<MkUserCardMini v-if="props.voteForUsers && item" :user="item as Misskey.entities.UserLite" :withChart="false"/>
 								<div v-else-if="props.voteForUsers">(deleted user)</div>
-								<div v-else :class="$style.itemCaption" :id="`label_${idx}`">
+								<div v-else :id="`label_${idx}`" :class="$style.itemCaption">
 									<div :class="$style.itemName">{{ item }}</div>
 								</div>
 							</label>
@@ -174,4 +179,3 @@ function done() {
 	border: 0 !important;
 }
 </style>
-

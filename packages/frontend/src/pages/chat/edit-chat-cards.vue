@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="560" @closed="emit('closed')">
 	<template #header>{{ i18n.ts._chat.editCards }}</template>
@@ -13,13 +18,13 @@
 					<template #header>{{ i18n.ts._chat.cardsList }}</template>
 					<div class="_gaps_s">
 						<div v-for="(card, idx) in cardsList" :key="idx" :class="$style.cardEntry">
-							<MkInput :class="$style.cardName" :placeholder="i18n.ts._chat.cardPlaceHolder" v-model="card.name"/>
-							<MkInput :class="$style.cardCount" v-model="card.count" type="number" :min="1">
+							<MkInput v-model="card.name" :class="$style.cardName" :placeholder="i18n.ts._chat.cardPlaceHolder"/>
+							<MkInput v-model="card.count" :class="$style.cardCount" type="number" :min="1">
 								<template #suffix>{{ i18n.ts._chat.cardSuffix }}</template>
 							</MkInput>
-							<MkButton danger @click="removeCard(idx)"><i class="ti ti-x"/></MkButton>
+							<MkButton danger @click="removeCard(idx)"><i class="ti ti-x"></i></MkButton>
 						</div>
-						<MkButton @click="addCard" icon="ti ti-plus">{{ i18n.ts.add }}</MkButton>
+						<MkButton icon="ti ti-plus" @click="addCard">{{ i18n.ts.add }}</MkButton>
 					</div>
 				</MkFoldableSection>
 				<MkFoldableSection>
@@ -34,9 +39,9 @@
 						</div>
 						<MkFoldableSection>
 							<template #header>{{ i18n.ts._chat.cardCountsByUser }}</template>
-							<div :class="$style.deliverEntry" v-for="d in deliver" :key="d.user.id" style="display: flex; gap: 6px; align-items: center;">
+							<div v-for="d in deliver" :key="d.user.id" :class="$style.deliverEntry" style="display: flex; gap: 6px; align-items: center;">
 								<MkUserCardMini :class="$style.deliverTo" :user="d.user" :withChart="false"/>
-								<MkInput :class="$style.deliverCount" v-model="d.count" type="number" :min="0">
+								<MkInput v-model="d.count" :class="$style.deliverCount" type="number" :min="0">
 									<template #suffix>{{ i18n.ts._chat.cardSuffix }}</template>
 								</MkInput>
 							</div>
@@ -61,10 +66,10 @@ import MkWindow from '@/components/MkWindow.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
-import MkFoldableSection from '@/components/MkFoldableSection.vue'
+import MkFoldableSection from '@/components/MkFoldableSection.vue';
 
 const title = ref('');
-const cardsList = ref<{ name: string, count: number }[]>([{ name: '', count: 1}]);
+const cardsList = ref<{ name: string, count: number }[]>([{ name: '', count: 1 }]);
 const deliver = ref<{ user: Misskey.entities.UserLite; count: number }[]>([]);
 const allCount = ref(1);
 
@@ -85,7 +90,7 @@ function updateToMembers() {
 	const updated = new Set(Object.keys(props.members).filter(uid => !props.members[uid].hasLeft));
 	const left = known.difference(updated);
 	const joined = updated.difference(known);
-	deliver.value = [...deliver.value.filter(d => !left.has(d.user.id)), ...Array.from(joined).map(uid => ({ user: props.members[uid].user as Misskey.entities.UserLite, count: 1}))];
+	deliver.value = [...deliver.value.filter(d => !left.has(d.user.id)), ...Array.from(joined).map(uid => ({ user: props.members[uid].user as Misskey.entities.UserLite, count: 1 }))];
 }
 
 onMounted(() => {
@@ -94,7 +99,7 @@ onMounted(() => {
 		cardsList.value = props.cards.cards.map(name => ({ name, count: 1 }));
 		deliver.value = props.cards.deliver.map(d => ({ ...d }));
 	}
-	updateToMembers()
+	updateToMembers();
 });
 
 watch(() => ({ ...props.members }), updateToMembers);
@@ -108,7 +113,7 @@ function removeCard(idx: number) {
 }
 
 function applyToAll() {
-	deliver.value = deliver.value.map(d => ({ ...d, count: allCount.value}));
+	deliver.value = deliver.value.map(d => ({ ...d, count: allCount.value }));
 }
 
 async function done() {

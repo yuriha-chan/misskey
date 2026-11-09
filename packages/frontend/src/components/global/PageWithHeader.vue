@@ -15,7 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<slot></slot>
 			</MkSwiper>
 			<slot v-else></slot>
-			<div :class="$style.spacer"/>
+			<div :class="$style.spacer"></div>
 		</div>
 		<template #footer>
 			<div :class="$style.footer"><slot name="footer"></slot>
@@ -75,11 +75,11 @@ defineExpose({
 });
 
 onMounted(() => {
-  const onContentScroll = inject<(e: Event) => void>('onContentScroll');
-  if (onContentScroll && rootEl.value) {
-    rootEl.value.addEventListener('scroll', onContentScroll, { passive: true });
-  }
-})
+	const onContentScroll = inject<(e: Event) => void>('onContentScroll');
+	if (onContentScroll && rootEl.value) {
+		rootEl.value.addEventListener('scroll', onContentScroll, { passive: true });
+	}
+});
 
 </script>
 

@@ -131,9 +131,9 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 				switch (token.props.name) {
 					case 'ruby': {
 						let rb, rt, tokens;
-						token.children.forEach((t) => { if (t.type == 'text') { t.props.text = t.props.text.trim(); } });
-						const children = token.children.filter((t) => t.type != 'text' || t.props.text != '');
-						if (children.length == 1 && children[0].type == 'text') {
+						token.children.forEach((t) => { if (t.type === 'text') { t.props.text = t.props.text.trim(); } });
+						const children = token.children.filter((t) => t.type !== 'text' || t.props.text !== '');
+						if (children.length === 1 && children[0].type === 'text') {
 							tokens = children[0].props.text.split(" ");
 							rb = [tokens[0]];
 							rt = [tokens.slice(1).join(' ')];
@@ -250,7 +250,9 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 						if (!useAnim) {
 							return genEl(token.children, scale);
 						}
-						return h(MkSparkle, {}, { default: () => genEl(token.children, scale) });
+						// スロット関数の中で genEl を呼ぶと MkSparkle が再描画されるたびに子の VNode が作り直される
+						const sparkleChildren = genEl(token.children, scale);
+						return h(MkSparkle, {}, { default: () => sparkleChildren });
 					}
 					case 'rotate': {
 						const degrees = safeParseFloat(token.props.args.deg) ?? 90;
@@ -301,23 +303,6 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 						style = `border: ${width}px ${b_style} ${color}; border-radius: ${radius}px;${token.props.args.noclip ? '' : ' overflow: clip;'}`;
 						break;
 					}
-					case 'ruby': {
-						if (token.children.length === 1) {
-							const child = token.children[0];
-							let text = child.type === 'text' ? child.props.text : '';
-							if (!disableNyaize && shouldNyaize) {
-								text = Misskey.nyaize(text);
-							}
-							return h('ruby', {}, [text.split(' ')[0], h('rt', text.split(' ')[1])]);
-						} else {
-							const rt = token.children.at(-1)!;
-							let text = rt.type === 'text' ? rt.props.text : '';
-							if (!disableNyaize && shouldNyaize) {
-								text = Misskey.nyaize(text);
-							}
-							return h('ruby', {}, [...genEl(token.children.slice(0, token.children.length - 1), scale), h('rt', text.trim())]);
-						}
-					}
 					case 'unixtime': {
 						const child = token.children[0];
 						const unixtime = parseInt(child.type === 'text' ? child.props.text : '');
@@ -336,12 +321,15 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 						]);
 					}
 					case 'clickable': {
-						return h('span', { onClick(ev: PointerEvent): void {
-							ev.stopPropagation();
-							ev.preventDefault();
-							const clickEv = typeof token.props.args.ev === 'string' ? token.props.args.ev : '';
-							emit('clickEv', clickEv);
-						} }, genEl(token.children, scale));
+						return h('span', {
+							style: 'user-select: none;',
+							onClick(ev: PointerEvent): void {
+								ev.stopPropagation();
+								ev.preventDefault();
+								const clickEv = typeof token.props.args.ev === 'string' ? token.props.args.ev : '';
+								emit('clickEv', clickEv);
+							},
+						}, genEl(token.children, scale));
 					}
 				}
 				if (style === undefined) {
@@ -375,12 +363,14 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 			}
 
 			case 'link': {
+				// スロット関数の中で genEl を呼ぶと再描画されるたびに子の VNode が作り直される
+				const linkChildren = genEl(token.children, scale, true);
 				return [h(MkLink, {
 					key: Math.random(),
 					url: token.props.url,
 					rel: 'nofollow noopener',
 					navigationBehavior: props.linkNavigationBehavior,
-				}, { default: () => genEl(token.children, scale, true) })];
+				}, { default: () => linkChildren })];
 			}
 
 			case 'mention': {
@@ -469,13 +459,13 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 			}
 
 			case 'mathInline': {
-				const ret = document.createElement('span');
+				const ret = window.document.createElement('span');
 				temml.render(token.props.formula, ret, {});
 				return [h('span', { innerHTML: ret.innerHTML })];
 			}
 
 			case 'mathBlock': {
-				const ret = document.createElement('div');
+				const ret = window.document.createElement('div');
 				temml.render(token.props.formula, ret, { displayMode: true });
 				return [h('div', { innerHTML: ret.innerHTML })];
 			}

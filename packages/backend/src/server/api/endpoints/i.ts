@@ -14,7 +14,7 @@ export const meta = {
 	tags: ['account'],
 
 	requireCredential: true,
-	kind: "read:account",
+	kind: 'read:account',
 
 	res: {
 		type: 'object',
@@ -57,7 +57,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				where: {
 					userId: user.id,
 				},
-				relations: ['user'],
+				relations: { user: true },
 			});
 
 			if (userProfile == null) {
@@ -71,11 +71,38 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userProfile.loggedInDates = [...userProfile.loggedInDates, today];
 			}
 
-			return await this.userEntityService.pack(userProfile.user!, userProfile.user!, {
+			const accountParents: { id: string; username: string }[] = [];
+			if (isSecure) {
+				const visited = new Set([userProfile.userId]);
+				let mainAccountId = userProfile.mainAccountId;
+
+				while (mainAccountId != null) {
+					if (visited.has(mainAccountId)) {
+						throw new Error(`Sub-account ancestry cycle detected for user ${userProfile.userId}`);
+					}
+					visited.add(mainAccountId);
+
+					const mainAccountProfile = await this.userProfilesRepository.findOne({
+						where: { userId: mainAccountId },
+						relations: { user: true },
+					});
+
+					if (mainAccountProfile?.user == null) {
+						throw new Error(`Sub-account ancestry is invalid for user ${userProfile.userId}`);
+					}
+
+					accountParents.push({ id: mainAccountProfile.user.id, username: mainAccountProfile.user.username });
+					mainAccountId = mainAccountProfile.mainAccountId;
+				}
+			}
+
+			const packed = await this.userEntityService.pack(userProfile.user!, userProfile.user!, {
 				schema: 'MeDetailed',
 				includeSecrets: isSecure,
 				userProfile,
 			});
+
+			return isSecure ? { ...packed, accountParents } : packed;
 		});
 	}
 }

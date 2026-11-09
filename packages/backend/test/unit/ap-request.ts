@@ -96,6 +96,88 @@ describe('ap-request get', () => {
 	});
 });
 
+describe.each(['00', '01'])('request-target signing at level %s', (level) => {
+	test('createSignedGet includes query string in request-target', async () => {
+		const keypair = await getKeyPair(level);
+		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
+		const url = 'https://example.com/users/alice?page=2';
+
+		const req = await createSignedGet({ level, key, url, additionalHeaders: { 'User-Agent': 'UA' } });
+
+		assert.ok(req.signingString.split('\n').includes('(request-target): get /users/alice?page=2'));
+
+		const parsed = parseRequestSignature({ ...req.request, url: '/users/alice?page=2' });
+		expect(await verifyDraftSignature(parsed.value as any, keypair.publicKey)).toBe(true);
+	});
+
+	test('createSignedPost includes query string in request-target', async () => {
+		const keypair = await getKeyPair(level);
+		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
+		const url = 'https://example.com/inbox?token=abc';
+		const body = JSON.stringify({ a: 1 });
+
+		const req = await createSignedPost({
+			level,
+			key,
+			url,
+			body,
+			additionalHeaders: { 'User-Agent': 'UA' },
+		});
+
+		assert.ok(req.signingString.split('\n').includes('(request-target): post /inbox?token=abc'));
+
+		const parsed = parseRequestSignature({ ...req.request, url: '/inbox?token=abc' });
+		expect(await verifyDraftSignature(parsed.value as any, keypair.publicKey)).toBe(true);
+	});
+
+	test('request-target omits hash and preserves empty query delimiter', async () => {
+		const keypair = await getKeyPair(level);
+		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
+
+		const withHash = await createSignedGet({
+			level,
+			key,
+			url: 'https://example.com/users/alice?page=2#ignored',
+			additionalHeaders: { 'User-Agent': 'UA' },
+		});
+		assert.ok(withHash.signingString.split('\n').includes('(request-target): get /users/alice?page=2'));
+
+		const emptyQueryWithHash = await createSignedGet({
+			level,
+			key,
+			url: 'https://example.com/outbox?#ignored',
+			additionalHeaders: { 'User-Agent': 'UA' },
+		});
+		assert.ok(emptyQueryWithHash.signingString.split('\n').includes('(request-target): get /outbox?'));
+
+		const emptyQuery = await createSignedGet({
+			level,
+			key,
+			url: 'https://example.com/outbox?',
+			additionalHeaders: { 'User-Agent': 'UA' },
+		});
+		assert.ok(emptyQuery.signingString.split('\n').includes('(request-target): get /outbox?'));
+
+		const withoutQuery = await createSignedGet({
+			level,
+			key,
+			url: 'https://example.com/outbox',
+			additionalHeaders: { 'User-Agent': 'UA' },
+		});
+		assert.ok(withoutQuery.signingString.split('\n').includes('(request-target): get /outbox'));
+
+		for (const [request, target] of [
+			[withHash.request, '/users/alice?page=2'],
+			[emptyQueryWithHash.request, '/outbox?'],
+			[emptyQuery.request, '/outbox?'],
+			[withoutQuery.request, '/outbox'],
+		] as const) {
+			const parsed = parseRequestSignature({ ...request, url: target });
+			expect(await verifyDraftSignature(parsed.value as any, keypair.publicKey)).toBe(true);
+		}
+	});
+});
+
 describe('assertActivityMatchesUrl', () => {
 	test('rejects non matching domain', () => {
 		assert.doesNotThrow(() => assertActivityMatchesUrl(
