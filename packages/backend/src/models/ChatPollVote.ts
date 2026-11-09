@@ -9,29 +9,25 @@ import { MiUser } from './User.js';
 import { MiChatPoll } from './ChatPoll.js';
 
 @Entity('chat_poll_vote')
-@Index(['userId', 'pollId', 'choice'], { unique: true })
+@Index('IDX_chat_poll_vote_pollId', ['pollId'])
+@Index('IDX_chat_poll_vote_user_poll_choice', ['pollId', 'choice', 'userId'], { unique: true })
 export class MiChatPollVote {
-	@PrimaryColumn(id())
+	@PrimaryColumn({
+		...id(),
+		primaryKeyConstraintName: 'PK_chat_poll_vote_id',
+	})
 	public id: string;
 
-	@Index()
 	@Column(id())
 	public userId: MiUser['id'];
 
-	@ManyToOne(type => MiUser, {
-		onDelete: 'CASCADE',
-	})
-	@JoinColumn()
-	public user: MiUser | null;
-
-	@Index()
 	@Column(id())
 	public pollId: MiChatPoll['id'];
 
 	@ManyToOne(() => MiChatPoll, (poll: MiChatPoll) => poll.votes, {
 		onDelete: 'CASCADE',
 	})
-	@JoinColumn({ name: 'pollId' })
+	@JoinColumn({ name: 'pollId', foreignKeyConstraintName: 'FK_chat_poll_vote_pollId' })
 	public poll: MiChatPoll;
 
 	@Column('integer')

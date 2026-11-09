@@ -57,7 +57,7 @@ export class MiChatRoom {
 	public capacity: number;
 	
 	@Column('integer', {
-		default: 3 * 3600 * 1000,
+		default: 3 * 3600 * 1000, nullable: true,
 	})
 	public expiration: number | null;
 
