@@ -65,9 +65,8 @@ export class MiAbuseUserReport {
 	})
 	public comment: string;
 
-	@Index()
+	@Index('IDX_ccfcebc9f2622a3ab608b47d9a')
 	@Column('varchar', {
-		length: 128,
 		default: 'abuseOther',
 	})
 	public reason: string;

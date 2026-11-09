@@ -22,32 +22,32 @@ export class MiAvatarDecoration {
 	public url: string;
 
 	@Column('varchar', {
-		length: 1024,
+		length: 1024, default: '',
 	})
 	public bgUrl: string;
 
 	@Column('varchar', {
-		length: 1024,
+		length: 1024, default: '',
 	})
 	public animation: string;
 
 	@Column('varchar', {
-		length: 1024,
+		length: 1024, default: '',
 	})
 	public imgAnimation: string;
 
 	@Column('varchar', {
-		length: 1024,
+		length: 1024, default: '',
 	})
 	public bgAnimation: string;
 
 	@Column('varchar', {
-		length: 256,
+		length: 256, default: '',
 	})
 	public mixBlendMode: string;
 
 	@Column('varchar', {
-		length: 256,
+		length: 256, default: '',
 	})
 	public bgMixBlendMode: string;
 

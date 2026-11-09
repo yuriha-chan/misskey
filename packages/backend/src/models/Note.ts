@@ -21,10 +21,12 @@ import type { MiDriveFile } from './DriveFile.js';
 // because it will always run CREATE INDEX in transaction based on decorators.
 // Not appending `{ concurrent: true }` to `@Index` will not cause any problem in production,
 
-@Index(['userId', 'id']) // Note: this index is ("userId", "id" DESC) in production, but not in test.
+// Production manages this index manually; synchronize is disabled to avoid creating a parallel one.
+@Index('IDX_a6f649630f55af3888e5a42919', { synchronize: false })
 @Entity('note')
 export class MiNote {
 	@PrimaryColumn(id())
+	@Index('IDX_a6f649630f55af3888e5a42919', { synchronize: false })
 	public id: string;
 
 	@Index()
@@ -77,6 +79,7 @@ export class MiNote {
 	})
 	public cw: string | null;
 
+	@Index('IDX_a6f649630f55af3888e5a42919', { synchronize: false })
 	@Column({
 		...id(),
 		comment: 'The ID of author.',
