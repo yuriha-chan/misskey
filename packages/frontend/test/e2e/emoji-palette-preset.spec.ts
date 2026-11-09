@@ -6,7 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures.js';
-import { api } from './shared.js';
+import { api, setupTestAdmin } from './shared.js';
 import { BASE_URL, closeUserSetupDialog, registerUser, signIn } from './utils.js';
 import type { RegisteredUser } from './utils.js';
 
@@ -75,7 +75,8 @@ test.describe('Recommended emoji palettes', () => {
 	let flaggedNote: { id: string; text: string };
 
 	test.beforeAll(async () => {
-		admin = await registerUser('admin', 'pass', true);
+		admin = await setupTestAdmin(BASE_URL, 'admin', 'pass');
+		await api(BASE_URL, 'i/registry/set', { i: admin.token, scope: ['client', 'base'], key: 'accountSetupWizard', value: 0 });
 		await api(BASE_URL, 'admin/update-meta', { i: admin.token, r18Filter: ['palette-r18-probe'] });
 		flaggedNote = (await api(BASE_URL, 'notes/create', { i: admin.token, text: 'palette-r18-probe' })).createdNote;
 		expect((await api(BASE_URL, 'notes/show', { i: admin.token, noteId: flaggedNote.id })).isR18).toBe(true);
