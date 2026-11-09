@@ -5,7 +5,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures.js';
-import { api, registerUser, signIn, locateMkSwitch } from './shared.js';
+import { api, registerUser, signIn, locateMkSwitch, setupTestAdmin } from './shared.js';
 import type { RegisteredUser } from './shared.js';
 
 const baseUrl = 'http://localhost:61812';
@@ -52,7 +52,7 @@ function noteArticle(page: Page, id: string, detailed = false) {
 
 test.describe('Filter DSL R18 visibility and consent', () => {
 	test.beforeAll(async () => {
-		admin = await registerUser(baseUrl, `${marker}admin`, 'test-password', true);
+		admin = await setupTestAdmin(baseUrl, `${marker}admin`, 'test-password');
 		author = await registerUser(baseUrl, marker, 'test-password');
 		await api(baseUrl, 'admin/update-meta', { i: admin.token, r18Filter: [`(and (text ${marker}) (not (cw safe)))`] });
 		flagged = (await api(baseUrl, 'notes/create', { i: author.token, text: `${marker} flagged` })).createdNote;

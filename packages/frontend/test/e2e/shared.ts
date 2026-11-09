@@ -51,6 +51,13 @@ export async function registerUser(
 	return result as RegisteredUser;
 }
 
+export async function setupTestAdmin(baseUrl: string, username: string, password: string): Promise<RegisteredUser> {
+	const token = process.env.MISSKEY_TEST_ADMIN_TOKEN;
+	if (!token) return registerUser(baseUrl, username, password, true);
+	const identity = await api(baseUrl, 'i', { i: token });
+	return { id: identity.id, token };
+}
+
 export function locateMkInput(page: Page, testId: string): Locator {
 	return page.locator(`[data-testid="${testId}"] input`);
 }
