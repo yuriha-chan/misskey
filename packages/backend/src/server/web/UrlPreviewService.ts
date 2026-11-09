@@ -114,7 +114,7 @@ export class UrlPreviewService implements OnApplicationShutdown {
 			summary.thumbnail = this.wrap(summary.thumbnail);
 
 			if (summary.sensitive !== true) {
-				summary.sensitive = this.utilityService.isKeyWordIncluded(summary.url, this.meta.urlPreviewSensitiveList);
+				summary.sensitive = this.utilityService.isKeyWordIncluded(this.meta.urlPreviewSensitiveList, summary.url, '', '', [], null);
 			}
 
 			// Cache 1day
