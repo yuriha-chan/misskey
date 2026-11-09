@@ -18,12 +18,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</button>
 
 	<button :class="$style.item" class="_button" @click="mainRouter.push('/my/notifications')">
-		<div :class="$style.itemInner">
+		<div :class="[$style.itemInner, $i?.hasUnreadNotification ? $style.hasNotification : null]">
 			<i :class="$style.itemIcon" class="ti ti-bell"></i>
-			<span v-if="$i?.hasUnreadNotification" :class="$style.itemIndicator" class="_blink">
-				<span class="_indicateCounter" :class="$style.itemIndicateValueIcon">{{ $i.unreadNotificationsCount > 99 ? '99+' : $i.unreadNotificationsCount }}</span>
-			</span>
 		</div>
+		<span v-if="$i?.hasUnreadNotification" :class="$style.itemIndicator" class="_blink">
+			<span class="_indicateCounter" :class="$style.itemIndicateValueIcon">{{ $i.unreadNotificationsCount > 99 ? '99+' : $i.unreadNotificationsCount }}</span>
+		</span>
 	</button>
 
 	<button :class="$style.item" class="_button" @click="widgetsShowing = true">
@@ -77,20 +77,23 @@ watch(rootEl, () => {
 
 <style lang="scss" module>
 .root {
-	position: relative;
-	z-index: 1;
-	padding-bottom: env(safe-area-inset-bottom, 0px);
+	position: fixed;
+	z-index: 1000;
+	bottom: 0;
+	left: 0;
+	padding: 4px 4px max(4px, env(safe-area-inset-bottom, 0px)) 4px;
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	grid-gap: 8px;
 	width: 100%;
 	box-sizing: border-box;
-	background: var(--MI_THEME-navBg);
-	color: var(--MI_THEME-navFg);
-	border-top: solid 0.5px var(--MI_THEME-divider);
+	background-color: var(--MI_THEME-header);
+	mask-image: linear-gradient(to top, rgba(0,0,0,1) 90%, rgba(0,0,0,0) 100%);
 }
 
 .item {
-	padding: 12px 0;
+	position: relative;
+	padding: 4px 0;
 
 	&:first-child {
 		padding-left: 12px;
@@ -104,6 +107,8 @@ watch(rootEl, () => {
 		.itemInner {
 			background: linear-gradient(90deg, var(--MI_THEME-buttonGradateA), var(--MI_THEME-buttonGradateB));
 			color: var(--MI_THEME-fgOnAccent);
+			mask-image: none;
+			backdrop-filter: none;
 
 			&:hover {
 				background: linear-gradient(90deg, hsl(from var(--MI_THEME-accent) h s calc(l + 5)), hsl(from var(--MI_THEME-accent) h s calc(l + 5)));
@@ -117,14 +122,18 @@ watch(rootEl, () => {
 }
 
 .itemInner {
-	position: relative;
 	padding: 0;
 	aspect-ratio: 1;
 	width: 100%;
-	max-width: 42px;
+	max-width: 60px;
 	margin: auto;
 	align-content: center;
 	border-radius: 100%;
+	mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0, 0, 0, 1) 33%, rgba(0,0,0,0.2) 66%, rgba(0,0,0,0) 100%);
+	background: radial-gradient(
+		circle at center,
+		rgba(from var(--MI-THEME-bg) r g b / 0.4) 0%, rgba(from var(--MI-THEME-bg) r g b / 0.3) 33%, rgba(from var(--MI-THEME-bg) r g b / 0.05) 66%,  rgba(from var(--MI-THEME-bg) r g b / 0) 100%);
+	backdrop-filter: blur(8px);
 
 	&:hover {
 		background: var(--MI_THEME-panelHighlight);
@@ -133,24 +142,31 @@ watch(rootEl, () => {
 	&:active {
 		background: var(--MI_THEME-panelHighlight);
 	}
+
+}
+
+.itemInner.hasNotification {
+	background: radial-gradient(
+		circle at center,
+		rgba(from var(--MI-THEME-indicator) r g b / 0.4) 0%, rgba(from var(--MI-THEME-indicator) r g b / 0.3) 33%, rgba(from var(--MI-THEME-indicator) r g b / 0.02) 66%,  rgba(from var(--MI-THEME-indicator) r g b / 0) 100%);
 }
 
 .itemIcon {
-	font-size: 15px;
+	font-size: 20px;
 }
 
 .itemIndicator {
 	position: absolute;
-	bottom: -4px;
-	left: 0;
-	right: 0;
+	top: 5px;
+	right: 6px;
+	z-index: 2;
 	color: var(--MI_THEME-indicator);
 	font-size: 10px;
 	pointer-events: none;
 
 	&:has(.itemIndicateValueIcon) {
 		animation: none;
-		font-size: 8px;
+		font-size: 10px;
 	}
 }
 </style>

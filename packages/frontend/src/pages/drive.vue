@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div ref="scrollContainer" class="_pageScrollable">
+<div ref="scrollContainer" class="_pageScrollable" :class="$style.root">
 	<MkDrive @cd="x => folder = x"/>
 </div>
 </template>
@@ -32,3 +32,11 @@ definePage(() => ({
 	hideHeader: true,
 }));
 </script>
+
+<style lang="scss" module>
+.root {
+	--MI-stickyBottom: var(--MI-minBottomSpacing, 0px);
+	padding-bottom: var(--MI-minBottomSpacing, 0px);
+	box-sizing: border-box;
+}
+</style>

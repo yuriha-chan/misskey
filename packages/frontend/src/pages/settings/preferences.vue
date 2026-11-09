@@ -496,6 +496,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkFeatureBanner>
 
 						<div class="_gaps_s">
+							<SearchMarker :keywords="['note', 'text', 'font', 'large']">
+								<MkPreferenceContainer k="largeNoteText">
+									<MkSwitch v-model="largeNoteText">
+										<template #label><SearchLabel>{{ i18n.ts.largeNoteText }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
+							<SearchMarker :keywords="['mobile', 'menu', 'footer', 'hide', 'scroll']">
+								<MkPreferenceContainer k="hideNavFooter">
+									<MkSwitch v-model="hideNavFooter">
+										<template #label><SearchLabel>{{ i18n.ts.hideNavFooter }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
 							<SearchMarker :keywords="['animation', 'motion', 'reduce']">
 								<MkPreferenceContainer k="animation">
 									<MkSwitch v-model="reduceAnimation">
@@ -946,6 +962,9 @@ const chatShowSenderName = prefer.model('chat.showSenderName');
 const chatSendOnEnter = prefer.model('chat.sendOnEnter');
 const useStickyIcons = prefer.model('useStickyIcons');
 const enableHighQualityImagePlaceholders = prefer.model('enableHighQualityImagePlaceholders');
+const reduceMargin = prefer.model('reduceMargin');
+const largeNoteText = prefer.model('largeNoteText');
+const hideNavFooter = prefer.model('hideNavFooter');
 const reduceAnimation = prefer.model('animation', v => !v, v => !v);
 const animatedMfm = prefer.model('animatedMfm');
 const disableShowingAnimatedImages = prefer.model('disableShowingAnimatedImages');
