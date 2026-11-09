@@ -56,7 +56,7 @@ export class MiChatPoll {
 
 	public startsAt: Date | null;
 
-	@Column({...id(), 
+	@Column({ ...id(),
 		nullable: true,
 	})
 	public startedId: MiChatMessage['id'] | null;
@@ -66,7 +66,7 @@ export class MiChatPoll {
 	})
 	public duration: number | null;
 
-	@Column({...id(), 
+	@Column({ ...id(),
 		nullable: true,
 	})
 	public finishedId: MiChatMessage['id'] | null;

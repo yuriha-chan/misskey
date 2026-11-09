@@ -36,7 +36,7 @@ export class MiChatCard {
 	@Column("varchar")
 	public cardKind: string;
 
-	@Column({...id(), 
+	@Column({ ...id(),
 		nullable: true,
 	})
 	public revealedId: string | null;

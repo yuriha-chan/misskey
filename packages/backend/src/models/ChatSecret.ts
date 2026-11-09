@@ -21,7 +21,7 @@ export class MiChatSecret {
 	public id: MiChatMessage['id'];
 
 	@Column(id())
-	public roomId: MiChatRoom['id']
+	public roomId: MiChatRoom['id'];
 
 	@ManyToOne(() => MiChatRoom, {
 		onDelete: 'CASCADE',
@@ -43,7 +43,7 @@ export class MiChatSecret {
 	})
 	public revealsAt: Date | null;
 
-	@Column({...id(), 
+	@Column({ ...id(),
 		nullable: true,
 	})
 	public revealedId: MiChatMessage['id'] | null;
