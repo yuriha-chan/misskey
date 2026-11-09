@@ -6,6 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <MkModalWindow
 	ref="dialogEl"
+	data-testid="user-select-dialog"
 	:withOkButton="true"
 	:okButtonDisabled="selected == null"
 	@click="cancel()"

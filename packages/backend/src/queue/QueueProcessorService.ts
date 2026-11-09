@@ -48,6 +48,9 @@ import { BakeBufferedReactionsProcessorService } from './processors/BakeBuffered
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
+import { CloseExpiredChatRoomProcessorService } from './processors/CloseExpiredChatRoomProcessorService.js';
+import { RevealChatSecretProcessorService } from './processors/RevealChatSecretProcessorService.js';
+import { EndChatPollProcessorService } from './processors/EndChatPollProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
 
@@ -89,6 +92,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 	private relationshipQueueWorker: Bull.Worker;
 	private objectStorageQueueWorker: Bull.Worker;
 	private endedPollNotificationQueueWorker: Bull.Worker;
+	private closeExpiredChatRoomQueueWorker: Bull.Worker;
+	private revealChatSecretQueueWorker: Bull.Worker;
+	private endChatPollQueueWorker: Bull.Worker;
 	private postScheduledNoteQueueWorker: Bull.Worker;
 
 	constructor(
@@ -100,6 +106,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private userWebhookDeliverProcessorService: UserWebhookDeliverProcessorService,
 		private systemWebhookDeliverProcessorService: SystemWebhookDeliverProcessorService,
 		private endedPollNotificationProcessorService: EndedPollNotificationProcessorService,
+		private closeExpiredChatRoomProcessorService: CloseExpiredChatRoomProcessorService,
+		private revealChatSecretProcessorService: RevealChatSecretProcessorService,
+		private endChatPollProcessorService: EndChatPollProcessorService,
 		private postScheduledNoteProcessorService: PostScheduledNoteProcessorService,
 		private deliverProcessorService: DeliverProcessorService,
 		private inboxProcessorService: InboxProcessorService,
@@ -521,6 +530,77 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		}
 		//#endregion
 
+		//#region close expired chat rooms
+		{
+			const logger = this.logger.createSubLogger('close-expired-chat-room');
+
+			this.closeExpiredChatRoomQueueWorker = new Bull.Worker(QUEUE.CLOSE_EXPIRED_CHAT_ROOM, (job) => {
+				return runQueueJob(
+					this.telemetryService,
+					'Queue: CloseExpiredChatRoom',
+					() => this.closeExpiredChatRoomProcessorService.process(job),
+					err => {
+						logger.error(`failed(${err.name}: ${err.message}) id=${job.id}`, { job: renderJob(job), e: renderError(err) });
+						this.telemetryService.captureMessage(`Queue: CloseExpiredChatRoom: ${err.name}: ${err.message}`, {
+							level: 'error',
+							extra: { job, err },
+						});
+					},
+				);
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.CLOSE_EXPIRED_CHAT_ROOM),
+				autorun: false,
+			});
+		}
+		//#endregion
+		//
+		//#region reveal chat secret
+		{
+			const logger = this.logger.createSubLogger('reveal-chat-secret');
+
+			this.revealChatSecretQueueWorker = new Bull.Worker(QUEUE.REVEAL_CHAT_SECRET, (job) => {
+				return runQueueJob(
+					this.telemetryService,
+					'Queue: RevealChatSecret',
+					() => this.revealChatSecretProcessorService.process(job),
+					err => {
+						logger.error(`failed(${err.name}: ${err.message}) id=${job.id}`, { job: renderJob(job), e: renderError(err) });
+						this.telemetryService.captureMessage(`Queue: RevealChatSecret: ${err.name}: ${err.message}`, {
+							level: 'error',
+							extra: { job, err },
+						});
+					},
+				);
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.REVEAL_CHAT_SECRET),
+				autorun: false,
+			});
+		}
+		//#endregion
+
+		//#region end chat poll
+		{
+			const logger = this.logger.createSubLogger('end-chat-poll');
+
+			this.endChatPollQueueWorker = new Bull.Worker(QUEUE.END_CHAT_POLL, (job) => {
+				return runQueueJob(
+					this.telemetryService,
+					'Queue: EndChatPoll',
+					() => this.endChatPollProcessorService.process(job),
+					err => {
+						logger.error(`failed(${err.name}: ${err.message}) id=${job.id}`, { job: renderJob(job), e: renderError(err) });
+						this.telemetryService.captureMessage(`Queue: EndChatPoll: ${err.name}: ${err.message}`, {
+							level: 'error',
+							extra: { job, err },
+						});
+					},
+				);
+			}, {
+				...baseWorkerOptions(this.config, QUEUE.END_CHAT_POLL),
+				autorun: false,
+			});
+		}
+
 		//#region post scheduled note
 		{
 			const logger = this.logger.createSubLogger('post-scheduled-note');
@@ -558,6 +638,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			this.relationshipQueueWorker.run(),
 			this.objectStorageQueueWorker.run(),
 			this.endedPollNotificationQueueWorker.run(),
+			this.closeExpiredChatRoomQueueWorker.run(),
+			this.revealChatSecretQueueWorker.run(),
+			this.endChatPollQueueWorker.run(),
 			this.postScheduledNoteQueueWorker.run(),
 		]);
 	}
@@ -574,6 +657,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 			this.relationshipQueueWorker.close(),
 			this.objectStorageQueueWorker.close(),
 			this.endedPollNotificationQueueWorker.close(),
+			this.closeExpiredChatRoomQueueWorker.close(),
+			this.revealChatSecretQueueWorker.close(),
+			this.endChatPollQueueWorker.close(),
 			this.postScheduledNoteQueueWorker.close(),
 		]);
 	}

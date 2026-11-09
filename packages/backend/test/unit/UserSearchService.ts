@@ -249,6 +249,18 @@ describe('UserSearchService', () => {
 			expect(result).toEqual([alyson, alyssa].map(x => x.id));
 		});
 
+		test('host "." only matches local users when searching by username', async () => {
+			expect(bob.updatedAt).toBeNull();
+
+			const result = await service.searchByUsernameAndHost(
+				{ username: 'bob', host: '.' },
+				{ limit: 100 },
+				root,
+			);
+
+			expect(result).toEqual([bob, bobbi].map(x => x.id));
+		});
+
 		test('サスペンド済みユーザは出ない', async () => {
 			await setActive([alice, alyce, alycia, alysha, alyson, alyssa, bob, bobbi, bobbie, bobby]);
 			await setSuspended([alice, alyce, alycia]);

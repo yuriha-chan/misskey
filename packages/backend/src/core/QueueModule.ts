@@ -16,6 +16,9 @@ import {
 	RelationshipJobData,
 	UserWebhookDeliverJobData,
 	SystemWebhookDeliverJobData,
+	CloseExpiredChatRoomJobData,
+	RevealChatSecretJobData,
+	EndChatPollJobData,
 	PostScheduledNoteJobData,
 } from '../queue/types.js';
 import type { Provider } from '@nestjs/common';
@@ -30,6 +33,9 @@ export type RelationshipQueue = Bull.Queue<RelationshipJobData>;
 export type ObjectStorageQueue = Bull.Queue;
 export type UserWebhookDeliverQueue = Bull.Queue<UserWebhookDeliverJobData>;
 export type SystemWebhookDeliverQueue = Bull.Queue<SystemWebhookDeliverJobData>;
+export type CloseExpiredChatRoomQueue = Bull.Queue<CloseExpiredChatRoomJobData>;
+export type RevealChatSecretQueue = Bull.Queue<RevealChatSecretJobData>;
+export type EndChatPollQueue = Bull.Queue<EndChatPollJobData>;
 
 function createQueue<T extends object>(queueName: string, config: Config): Bull.Queue<T> {
 	return new Bull.Queue<T>(queueName, baseQueueOptions(config, queueName));
@@ -44,6 +50,24 @@ const $system: Provider = {
 const $endedPollNotification: Provider = {
 	provide: 'queue:endedPollNotification',
 	useFactory: (config: Config) => createQueue<EndedPollNotificationJobData>(QUEUE.ENDED_POLL_NOTIFICATION, config),
+	inject: [DI.config],
+};
+
+const $closeExpiredChatRoom: Provider = {
+	provide: 'queue:closeExpiredChatRoom',
+	useFactory: (config: Config) => createQueue<CloseExpiredChatRoomJobData>(QUEUE.CLOSE_EXPIRED_CHAT_ROOM, config),
+	inject: [DI.config],
+};
+
+const $revealChatSecret: Provider = {
+	provide: 'queue:revealChatSecret',
+	useFactory: (config: Config) => createQueue<RevealChatSecretJobData>(QUEUE.REVEAL_CHAT_SECRET, config),
+	inject: [DI.config],
+};
+
+const $endChatPoll: Provider = {
+	provide: 'queue:endChatPoll',
+	useFactory: (config: Config) => createQueue<EndChatPollJobData>(QUEUE.END_CHAT_POLL, config),
 	inject: [DI.config],
 };
 
@@ -101,6 +125,9 @@ const $systemWebhookDeliver: Provider = {
 	providers: [
 		$system,
 		$endedPollNotification,
+		$closeExpiredChatRoom,
+		$revealChatSecret,
+		$endChatPoll,
 		$postScheduledNote,
 		$deliver,
 		$inbox,
@@ -113,6 +140,9 @@ const $systemWebhookDeliver: Provider = {
 	exports: [
 		$system,
 		$endedPollNotification,
+		$closeExpiredChatRoom,
+		$revealChatSecret,
+		$endChatPoll,
 		$postScheduledNote,
 		$deliver,
 		$inbox,
@@ -127,6 +157,9 @@ export class QueueModule implements OnApplicationShutdown {
 	constructor(
 		@Inject('queue:system') public systemQueue: SystemQueue,
 		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
+		@Inject('queue:closeExpiredChatRoom') public closeExpiredChatRoomQueue: CloseExpiredChatRoomQueue,
+		@Inject('queue:revealChatSecret') public revealChatSecretQueue: RevealChatSecretQueue,
+		@Inject('queue:endChatPoll') public endChatPollQueue: EndChatPollQueue,
 		@Inject('queue:postScheduledNote') public postScheduledNoteQueue: PostScheduledNoteQueue,
 		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
 		@Inject('queue:inbox') public inboxQueue: InboxQueue,
@@ -144,6 +177,9 @@ export class QueueModule implements OnApplicationShutdown {
 		await Promise.all([
 			this.systemQueue.close(),
 			this.endedPollNotificationQueue.close(),
+			this.closeExpiredChatRoomQueue.close(),
+			this.revealChatSecretQueue.close(),
+			this.endChatPollQueue.close(),
 			this.postScheduledNoteQueue.close(),
 			this.deliverQueue.close(),
 			this.inboxQueue.close(),

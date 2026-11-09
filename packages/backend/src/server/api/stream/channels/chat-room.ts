@@ -48,6 +48,7 @@ export class ChatRoomChannel extends Channel {
 		if (!(await this.chatService.hasPermissionToViewRoomTimeline(this.user.id, room))) return false;
 
 		this.subscriber.on(`chatRoomStream:${this.roomId}`, this.onEvent);
+		this.subscriber.on(`chatRoomUserStream:${this.roomId}-${this.user!.id}`, this.onEvent);
 
 		return true;
 	}
@@ -71,5 +72,6 @@ export class ChatRoomChannel extends Channel {
 	@bindThis
 	public dispose() {
 		this.subscriber.off(`chatRoomStream:${this.roomId}`, this.onEvent);
+		this.subscriber.off(`chatRoomUserStream:${this.roomId}-${this.user!.id}`, this.onEvent);
 	}
 }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
+import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne, OneToOne } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiDriveFile } from './DriveFile.js';
@@ -82,4 +82,11 @@ export class MiChatMessage {
 		length: 1024, array: true, default: '{}',
 	})
 	public reactions: string[];
+
+	@Column({
+		...id(),
+		array: true,
+		nullable: true,
+	})
+	public visibleUserIds: MiUser['id'][] | null;
 }
