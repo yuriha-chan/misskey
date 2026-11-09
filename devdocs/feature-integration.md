@@ -117,7 +117,7 @@ Run changed-file package-root `eslint --quiet` and the shipping checker at the f
 
 - The TCP Search prefilter defaults to `search:8080`. The User supplied `https://github.com/yuriha-chan/misskey-search-prefilter`; native revision `17fbcf26` runs locally on port 8080 with a real UniDic dictionary. The User confirmed AID-only support as an existing limitation. SQL tests use a context-local `id: 'aid'` and optional `MISSKEY_TEST_PREFILTER_HOST` override; do not change production IDs or introduce an ID mapping. Real SQL candidate tests now pass, but production indexing-hook and Search browser coverage remain pending.
 - Docker cross-instance federation tests are skipped by explicit User decision. Real key and Fastify-route tests do not establish cross-instance federation correctness.
-- The combined wizard and final preservation accounting must be validated on the completed interaction tree; standalone feature passes do not establish those interactions. Record their execution result with the final reconstruction handoff.
+- The combined wizard now has a four-case pass on the completed interaction tree, including Back, resume, deferral and optional palette routing. Standalone feature passes alone would not establish those interactions. Final preservation and backend checks remain separately accounted for.
 
 ## Consolidated reconstruction validation
 
@@ -136,7 +136,7 @@ The source snapshot is `e6744a3e`; removal commit `1d07ffb6` establishes the no-
 | Frontend build | PASS |
 | Shipping lint / SPDX | PASS; 2542 SPDX-covered files |
 | Shipping locale rule | FAIL for retained `locales/en-US.yml`; fork-owned translations are intended by the User, checker unchanged |
-| Combined HTTP and browser runs | PENDING compatible per-run prefilter host/ID setup; no final combined browser pass claimed |
+| Combined palette, DSL and sub-account browser runs | PASS; 13 cases in one run, one AID/local-prefilter backend, no between-case resets or restarts; combined HTTP checks remain pending |
 
 The failing backend command selected `ap-request`, `UserKeypairService`, `server/ActivityPubServerService`, `ApDeliverManagerService`, `UserSuspendService`, `FetchInstanceMetadataService`, `UtilityService.isKeyWordIncluded`, `NoteCreateService`, `activitypub`, `misc/is-renote`, `server/UrlPreviewService`, `UserSearchService`, `entities/UserEntityService`, `entities/ChatEntityService` and `queue/queue-job-runner` under `test/unit`.
 
@@ -145,3 +145,5 @@ Both unhandled rejections were attributed to `activitypub.ts` while note indexin
 The real empty-result test exposed an inherited client bug: trimming `Ok \n` removes the space required by the original success check. Feature fix `4bee3bb3` on `feat-search` accepts trimmed `Ok` while retaining rejection of unsuccessful responses. Its three protocol tests remain feature-owned on both combined versions. An earlier direct no-test fix, `21d2c207`, is retained without rewriting history; the subsequent feature merge restores the required ownership and ancestry. Completion tags are not moved implicitly.
 
 The User approved porting precisely two production-only preference controls and the existing note-text treatment into the owning UI feature first. Feature fix `f2f16855` adds those controls, the `MkNote` class/style, and `ui-preferences.spec.ts`; no defaults, locales, detailed-note rendering or Universal runtime logic change. On the combined tree, both real browser cases passed (20.1 seconds), frontend build and the 12 consent unit cases passed, and scoped lint plus incremental shipping checks passed (SPDX 2544). This does not supersede the earlier broad backend failure or pending combined wizard/HTTP coverage. The saved test YAML is unchanged; the running server uses a private temporary AID/local-prefilter configuration.
+
+Combined browser commit `271c98b0` adds an explicit `MISSKEY_TEST_ADMIN_TOKEN` fixture mode to share an authenticated administrator between palette, DSL and sub-account suites. Without it, each suite keeps its standalone initial-admin setup; failed authentication never falls back to another identity. The palette fixture resets only the administrator's wizard registry position, not the database. For a batched run, provide the token for the palette fixture's `admin` account with password `pass`, because that suite also exercises real browser sign-in. Never record the token in Git or logs. All 13 cases passed in 3.3 minutes. A User-performed database reset required restarting our existing server before initial admin setup became available; later cases ran without resets/restarts. This validates ordinary note creation with the native prefilter as well as wizard/consent/account interactions, but is not Search-page or broad backend-suite coverage.
