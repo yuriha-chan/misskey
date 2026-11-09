@@ -7,7 +7,7 @@ import type { Page } from 'playwright';
 import { test, expect } from './fixtures.js';
 import { ADMIN_SETUP_PASSWORD, BASE_URL, registerUser, signIn } from './utils.js';
 import type { RegisteredUser } from './utils.js';
-import { api } from './shared.js';
+import { api, setupTestAdmin } from './shared.js';
 
 const PASSWORD = 'sub-account-test-password';
 const CURRENT_ACCOUNT_LABEL = '現在ログイン中のアカウント';
@@ -21,7 +21,7 @@ test.use({
 });
 
 test.beforeAll(async () => {
-	admin = await registerUser('admin', ADMIN_SETUP_PASSWORD, true);
+	admin = await setupTestAdmin(BASE_URL, 'admin', ADMIN_SETUP_PASSWORD);
 });
 
 async function completeSetup(user: RegisteredUser): Promise<void> {
