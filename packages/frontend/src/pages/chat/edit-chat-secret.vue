@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkWindow ref="uiWindow" :initialWidth="400" :initialHeight="500" @closed="emit('closed')">
 	<template #header>{{ i18n.ts._chat.editSecret }}</template>
