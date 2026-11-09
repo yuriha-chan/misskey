@@ -75,15 +75,6 @@ export class GlobalTimelineChannel extends Channel {
 		// eslint-disable-next-line no-param-reassign -- これ以降元の Note オブジェクトは見てはいけないので、いっそ再代入した方が安全
 		note = filtered;
 
-		if (this.user) {
-			if (isRenotePacked(note) && !isQuotePacked(note)) {
-				if (note.renote && Object.keys(note.renote.reactions).length > 0) {
-					const myRenoteReaction = await this.noteEntityService.populateMyReaction(note.renote, this.user.id);
-					note.renote.myReaction = myRenoteReaction;
-				}
-			}
-		}
-
 		if (note.tags && note.tags.length > 0 && !this.withHashtags) return;
 
 		// Ignore notes from instances the user has muted
@@ -92,7 +83,7 @@ export class GlobalTimelineChannel extends Channel {
 		// Ignore notes from instances this server has muted
 		if (isInstanceMuted(note, new Set<string>(this.meta.gtlMutedHosts ?? []))) return;
 
-		this.send('note', note);
+		this.send('note', await this.noteEntityService.withMyRenoteReaction(note, this.user?.id ?? null));
 	}
 
 	@bindThis

@@ -23,7 +23,7 @@ import type { IPoll } from '@/models/Poll.js';
 import { MiPoll } from '@/models/Poll.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import type { MiChannel } from '@/models/Channel.js';
-import { normalizeForSearch } from '@/misc/normalize-for-search.js';
+import { normalizeTag } from '@/misc/normalize-tag.js';
 import { RelayService } from '@/core/RelayService.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { DI } from '@/di-symbols.js';
@@ -57,6 +57,7 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { extractUrlsForKeyWordCheck } from '@/misc/extract-urls-for-keyword-check.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -472,14 +473,32 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && data.channel == null) {
 			const sensitiveWords = this.meta.sensitiveWords;
-			if (this.utilityService.isKeyWordIncluded(sensitiveWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join('\n') : '', data.files ? data.files.map((f => ({ isSensitive: f.isSensitive }))) : [], user.host)) {
+			const sensitiveWordsTarget = (data.cw != null && data.cw !== '') ? data.cw : (data.text ?? '');
+			const sensitiveWordsUrls = extractUrlsForKeyWordCheck(sensitiveWordsTarget).join('\n');
+			const sensitiveWordsUseCw = data.cw != null && data.cw !== '';
+			if (sensitiveWords.length > 0 && this.utilityService.isKeyWordIncluded(
+				sensitiveWords,
+				sensitiveWordsUseCw ? (data.text ?? '') : [data.text ?? '', sensitiveWordsUrls].join('\n'),
+				sensitiveWordsUseCw ? [data.cw, sensitiveWordsUrls].join('\n') : '',
+				data.poll ? data.poll.choices.join('\n') : '',
+				data.files ? data.files.map(f => ({ isSensitive: f.isSensitive })) : [],
+				user.host,
+			)) {
 				data.visibility = 'home';
 			} else if ((await this.roleService.getUserPolicies(user.id)).canPublicNote === false) {
 				data.visibility = 'home';
 			}
 		}
 
-		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, data.text ?? '', data.cw ?? '', data.poll ? data.poll.choices.join('\n') : '', data.files ? data.files.map(f => ({ isSensitive: f.isSensitive })) : [], user.host)) {
+		const hasProhibitedWords = this.checkProhibitedWordsContain({
+			cw: data.cw,
+			text: data.text,
+			pollChoices: data.poll?.choices,
+			files: data.files ? data.files.map(f => ({ isSensitive: f.isSensitive })) : [],
+			instance: user.host,
+		}, this.meta.prohibitedWords);
+
+		if (hasProhibitedWords) {
 			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
 		}
 
@@ -664,7 +683,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			text: data.text,
 			hasPoll: data.poll != null,
 			cw: data.cw ?? null,
-			tags: tags.map(tag => normalizeForSearch(tag)),
+			tags: tags.map(tag => normalizeTag(tag)),
 			emojis,
 			userId: user.id,
 			localOnly: data.localOnly!,
@@ -785,7 +804,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		this.pushToTl(note, user);
 
-		this.antennaService.addNoteToAntennas({
+		const matchedAntennas = this.antennaService.addNoteToAntennas({
 			...note,
 			channel: data.channel ?? null,
 		}, user);
@@ -850,6 +869,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.globalEventService.publishNotesStream(noteObj);
 
 			this.roleService.addNoteToRoleTimeline(noteObj);
+
+			matchedAntennas.then(antennas => {
+				for (const antenna of antennas) {
+					this.globalEventService.publishAntennaStream(antenna.id, 'note', noteObj);
+				}
+			});
 
 			this.webhookService.enqueueUserWebhook(user.id, 'note', { note: noteObj });
 
@@ -1250,8 +1275,36 @@ export class NoteCreateService implements OnApplicationShutdown {
 		cw?: string | null;
 		text?: string | null;
 		pollChoices?: string[] | null;
-	}) {
-		if (this.utilityService.isKeyWordIncluded(this.meta.prohibitedWords, content.text ?? '', content.cw ?? '', content.pollChoices ? content.pollChoices.join('\n') : '', [], null)) {
+		others?: string[] | null;
+		files?: { isSensitive: boolean }[];
+		instance?: string | null;
+	}, prohibitedWords?: string[]) {
+		if (prohibitedWords == null) {
+			prohibitedWords = this.meta.prohibitedWords;
+		}
+
+		if (prohibitedWords.length === 0) {
+			return false;
+		}
+
+		const cw = content.cw ?? '';
+		const urls = [
+			...extractUrlsForKeyWordCheck(cw),
+			...extractUrlsForKeyWordCheck(content.text ?? ''),
+		];
+		const text = [content.text ?? '', ...(content.others ?? []), ...urls].join('\n');
+		const cwForCheck = cw === '' ? '' : [cw, ...urls].join('\n');
+
+		if (
+			this.utilityService.isKeyWordIncluded(
+				prohibitedWords,
+				text,
+				cwForCheck,
+				content.pollChoices ? content.pollChoices.join('\n') : '',
+				content.files ?? [],
+				content.instance ?? null,
+			)
+		) {
 			return true;
 		}
 		return false;

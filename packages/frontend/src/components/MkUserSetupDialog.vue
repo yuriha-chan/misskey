@@ -69,19 +69,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 'emojiPalette'">
-				<div style="height: 100cqh; overflow: auto;">
-					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
-						<XEmojiPalette/>
-					</div>
-					<div :class="$style.pageFooter">
-						<div class="_buttonsCenter">
-							<MkButton rounded data-testid="user-setup-back" @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
-							<MkButton primary rounded gradate data-testid="user-setup-continue" @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
-						</div>
-					</div>
-				</div>
-			</template>
 			<template v-else-if="page === 'r18Content'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div :class="$style.pageRoot">
@@ -114,15 +101,30 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 			</template>
-			<template v-else-if="page === 'follow'">
+			<template v-else-if="page === 'emojiPalette'">
 				<div style="height: 100cqh; overflow: auto;">
 					<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;">
-						<XFollow/>
+						<XEmojiPalette/>
 					</div>
 					<div :class="$style.pageFooter">
 						<div class="_buttonsCenter">
 							<MkButton rounded data-testid="user-setup-back" @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
 							<MkButton primary rounded gradate data-testid="user-setup-continue" @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+						</div>
+					</div>
+				</div>
+			</template>
+			<template v-else-if="page === 'follow'">
+				<div style="height: 100cqh; overflow: auto;">
+					<div :class="$style.pageRoot">
+						<div class="_spacer" style="--MI_SPACER-min: 20px; --MI_SPACER-max: 28px;" :class="$style.pageMain">
+							<XFollow/>
+						</div>
+						<div :class="$style.pageFooter">
+							<div class="_buttonsCenter">
+								<MkButton rounded data-testid="user-setup-back" @click="goBack"><i class="ti ti-arrow-left"></i> {{ i18n.ts.goBack }}</MkButton>
+								<MkButton primary rounded gradate data-testid="user-setup-continue" @click="goNext">{{ i18n.ts.continue }} <i class="ti ti-arrow-right"></i></MkButton>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -350,10 +352,12 @@ async function later(later: boolean) {
 
 .pageMain {
 	flex-grow: 1;
+	padding-bottom: 72px;
 }
 
 .pageFooter {
 	position: sticky;
+	z-index: 10;
 	bottom: 0;
 	left: 0;
 	flex-shrink: 0;

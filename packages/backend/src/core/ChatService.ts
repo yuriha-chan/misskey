@@ -476,7 +476,6 @@ export class ChatService {
 				roomId: toRoom.id,
 				room: null,
 				userId: fromUser.id,
-				user: null,
 				title: params.commitSecret.title,
 				revealsAt: params.commitSecret.revealsAt ?? null,
 				revealedId: null,
@@ -504,7 +503,6 @@ export class ChatService {
 				roomId: toRoom.id,
 				room: null,
 				ownerId: fromUser.id,
-				owner: null,
 				title: params.poll.title,
 				choices: params.poll.choices,
 				voteForUsers: params.poll.voteForUsers ?? false,
@@ -554,7 +552,6 @@ export class ChatService {
 						deliverId: message.id,
 						cardId: i,
 						userId,
-						user: null,
 						roomId: toRoom.id,
 						room: null,
 						cardKind,
@@ -1146,7 +1143,16 @@ export class ChatService {
 			throw new Error('room is full');
 		}
 
-		// TODO: cehck block
+		const [blocked, blocking] = await Promise.all([
+			this.userBlockingService.checkBlocked(inviteeId, inviterId),
+			this.userBlockingService.checkBlocked(inviterId, inviteeId),
+		]);
+		if (blocked) {
+			throw new Error('blocked');
+		}
+		if (blocking) {
+			throw new Error('blocking');
+		}
 
 		const invitation = {
 			id: this.idService.gen(),
