@@ -45,7 +45,7 @@ The real external prefilter is available and the 20 SQL Search cases pass with A
 
 ## Additional combined coverage
 
-The restored test layer starts with `c256c77b` above removal commit `1d07ffb6`. Commit `2fcdbc47` extends only the palette browser file: it waits for registry persistence before proceeding from Privacy to R18, verifies resume on R18 after reload without a persisted age selection, checks Back to Privacy and return, then completes the no-recommendations route and verifies hiding of a flagged note after reload. Browser execution remains pending; this is not a passing-test claim.
+The restored test layer starts with `c256c77b` above removal commit `1d07ffb6`. Commit `2fcdbc47` extends only the palette browser file: it waits for registry persistence before proceeding from Privacy to R18, verifies resume on R18 after reload without a persisted age selection, checks Back to Privacy and return, then completes the no-recommendations route and verifies hiding of a flagged note after reload. All four palette cases subsequently passed in the consolidated 13-case browser run.
 
 These additions do not change feature test ownership. The initial effective source-to-test difference contains the three files listed above; subsequent combined fixture adaptations are inventoried below. Documentation belongs on the no-test branch and is propagated to the test branch, outside that effective difference.
 
