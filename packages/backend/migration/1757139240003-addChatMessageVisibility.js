@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 export class AddChatMessageVisibility1757139240003 {
     name = 'AddChatMessageVisibility1757139240003'
 

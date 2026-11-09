@@ -3,41 +3,52 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { PrimaryColumn, Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { PrimaryColumn, Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
 import { id } from './util/id.js';
-import { MiChatRoom, MiChatPollVote, MiUser, MiChatMessage } from '@/models/_.js';
+import { MiChatRoom, MiChatPollVote, MiChatMessage } from '@/models/_.js';
 
 @Entity('chat_poll')
+@Index('IDX_chat_poll_roomId', ['roomId'])
+@Index('IDX_chat_poll_pollId', ['roomId', 'id'])
+@Index('IDX_chat_poll_startedId', ['roomId', 'startedId'])
+@Index('IDX_chat_poll_finishedId', ['roomId', 'finishedId'])
 export class MiChatPoll {
-	@PrimaryColumn(id())
+	@PrimaryColumn({
+		...id(),
+		primaryKeyConstraintName: 'PK_chat_poll_id',
+	})
 	public id: MiChatMessage['id'];
 
 	@Column(id())
 	public roomId: MiChatRoom['id'];
 
-	@ManyToOne(() => MiChatRoom)
-	@JoinColumn({ name: 'roomId' })
+	@ManyToOne(() => MiChatRoom, {
+		onDelete: 'CASCADE',
+	})
+	@JoinColumn({ name: 'roomId', foreignKeyConstraintName: 'FK_chat_poll_roomId' })
 	public room: MiChatRoom | null;
 
 	@Column(id())
 	public ownerId: MiChatRoom['id'];
 
-	@ManyToOne(() => MiUser)
-	@JoinColumn({ name: 'ownerId' })
-	public owner: MiUser | null;
-
-	@Column('text')
-	public title: string;
+	@Column('text', {
+		nullable: true,
+	})
+	public title: string | null;
 
 	@Column('varchar', {
 		length: 256, array: true, default: '{}',
 	})
 	public choices: string[];
 
-	@Column('boolean')
+	@Column('boolean', {
+		default: false,
+	})
 	public voteForUsers: boolean;
 
-	@Column('boolean')
+	@Column('boolean', {
+		default: false,
+	})
 	public anonymous: boolean;
 	@Column('timestamp with time zone', {
 		nullable: true,

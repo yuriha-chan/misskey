@@ -83,8 +83,7 @@ export class MiChatMessage {
 	})
 	public reactions: string[];
 
-	@Column({
-		...id(),
+	@Column('text', {
 		array: true,
 		nullable: true,
 	})
