@@ -159,7 +159,14 @@ export class Pizzax<T extends StateDef> {
 
 							return set(this.registryCacheKeyName, cache);
 						})
-						.then(() => resolve());
+						.then(() => resolve())
+						.catch(error => {
+							if (error.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14') {
+								resolve();
+							} else {
+								reject(error);
+							}
+						});
 				}, 1);
 			} else {
 				resolve();

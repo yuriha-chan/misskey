@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	ref="modal"
 	:preferType="'dialog'"
 	@click="onClose"
-	@closed="emit('closed')"
+	@closed="onClosed"
 >
 	<div :class="$style.root">
 		<div :class="$style.header">
@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button :class="$style.closeButton" class="_button" @click="onClose"><i class="ti ti-x"></i></button>
 		</div>
 		<div :class="$style.content">
-			<MkSignin :autoSet="autoSet" :message="message" :openOnRemote="openOnRemote" :initialUsername="initialUsername" @login="onLogin"/>
+			<MkSignin :autoSet="autoSet" :message="message" :openOnRemote="openOnRemote" :initialUsername="initialUsername" :beforeLogin="beforeLogin" @login="onLogin" @loginIntercepted="onLoginIntercepted"/>
 		</div>
 	</div>
 </MkModal>
@@ -35,6 +35,7 @@ withDefaults(defineProps<{
 	message?: string,
 	openOnRemote?: OpenOnRemoteOptions,
 	initialUsername?: string;
+	beforeLogin?: (username: string) => Promise<boolean>;
 }>(), {
 	autoSet: false,
 	message: '',
@@ -46,9 +47,16 @@ const emit = defineEmits<{
 	(ev: 'done', v: Misskey.entities.SigninFlowResponse & { finished: true }): void;
 	(ev: 'closed'): void;
 	(ev: 'cancelled'): void;
+	(ev: 'loginIntercepted', username: string): void;
 }>();
 
 const modal = useTemplateRef('modal');
+let interceptedUsername: string | undefined;
+
+function onClosed() {
+	if (interceptedUsername !== undefined) emit('loginIntercepted', interceptedUsername);
+	emit('closed');
+}
 
 function onClose() {
 	emit('cancelled');
@@ -57,6 +65,11 @@ function onClose() {
 
 function onLogin(res: Misskey.entities.SigninFlowResponse & { finished: true }) {
 	emit('done', res);
+	if (modal.value) modal.value.close();
+}
+
+function onLoginIntercepted(username: string) {
+	interceptedUsername = username;
 	if (modal.value) modal.value.close();
 }
 </script>
