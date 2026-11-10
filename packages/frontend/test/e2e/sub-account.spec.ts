@@ -34,10 +34,17 @@ async function completeSetup(user: RegisteredUser): Promise<void> {
 }
 
 async function currentIdentityAfterSwitch(page: Page, username: string, switchAction: () => Promise<void>): Promise<void> {
-	const identityResponse = page.waitForResponse(async response => response.url().endsWith('/api/i') && response.request().method() === 'POST' && response.status() === 200 && (await response.json()).username === username);
+	let identity: { username: string } | undefined;
+	const identityResponse = page.waitForResponse(async response => {
+		if (!(response.url().endsWith('/api/i') && response.request().method() === 'POST' && response.status() === 200)) return false;
+		const body = await response.json() as { username: string };
+		if (body.username !== username) return false;
+		identity = body;
+		return true;
+	});
 	await switchAction();
-	const identity = await (await identityResponse).json() as { username: string };
-	expect(identity.username).toBe(username);
+	await identityResponse;
+	expect(identity?.username).toBe(username);
 }
 
 function accountCard(page: Page, label: string) {

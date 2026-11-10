@@ -170,11 +170,6 @@ async function onUsernameSubmitted(username: string) {
 	userInfo.value = await misskeyApi('users/show', {
 		username,
 	}, null).catch(() => null);
-	if (userInfo.value == null) {
-		await os.alert({ type: 'error', title: i18n.ts.noSuchUser, text: i18n.ts.signinFailed });
-		waiting.value = false;
-		return;
-	}
 
 	await tryLogin({
 		username,
