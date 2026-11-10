@@ -178,6 +178,10 @@ test.describe('After user signed in', () => {
 		// プライバシー設定
 		await page.getByTestId('user-setup-continue').click();
 
+		// R18設定
+		await page.getByTestId('radio-over18').click();
+		await page.getByTestId('user-setup-continue').click();
+
 		// フォロー設定
 		await page.getByTestId('user-setup-continue').click();
 
