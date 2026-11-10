@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { test } from './fixtures.js';
+import { test, expect } from './fixtures.js';
 import {
 	// const
 	ADMIN_SETUP_PASSWORD, BASE_URL,
@@ -167,25 +167,47 @@ test.describe('After user signed in', () => {
 	});
 
 	test('account setup wizard', async ({ page }) => {
+		async function continueSetup() {
+			const button = await page.getByTestId('user-setup-continue').elementHandle();
+			if (button == null) throw new Error('Setup Continue button is missing');
+			await button.click();
+			await page.waitForFunction(element => !element.isConnected, button);
+			await button.dispose();
+		}
+
 		// 表示に時間がかかるのでデフォルト秒数だとタイムアウトする
-		await page.getByTestId('user-setup-continue').click({ timeout: 30000 });
+		await page.getByTestId('user-setup-continue').waitFor({ state: 'visible', timeout: 30000 });
+		await continueSetup();
 
 		await locateMkInput(page, 'user-setup-user-name').fill('ありす');
 		await locateMkTextarea(page, 'user-setup-user-description').fill('ほげ');
 		// TODO: アイコン設定のテスト
-		await page.getByTestId('user-setup-continue').click();
+		await continueSetup();
 
 		// プライバシー設定
-		await page.getByTestId('user-setup-continue').click();
+		await expect(page.getByText('You can always change these settings later.', { exact: true })).toBeVisible();
+		await continueSetup();
+
+		// R18設定
+		const ageChoice = page.getByTestId('radio-over18');
+		await expect(ageChoice).toBeAttached();
+		await expect(page.getByTestId('user-setup-continue')).toBeDisabled();
+		await page.locator('label[for="r18-over18"]').last().click();
+		await expect(ageChoice).toBeChecked();
+		await continueSetup();
 
 		// フォロー設定
-		await page.getByTestId('user-setup-continue').click();
+		await expect(page.getByText('Try following some users that interest you to build up your timeline.', { exact: true })).toBeVisible();
+		await continueSetup();
 
 		// プッシュ通知設定
-		await page.getByTestId('user-setup-continue').click();
+		await expect(page.getByText(/Enabling push notifications will allow you/)).toBeVisible();
+		await continueSetup();
 
 		// 完了
-		await page.getByTestId('user-setup-continue').click();
+		await expect(page.getByText('Profile setup complete!', { exact: true })).toBeVisible();
+		await page.getByTestId('user-setup-dialog').getByRole('button', { name: 'Close', exact: true }).click();
+		await expect(page.getByTestId('user-setup-dialog')).toBeHidden();
 	});
 });
 

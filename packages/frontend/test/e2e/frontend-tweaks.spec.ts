@@ -223,10 +223,10 @@ test.describe('Frontend tweaks', () => {
 				await page.goto('/chat');
 				await page.getByRole('button', { name: /Start chat$/ }).click();
 				await page.getByRole('menuitem', { name: /Room Chat/ }).click();
-				await page.getByRole('menuitem', { name: /Create Room$/ }).click();
-				await page.getByTestId('modal-dialog-ok').locator('../..').getByRole('textbox').fill('Deck overlap room');
+				const dialog = page.getByTestId('chat-room-editor');
+				await dialog.getByTestId('chat-room-name').getByRole('textbox').fill('Deck overlap room');
 				const created = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/rooms/create');
-				await page.getByTestId('modal-dialog-ok').click();
+				await dialog.getByRole('button', { name: 'Create', exact: true }).click();
 				expect((await created).status()).toBe(200);
 				await expect(page.getByPlaceholder('Enter message here', { exact: true })).toBeVisible();
 				const roomPath = new URL(page.url()).pathname;
@@ -381,11 +381,10 @@ test.describe('Frontend tweaks', () => {
 			await page.goto('/chat');
 			await page.getByRole('button', { name: /Start chat$/ }).click();
 			await page.getByRole('menuitem', { name: /Room Chat/ }).click();
-			await page.getByRole('menuitem', { name: /Create Room$/ }).click();
-			const dialog = page.getByTestId('modal-dialog-ok').locator('../..');
-			await dialog.getByRole('textbox').fill('Scroll history room');
+			const dialog = page.getByTestId('chat-room-editor');
+			await dialog.getByTestId('chat-room-name').getByRole('textbox').fill('Scroll history room');
 			const created = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/rooms/create');
-			await page.getByTestId('modal-dialog-ok').click();
+			await dialog.getByRole('button', { name: 'Create', exact: true }).click();
 			expect((await created).status()).toBe(200);
 			await page.setViewportSize({ width: 390, height: 844 });
 			const composer = page.getByPlaceholder('Enter message here', { exact: true });
