@@ -317,15 +317,15 @@ test.describe('Frontend tweaks', () => {
 	});
 
 	test('hides the mobile menu while scrolling and restores it at the top', async ({ page }) => {
-		for (let i = 0; i < 16; i++) {
-			await postTimelineNote(page, `Scroll timeline note ${i}`);
+		for (let i = 0; i < 18; i++) {
+			await postTimelineNote(page, `Scroll timeline note ${i} ${'padding '.repeat(24)}`);
 		}
 		await configureLayout(page, { hideNavFooter: true, animation: false });
 		await page.setViewportSize({ width: 390, height: 844 });
 		await page.goto('/');
 		const menu = mobileMenu(page);
 		const scrollable = page.locator('._pageScrollable');
-		await expect(page.getByText('Scroll timeline note 15', { exact: true })).toBeVisible();
+		await expect(page.getByText(/^Scroll timeline note 17\b/)).toBeVisible();
 		await expect(menu).toBeVisible();
 		await expect.poll(() => scrollable.evaluate(el => el.scrollHeight - el.clientHeight), { message: 'The timeline must have enough history for two scroll gestures' }).toBeGreaterThan(750);
 		await scrollPage(page, scrollable, 350);
@@ -386,11 +386,16 @@ test.describe('Frontend tweaks', () => {
 			const created = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/rooms/create');
 			await dialog.getByRole('button', { name: 'Create', exact: true }).click();
 			expect((await created).status()).toBe(200);
+			await expect(page).toHaveURL(/\/chat\/room\/[^/]+$/);
 			await page.setViewportSize({ width: 390, height: 844 });
+			await page.getByTestId('chat-composer').getByRole('textbox').waitFor({ state: 'visible' });
 			const composer = page.getByPlaceholder('Enter message here', { exact: true });
 			const send = page.getByTitle('Send', { exact: true });
 			for (let i = 0; i < 18; i++) {
-				await composer.fill(`Chat scrolling message ${i}`);
+				await composer.click();
+				await composer.pressSequentially(`Chat scrolling message ${i}`);
+				await expect(composer).toHaveValue(`Chat scrolling message ${i}`);
+				await expect(send).toBeEnabled();
 				const sent = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/messages/create-to-room');
 				await send.click();
 				expect((await sent).status()).toBe(200);
@@ -407,7 +412,8 @@ test.describe('Frontend tweaks', () => {
 			await expect(page.getByText('Chat scrolling message 17', { exact: true })).toBeInViewport();
 			await expectMenuCoverage(composer, mobileMenu(page));
 			await expectMenuCoverage(send, mobileMenu(page));
-			await composer.fill('Message after scrolling');
+			await composer.click();
+			await composer.pressSequentially('Message after scrolling');
 			const sent = page.waitForResponse(response => new URL(response.url()).pathname === '/api/chat/messages/create-to-room');
 			await send.click();
 			expect((await sent).status()).toBe(200);
