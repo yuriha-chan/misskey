@@ -146,7 +146,7 @@ async function onClick() {
 				...props.user,
 				withReplies: prefer.s.defaultFollowWithReplies,
 			});
-			hasPendingFollowRequestFromYou.value = true;
+			hasPendingFollowRequestFromYou.value = !isFollowing.value;
 
 			if ($i == null) {
 				wait.value = false;

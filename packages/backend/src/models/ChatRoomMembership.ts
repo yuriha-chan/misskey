@@ -42,4 +42,23 @@ export class MiChatRoomMembership {
 		default: false,
 	})
 	public isMuted: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public hasLeft: boolean;
+
+	@Column('varchar',  {
+		default: null,
+		length: 64,
+		nullable: true
+	})
+	public bubbleColor: string | null;
+
+	@Column('varchar',  {
+		default: null,
+		length: 64,
+		nullable: true
+	})
+	public bubbleStyle: string | null;
 }

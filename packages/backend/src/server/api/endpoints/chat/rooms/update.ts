@@ -38,6 +38,7 @@ export const paramDef = {
 		roomId: { type: 'string', format: 'misskey:id' },
 		name: { type: 'string', maxLength: 256 },
 		description: { type: 'string', maxLength: 1024 },
+		capacity: { type: 'integer', minimum: 2, maximum: 100, nullable: true },
 	},
 	required: ['roomId'],
 } as const;
@@ -51,7 +52,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			await this.chatService.checkChatAvailability(me.id, 'write');
 
-			const room = await this.chatService.findMyRoomById(me.id, ps.roomId);
+			const room = await this.chatService.findMyRoomById(me.id, ps.roomId, false);
 			if (room == null) {
 				throw new ApiError(meta.errors.noSuchRoom);
 			}

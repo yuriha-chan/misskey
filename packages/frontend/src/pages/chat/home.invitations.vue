@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_gaps">
 	<div v-if="invitations.length > 0" class="_gaps_s">
-		<MkFolder v-for="invitation in invitations" :key="invitation.id" :defaultOpen="true">
+		<MkFolder v-for="invitation in invitations" :key="invitation.id" data-testid="chat-room-invitation" :defaultOpen="true">
 			<template #icon><i class="ti ti-users-group"></i></template>
 			<template #label>{{ invitation.room.name }}</template>
 			<template #suffix><MkTime :time="invitation.createdAt"/></template>

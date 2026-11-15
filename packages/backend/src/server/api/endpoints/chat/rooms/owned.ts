@@ -36,6 +36,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 30 },
+		includeArchived: { type: 'boolean', default: false },
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
 		sinceDate: { type: 'integer' },
@@ -56,7 +57,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			await this.chatService.checkChatAvailability(me.id, 'read');
 
-			const rooms = await this.chatService.getOwnedRoomsWithPagination(me.id, ps.limit, sinceId, untilId);
+			const rooms = await this.chatService.getOwnedRoomsWithPagination(me.id, ps.limit, ps.includeArchived, sinceId, untilId);
 			return this.chatEntityService.packRooms(rooms, me);
 		});
 	}
