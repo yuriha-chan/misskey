@@ -23,6 +23,10 @@ export class MiUserProfile {
 	@JoinColumn()
 	public user: MiUser | null;
 
+	@Index('IDX_user_profile_mainAccount')
+	@Column({ ...id(), nullable: true })
+	public mainAccountId: MiUser['id'];
+
 	@Column('varchar', {
 		length: 128, nullable: true,
 		comment: 'The location of the User.',

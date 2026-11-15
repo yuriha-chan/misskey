@@ -519,6 +519,25 @@ export const packedMeDetailedOnlySchema = {
 			type: 'boolean',
 			nullable: false, optional: false,
 		},
+		accountParents: {
+			type: 'array',
+			nullable: false, optional: true,
+			items: {
+				type: 'object',
+				nullable: false, optional: false,
+				properties: {
+					id: {
+						type: 'string',
+						nullable: false, optional: false,
+						format: 'id',
+					},
+					username: {
+						type: 'string',
+						nullable: false, optional: false,
+					},
+				},
+			},
+		},
 		twoFactorBackupCodesStock: {
 			type: 'string',
 			enum: ['full', 'partial', 'none'],

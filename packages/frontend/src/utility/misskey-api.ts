@@ -7,6 +7,7 @@ import * as Misskey from 'misskey-js';
 import { ref } from 'vue';
 import { apiUrl } from '@@/js/config.js';
 import { $i } from '@/i.js';
+import { globalEvents } from '@/events.js';
 export const pendingApiRequestsCount = ref(0);
 
 // Implements Misskey.api.ApiClient.request
@@ -51,6 +52,9 @@ export function misskeyApi<
 			} else if (res.status === 204) {
 				resolve(undefined as _ResT); // void -> undefined
 			} else {
+				if (body.error?.id === 'b0a7f5f8-dc2f-4171-b91f-de88ad238e14' && $i && data.i === $i.token) {
+					globalEvents.emit('activeTokenRevoked');
+				}
 				reject(body.error);
 			}
 		}).catch(reject);

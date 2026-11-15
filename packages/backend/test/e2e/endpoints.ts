@@ -6,13 +6,16 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
+import bcrypt from 'bcryptjs';
 import { describe, beforeAll, test, expect, vi } from 'vitest';
+import * as OTPAuth from 'otpauth';
 // node-fetch only supports it's own Blob yet
 // https://github.com/node-fetch/node-fetch/pull/1664
 import { Blob } from 'node-fetch';
-import { api, castAsError, initTestDb, post, role, signup, simpleGet, uploadFile } from '../utils.js';
+import { api, castAsError, createAppToken, initTestDb, post, randomString, role, sendEnvUpdateRequest, signup, simpleGet, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 import { MiUser } from '@/models/_.js';
+import { MiUserProfile } from '@/models/UserProfile.js';
 
 const waitForPushToTlOptions = { timeout: 3000, interval: 25 };
 
@@ -29,6 +32,188 @@ describe('Endpoints', () => {
 		dave = await signup({ username: 'dave' });
 		await api('admin/update-meta', { federation: 'all' }, alice as misskey.entities.SignupResponse);
 	}, 1000 * 60 * 2);
+
+	describe('Sub-account authentication', () => {
+		const password = 'test';
+		const uniqueUsername = (prefix: string) => `${prefix}${randomString('abcdefghijklmnopqrstuvwxyz0123456789', 8)}`;
+		const createSubAccount = async (parent: { token: string }) => {
+			const res = await api('i/create-sub-account', {
+				username: uniqueUsername('sub'),
+			}, parent);
+			assert.strictEqual(res.status, 200);
+			return res.body;
+		};
+		const otpToken = (secret: string): string => OTPAuth.TOTP.generate({
+			secret: OTPAuth.Secret.fromBase32(secret),
+			digits: 6,
+		});
+		const enableTwoFactor = async (user: { token: string }, userPassword: string) => {
+			const register = await api('i/2fa/register', { password: userPassword }, user);
+			assert.strictEqual(register.status, 200);
+			const done = await api('i/2fa/done', { token: otpToken(register.body.secret) }, user);
+			assert.strictEqual(done.status, 200);
+			return register.body.secret;
+		};
+		const setSubAccountPassword = async (userId: string) => {
+			const connection = await initTestDb(true);
+			try {
+				const passwordHash = await bcrypt.hash(password, 8);
+				await connection.getRepository(MiUserProfile).update({ userId }, { password: passwordHash });
+			} finally {
+				await connection.destroy();
+			}
+		};
+		const assertDeletedState = async (ids: string[], isDeleted: boolean) => {
+			const connection = await initTestDb(true);
+			try {
+				const users = connection.getRepository(MiUser);
+				for (const id of ids) {
+					const user = await users.findOneByOrFail({ id });
+					assert.strictEqual(user.id, id);
+					assert.strictEqual(user.isDeleted, isDeleted);
+				}
+			} finally {
+				await connection.destroy();
+			}
+		};
+
+		test('親トークンの再生成で親子の旧トークンを無効化し、子トークンを再発行する', async () => {
+			const parent = await signup({ username: uniqueUsername('parent'), password });
+			const children = [await createSubAccount(parent), await createSubAccount(parent)];
+			const oldTokens = [parent.token, ...children.map(child => child.i)];
+
+			for (const token of oldTokens) {
+				const warm = await api('i', {}, { token });
+				assert.strictEqual(warm.status, 200);
+			}
+
+			const regenerate = await api('i/regenerate-token', { password }, parent);
+			assert.strictEqual(regenerate.status, 204);
+			await expect.poll(async () => {
+				const responses = await Promise.all(oldTokens.map(token => api('i', {}, { token })));
+				return responses.every(response => response.status === 401);
+			}, { timeout: 10_000, interval: 100 }).toBe(true);
+
+			const signin = await api('signin-flow', { username: parent.username, password });
+			assert.strictEqual(signin.status, 200);
+			assert.strictEqual(signin.body.finished, true);
+			const newParent = { token: signin.body.i! };
+			const tokens = await api('i/get-sub-account-tokens', {}, newParent);
+			assert.strictEqual(tokens.status, 200);
+			assert.strictEqual(tokens.body.length, children.length);
+			assert.deepStrictEqual(tokens.body.map(child => child.id).sort(), children.map(child => child.id).sort());
+			for (const child of children) {
+				const token = tokens.body.find(item => item.id === child.id);
+				assert.ok(token);
+				assert.notStrictEqual(token.i, child.i);
+				const me = await api('i', {}, { token: token.i });
+				assert.strictEqual(me.status, 200);
+				assert.strictEqual(me.body.id, child.id);
+			}
+		});
+
+		test('/i は親アカウントの階層を返し、公開APIやアプリトークンでは返さない', async () => {
+			const root = await signup({ username: uniqueUsername('root'), password });
+			const child = await createSubAccount(root);
+			const grandchild = await createSubAccount({ token: child.i });
+
+			const rootMe = await api('i', {}, root);
+			assert.strictEqual(rootMe.status, 200);
+			assert.deepStrictEqual((rootMe.body as any).accountParents, []);
+
+			const childMe = await api('i', {}, { token: child.i });
+			const grandchildMe = await api('i', {}, { token: grandchild.i });
+			assert.strictEqual(childMe.status, 200);
+			assert.strictEqual(grandchildMe.status, 200);
+			assert.deepStrictEqual((grandchildMe.body as any).accountParents, [
+				{ id: child.id, username: childMe.body.username },
+				{ id: root.id, username: root.username },
+			]);
+
+			const publicAnonymous = await api('users/show', { userId: grandchild.id });
+			const publicOtherActor = await api('users/show', { userId: grandchild.id }, root);
+			assert.strictEqual(publicAnonymous.status, 200);
+			assert.strictEqual(publicOtherActor.status, 200);
+			assert.strictEqual('accountParents' in (publicAnonymous.body as any), false);
+			assert.strictEqual('accountParents' in (publicOtherActor.body as any), false);
+
+			const appToken = await createAppToken({ token: grandchild.i }, ['read:account']);
+			const appTokenMe = await api('i', {}, { token: appToken, bearer: true });
+			assert.strictEqual(appTokenMe.status, 200);
+			assert.strictEqual('accountParents' in (appTokenMe.body as any), false);
+		});
+
+		test('親パスワードでアカウントと子アカウントを削除する', async () => {
+			const parent = await signup({ username: uniqueUsername('parent'), password });
+			const children = [await createSubAccount(parent), await createSubAccount(parent)];
+			const familyIds = [parent.id, ...children.map(child => child.id)];
+
+			const rejected = await api('i/delete-account', { password: 'incorrect' }, parent);
+			assert.ok(rejected.status >= 400);
+			await assertDeletedState(familyIds, false);
+
+			const deleted = await api('i/delete-account', { password }, parent);
+			assert.strictEqual(deleted.status, 204);
+			await assertDeletedState(familyIds, true);
+		});
+
+		test('i/delete-sub-account は同じ親TOTPを再利用できない', async () => {
+			await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_DUPLICATED_TOTP', value: '' });
+			const parent = await signup({ username: uniqueUsername('parent'), password });
+			const children = [await createSubAccount(parent), await createSubAccount(parent)];
+			const secret = await enableTwoFactor(parent, password);
+
+			try {
+				await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_DUPLICATED_TOTP', value: '1' });
+				const token = otpToken(secret);
+				const first = await api('i/delete-sub-account', {
+					subAccountId: children[0].id,
+					password,
+					token,
+				}, parent);
+				assert.strictEqual(first.status, 204);
+				await assertDeletedState([children[0].id], true);
+
+				const replay = await api('i/delete-sub-account', {
+					subAccountId: children[1].id,
+					password,
+					token,
+				}, parent);
+				assert.ok(replay.status >= 400);
+				await assertDeletedState([parent.id, children[1].id], false);
+			} finally {
+				await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_DUPLICATED_TOTP', value: '' });
+			}
+		});
+
+		test('親アカウントのTOTPで家族全体を削除できる', async () => {
+			await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_DUPLICATED_TOTP', value: '' });
+			const parent = await signup({ username: uniqueUsername('parent'), password });
+			const children = [await createSubAccount(parent), await createSubAccount(parent)];
+			const parentSecret = await enableTwoFactor(parent, password);
+			const childSecrets = [];
+			for (const child of children) {
+				await setSubAccountPassword(child.id);
+				childSecrets.push(await enableTwoFactor({ token: child.i }, password));
+			}
+			assert.notStrictEqual(parentSecret, childSecrets[0]);
+			assert.notStrictEqual(parentSecret, childSecrets[1]);
+			assert.notStrictEqual(childSecrets[0], childSecrets[1]);
+			const familyIds = [parent.id, ...children.map(child => child.id)];
+
+			try {
+				await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_DUPLICATED_TOTP', value: '1' });
+				const deleted = await api('i/delete-account', {
+					password,
+					token: otpToken(parentSecret),
+				}, parent);
+				assert.strictEqual(deleted.status, 204);
+				await assertDeletedState(familyIds, true);
+			} finally {
+				await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_DUPLICATED_TOTP', value: '' });
+			}
+		});
+	});
 
 	describe('signup', () => {
 		test('不正なユーザー名でアカウントが作成できない', async () => {
