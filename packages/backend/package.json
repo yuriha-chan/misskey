@@ -58,6 +58,7 @@
 		"@fastify/multipart": "10.1.7",
 		"@fastify/static": "10.1.8",
 		"@kitajs/html": "4.2.13",
+		"@misskey-dev/node-http-message-signatures": "0.0.10",
 		"@misskey-dev/emoji-assets": "17.0.3",
 		"@misskey-dev/emoji-data": "17.0.3",
 		"@misskey-dev/sharp-read-bmp": "2.0.0",

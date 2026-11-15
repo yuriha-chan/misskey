@@ -457,6 +457,7 @@ export class ClientServerService {
 				usernameLower: username.toLowerCase(),
 				host: host ?? IsNull(),
 				isSuspended: false,
+				isRemoteSuspended: false,
 				requireSigninToViewContents: false,
 			});
 
@@ -522,6 +523,7 @@ export class ClientServerService {
 				usernameLower: username.toLowerCase(),
 				host: host ?? IsNull(),
 				isSuspended: false,
+				isRemoteSuspended: false,
 			});
 
 			vary(reply.raw, 'Accept');
@@ -566,6 +568,7 @@ export class ClientServerService {
 				id: request.params.user,
 				host: IsNull(),
 				isSuspended: false,
+				isRemoteSuspended: false,
 			});
 
 			if (user == null) {

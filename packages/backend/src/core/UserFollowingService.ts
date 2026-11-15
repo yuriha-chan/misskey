@@ -238,9 +238,7 @@ export class UserFollowingService implements OnModuleInit {
 		followee: {
 			id: MiUser['id']; host: MiUser['host']; uri: MiUser['host']; inbox: MiUser['inbox']; sharedInbox: MiUser['sharedInbox']
 		},
-		follower: {
-			id: MiUser['id']; host: MiUser['host']; uri: MiUser['host']; inbox: MiUser['inbox']; sharedInbox: MiUser['sharedInbox']
-		},
+		follower: MiUser,
 		silent = false,
 		withReplies?: boolean,
 	): Promise<void> {
@@ -253,6 +251,7 @@ export class UserFollowingService implements OnModuleInit {
 			followerId: follower.id,
 			followeeId: followee.id,
 			withReplies: withReplies,
+			isFollowerSuspended: follower.isSuspended,
 
 			// 非正規化
 			followerHost: follower.host,
@@ -781,6 +780,7 @@ export class UserFollowingService implements OnModuleInit {
 		return this.followingsRepository.createQueryBuilder('following')
 			.select('following.followeeId')
 			.where('following.followerId = :followerId', { followerId: userId })
+			.andWhere('following.isFollowerSuspended = false')
 			.getMany();
 	}
 
@@ -790,6 +790,7 @@ export class UserFollowingService implements OnModuleInit {
 			where: {
 				followerId,
 				followeeId,
+				isFollowerSuspended: false,
 			},
 		});
 	}
