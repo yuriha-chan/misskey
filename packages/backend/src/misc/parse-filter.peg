@@ -1,0 +1,47 @@
+Expression
+  = first:Term rest:Args* {return ["and", first, ...rest]}
+
+Term
+  = "(" _ func:Function args:Args* _ ")" { return [func, ...args] }
+  / Leaf
+
+Args "args"
+  = __ expr:Term { return expr; }
+
+Function "function"
+  = [a-zA-Z_\-]+ { return text(); }
+
+Leaf "leaf"
+  = Number / RegExp / SlowRegExp / Keyword
+
+Number "number"
+  = [0-9.]+ { return parseFloat(text()); }
+
+Keyword "keyword"
+  = '"' content:DQuotedText '"' { return ['keyword', content]; }
+  / "'" content:SQuotedText "'" { return ['keyword', content]; }
+  / [^/'" \t()0-9.][^/'" \t()]* { return ['keyword', text()]; }
+
+DQuotedText "dQuotedText"
+  = [^"]* { return text(); }
+
+SQuotedText "sQuotedText"
+  = [^']* { return text(); }
+
+RegExpText
+  = [^/]+ { return text(); }
+
+RegExpModifier
+  = [^/ \t()]* { return text(); }
+
+RegExp "regexp"
+  = "/" content:RegExpText "/"  modifier:RegExpModifier { return ["regexp", content, modifier]; }
+
+SlowRegExp "slowRegexp"
+  = "slow/" content:RegExpText "/" modifier:RegExpModifier { return ["slowRegexp", content, modifier]; }
+
+__ "whitespace"
+  = [ \t]+
+
+_ "whitespace"
+  = [ \t]*

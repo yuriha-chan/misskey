@@ -189,6 +189,7 @@ type Option = {
 	uri?: string | null;
 	url?: string | null;
 	app?: MiApp | null;
+	isR18?: boolean | null;
 };
 
 @Injectable()
@@ -472,8 +473,17 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && data.channel == null) {
 			const sensitiveWords = this.meta.sensitiveWords;
-			const sensitiveWordsTarget = data.cw ?? data.text ?? '';
-			if (sensitiveWords.length > 0 && this.utilityService.isKeyWordIncluded([sensitiveWordsTarget, ...extractUrlsForKeyWordCheck(sensitiveWordsTarget)].join('\n'), sensitiveWords)) {
+			const sensitiveWordsTarget = (data.cw != null && data.cw !== '') ? data.cw : (data.text ?? '');
+			const sensitiveWordsUrls = extractUrlsForKeyWordCheck(sensitiveWordsTarget).join('\n');
+			const sensitiveWordsUseCw = data.cw != null && data.cw !== '';
+			if (sensitiveWords.length > 0 && this.utilityService.isKeyWordIncluded(
+				sensitiveWords,
+				sensitiveWordsUseCw ? (data.text ?? '') : [data.text ?? '', sensitiveWordsUrls].join('\n'),
+				sensitiveWordsUseCw ? [data.cw, sensitiveWordsUrls].join('\n') : '',
+				data.poll ? data.poll.choices.join('\n') : '',
+				data.files ? data.files.map(f => ({ isSensitive: f.isSensitive })) : [],
+				user.host,
+			)) {
 				data.visibility = 'home';
 			} else if ((await this.roleService.getUserPolicies(user.id)).canPublicNote === false) {
 				data.visibility = 'home';
@@ -484,10 +494,23 @@ export class NoteCreateService implements OnApplicationShutdown {
 			cw: data.cw,
 			text: data.text,
 			pollChoices: data.poll?.choices,
+			files: data.files ? data.files.map(f => ({ isSensitive: f.isSensitive })) : [],
+			instance: user.host,
 		}, this.meta.prohibitedWords);
 
 		if (hasProhibitedWords) {
 			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
+		}
+
+		if (this.meta.r18Filter.length > 0) {
+			const isR18Match = this.utilityService.isKeyWordIncluded(
+				this.meta.r18Filter,
+				data.text ?? '', data.cw ?? '',
+				data.poll ? data.poll.choices.join('\n') : '',
+				data.files ? data.files.map(f => ({ isSensitive: f.isSensitive })) : [],
+				user.host,
+			);
+			if (isR18Match) data.isR18 = true;
 		}
 
 		const inSilencedInstance = this.utilityService.isSilencedHost(this.meta.silencedHosts, user.host);
@@ -673,6 +696,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				: [],
 
 			attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
+			isR18: data.isR18 ?? false,
 
 			// 以下非正規化データ
 			replyUserId: data.reply ? data.reply.userId : null,
@@ -1247,7 +1271,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 	}
 
-	public checkProhibitedWordsContain(content: Parameters<UtilityService['concatNoteContentsForKeyWordCheck']>[0], prohibitedWords?: string[]) {
+	public checkProhibitedWordsContain(content: {
+		cw?: string | null;
+		text?: string | null;
+		pollChoices?: string[] | null;
+		others?: string[] | null;
+		files?: { isSensitive: boolean }[];
+		instance?: string | null;
+	}, prohibitedWords?: string[]) {
 		if (prohibitedWords == null) {
 			prohibitedWords = this.meta.prohibitedWords;
 		}
@@ -1256,22 +1287,26 @@ export class NoteCreateService implements OnApplicationShutdown {
 			return false;
 		}
 
+		const cw = content.cw ?? '';
+		const urls = [
+			...extractUrlsForKeyWordCheck(cw),
+			...extractUrlsForKeyWordCheck(content.text ?? ''),
+		];
+		const text = [content.text ?? '', ...(content.others ?? []), ...urls].join('\n');
+		const cwForCheck = cw === '' ? '' : [cw, ...urls].join('\n');
+
 		if (
 			this.utilityService.isKeyWordIncluded(
-				this.utilityService.concatNoteContentsForKeyWordCheck({
-					...content,
-					others: [
-						...(content.others ?? []),
-						...extractUrlsForKeyWordCheck(content.cw ?? ''),
-						...extractUrlsForKeyWordCheck(content.text ?? ''),
-					],
-				}),
 				prohibitedWords,
+				text,
+				cwForCheck,
+				content.pollChoices ? content.pollChoices.join('\n') : '',
+				content.files ?? [],
+				content.instance ?? null,
 			)
 		) {
 			return true;
 		}
-
 		return false;
 	}
 
