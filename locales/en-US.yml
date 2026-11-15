@@ -3280,6 +3280,10 @@ _search:
   pleaseEnterServerHost: "Enter the server host"
   pleaseSelectUser: "Select user"
   serverHostPlaceholder: "Example: misskey.example.com"
+  recentLocalTimeline: "Recent local timeline"
+  recentHomeTimeline: "Recent home timeline"
+  specifiedToMe: "Direct (specified visibility) notes addressed to me"
+  includeBot: "Include notes posted by bot accounts"
   postFrom: "Date posted from"
   postTo: "Date posted to"
 _serverSetupWizard:
