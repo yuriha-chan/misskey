@@ -8,9 +8,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<XTitlebar v-if="prefer.r.showTitlebar.value" style="flex-shrink: 0;"/>
 
 	<div :class="$style.nonTitlebarArea">
-		<XSidebar v-if="!isMobile && prefer.r['deck.navbarPosition'].value === 'left'"/>
+		<XSidebar v-if="!isMobile && prefer.r['deck.navbarPosition'].value === 'left'" :showContent="true"/>
 
-		<div :class="[$style.main, { [$style.withWallpaper]: withWallpaper, [$style.withSidebarAndTitlebar]: !isMobile && prefer.r['deck.navbarPosition'].value === 'left' && prefer.r.showTitlebar.value }]" :style="{ backgroundImage: prefer.s['deck.wallpaper'] != null ? `url(${ prefer.s['deck.wallpaper'] })` : '' }">
+		<div :class="[$style.main, { [$style.mobile]: isMobile, [$style.withWallpaper]: withWallpaper, [$style.withSidebarAndTitlebar]: !isMobile && prefer.r['deck.navbarPosition'].value === 'left' && prefer.r.showTitlebar.value }]" :style="{ backgroundImage: prefer.s['deck.wallpaper'] != null ? `url(${ prefer.s['deck.wallpaper'] })` : '' }">
 			<XNavbarH v-if="!isMobile && prefer.r['deck.navbarPosition'].value === 'top'" :acrylic="withWallpaper"/>
 
 			<XReloadSuggestion v-if="shouldSuggestReload"/>
@@ -286,6 +286,14 @@ window.document.documentElement.style.scrollBehavior = 'auto';
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
+
+	&.mobile {
+		padding-bottom: var(--MI-minBottomSpacingMobile);
+
+		.columns {
+			--MI-minBottomSpacing: 0px;
+		}
+	}
 
 	&:not(.withWallpaper) {
 		background: var(--MI_THEME-deckBg);

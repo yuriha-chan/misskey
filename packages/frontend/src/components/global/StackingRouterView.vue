@@ -27,7 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<div v-if="i > 0" :class="$style.tabBorder"></div>
 			<div :class="$style.tabContent" class="_pageContainer" @click.stop="">
-				<Suspense :timeout="0">
+				<Suspense :timeout="0" @resolve="onMainContentLoaded">
 					<component :is="tab.component" v-bind="Object.fromEntries(tab.props)"/>
 
 					<template #fallback>
@@ -41,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { inject, provide, shallowRef } from 'vue';
+import { inject, nextTick, provide, shallowRef } from 'vue';
 import type { Router } from '@/router.js';
 import { prefer } from '@/preferences.js';
 import MkLoadingPage from '@/pages/_loading_.vue';
@@ -51,6 +51,15 @@ import { deepEqual } from '@/utility/deep-equal.js';
 const props = defineProps<{
 	router?: Router;
 }>();
+
+const emit = defineEmits<{
+	(e: 'mainContentLoaded'): void;
+}>();
+
+async function onMainContentLoaded() {
+	await nextTick();
+	emit('mainContentLoaded');
+}
 
 const router = props.router ?? inject(DI.router);
 

@@ -355,6 +355,9 @@ definePage(() => INFO.value);
 	}
 
 	> .nav {
+		padding-bottom: var(--MI-minBottomSpacing, 0px);
+		box-sizing: border-box;
+
 		.lxpfedzu {
 			> .banner {
 				margin: 16px;
