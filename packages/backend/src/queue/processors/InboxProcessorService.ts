@@ -92,6 +92,11 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			return `Blocked request: ${actorHost}`;
 		}
 
+		const actor = await this.apDbResolverService.getUserFromApId(actorUri);
+		if (actor?.isSuspended && !(isDelete(activity) && getApId(activity.object) === actorUri)) {
+			return 'actor has been suspended';
+		}
+
 		if (signature) {
 			// inbox blocking based on signature keyId
 			const host = this.utilityService.toPuny(new URL(signature.keyId).hostname);
